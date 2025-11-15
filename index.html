@@ -222,6 +222,104 @@
             color: white;
         }
 
+        .settings-btn {
+            padding: 8px 20px;
+            font-size: 14px;
+            border: 2px solid #999;
+            background: white;
+            color: #666;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: all 0.3s;
+        }
+
+        .settings-btn:hover {
+            background: #f5f5f5;
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .settings-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .settings-modal.show {
+            display: flex;
+        }
+
+        .settings-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 500px;
+            width: 90%;
+            animation: slideIn 0.3s ease;
+        }
+
+        .settings-content h2 {
+            color: #667eea;
+            font-size: 28px;
+            margin-bottom: 25px;
+        }
+
+        .settings-option {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .settings-option:last-child {
+            border-bottom: none;
+        }
+
+        .settings-option label {
+            display: flex;
+            align-items: center;
+            font-size: 16px;
+            color: #333;
+            cursor: pointer;
+        }
+
+        .settings-option input[type="checkbox"] {
+            margin-right: 12px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .settings-option-desc {
+            font-size: 13px;
+            color: #666;
+            margin-top: 8px;
+            margin-left: 32px;
+        }
+
+        .settings-close-btn {
+            margin-top: 25px;
+            padding: 12px 30px;
+            font-size: 16px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .settings-close-btn:hover {
+            background: #5568d3;
+        }
+
         #lengthSelect {
             padding: 8px 15px;
             font-size: 16px;
@@ -249,6 +347,9 @@
             <button id="learnBtn" class="mode-btn" onclick="setMode('learn')">Learn</button>
             <button id="playBtn" class="mode-btn active" onclick="setMode('play')">Play</button>
             <button id="practiceBtn" class="mode-btn" onclick="setMode('practice')">Practice</button>
+            <div>
+                <button class="settings-btn" onclick="openSettings()">⚙ Settings</button>
+            </div>
         </div>
 
         <div id="learnLevelInfo" style="display: none; text-align: center; margin-bottom: 15px; color: #666; font-size: 14px;">
@@ -336,6 +437,23 @@
         </div>
     </div>
 
+    <!-- Settings Modal -->
+    <div class="settings-modal" id="settingsModal">
+        <div class="settings-content">
+            <h2>Settings</h2>
+
+            <div class="settings-option">
+                <label>
+                    <input type="checkbox" id="shavianUIToggle" onchange="toggleShavianUI()">
+                    <span>Display UI in Shavian</span>
+                </label>
+                <div class="settings-option-desc">Show labels and text in Shavian alphabet instead of Latin</div>
+            </div>
+
+            <button class="settings-close-btn" onclick="closeSettings()">Close</button>
+        </div>
+    </div>
+
     <script>
         // Words will be loaded from JSON file
         let wordsByLength = {};
@@ -361,6 +479,65 @@
         let currentLayout = 'imperial'; // 'imperial' or 'qwerty'
         let useLigatures = true; // Toggle for ligatures
         let selectedLevel = 'auto'; // Level selection: 'auto' or 1-7
+        let useShavianUI = false; // Toggle for Shavian UI
+
+        // UI text translations
+        const translations = {
+            latin: {
+                subtitle: '𐑖𐑱𐑝𐑾𐑯 𐑑𐑲𐑐𐑦𐑙 𐑐𐑮𐑨𐑒𐑑𐑦𐑕',
+                learn: 'Learn',
+                play: 'Play',
+                practice: 'Practice',
+                settings: '⚙ Settings',
+                keyboardLayout: 'Keyboard Layout:',
+                ligatures: 'Use automatic ligatures (e.g., type 𐑩+𐑮 → 𐑼)',
+                lesson: 'Lesson:',
+                auto: 'Auto (progress based)',
+                wordLength: 'Word Length:',
+                characters: 'characters',
+                lesson_label: 'Lesson',
+                level_label: 'Level',
+                words: 'Words',
+                accuracy: 'Accuracy',
+                instructions: 'Type the word shown above. Press Enter or Space to move to the next word.',
+                congratulations: 'Congratulations!',
+                completed50: 'You completed 50 words!',
+                accuracy_final: 'Accuracy:',
+                levelReached: 'Level Reached:',
+                practiceAgain: 'Practice Again',
+                settingsTitle: 'Settings',
+                displayShavian: 'Display UI in Shavian',
+                displayShavianDesc: 'Show labels and text in Shavian alphabet instead of Latin',
+                close: 'Close'
+            },
+            shavian: {
+                subtitle: 'Shavian Typing Practice',
+                learn: '𐑤𐑻𐑯',
+                play: '𐑐𐑤𐑱',
+                practice: '𐑐𐑮𐑨𐑒𐑑𐑦𐑕',
+                settings: '⚙ 𐑕𐑧𐑑𐑦𐑙𐑟',
+                keyboardLayout: '𐑒𐑰𐑚𐑪𐑮𐑛 𐑤𐑱𐑬𐑑:',
+                ligatures: '𐑿𐑟 𐑷𐑑𐑩𐑥𐑨𐑑𐑦𐑒 𐑤𐑦𐑜𐑩𐑗𐑻𐑟 (e.g., type 𐑩+𐑮 → 𐑼)',
+                lesson: '𐑤𐑧𐑕𐑩𐑯:',
+                auto: '𐑷𐑑𐑴 (𐑐𐑮𐑴𐑜𐑮𐑧𐑕 𐑚𐑱𐑕𐑑)',
+                wordLength: '𐑢𐑻𐑛 𐑤𐑧𐑙𐑔:',
+                characters: '𐑒𐑨𐑮𐑩𐑒𐑑𐑼𐑟',
+                lesson_label: '𐑤𐑧𐑕𐑩𐑯',
+                level_label: '𐑤𐑧𐑝𐑩𐑤',
+                words: '𐑢𐑻𐑛𐑟',
+                accuracy: '𐑨𐑒𐑘𐑫𐑮𐑩𐑕𐑦',
+                instructions: '𐑑𐑲𐑐 𐑞 𐑢𐑻𐑛 𐑖𐑴𐑯 𐑩𐑚𐑳𐑝. 𐑐𐑮𐑧𐑕 𐑧𐑯𐑑𐑼 𐑹 𐑕𐑐𐑱𐑕 𐑑 𐑥𐑵𐑝 𐑑 𐑞 𐑯𐑧𐑒𐑕𐑑 𐑢𐑻𐑛.',
+                congratulations: '𐑒𐑩𐑙𐑜𐑮𐑨𐑗𐑫𐑤𐑱𐑖𐑩𐑯𐑟!',
+                completed50: '𐑿 𐑒𐑩𐑥𐑐𐑤𐑰𐑑𐑩𐑛 50 𐑢𐑻𐑛𐑟!',
+                accuracy_final: '𐑨𐑒𐑘𐑫𐑮𐑩𐑕𐑦:',
+                levelReached: '𐑤𐑧𐑝𐑩𐑤 𐑮𐑰𐑗𐑑:',
+                practiceAgain: '𐑐𐑮𐑨𐑒𐑑𐑦𐑕 𐑩𐑜𐑱𐑯',
+                settingsTitle: '𐑕𐑧𐑑𐑦𐑙𐑟',
+                displayShavian: '𐑛𐑦𐑕𐑐𐑤𐑱 UI 𐑦𐑯 𐑖𐑱𐑝𐑾𐑯',
+                displayShavianDesc: '𐑖𐑴 𐑤𐑱𐑚𐑩𐑤𐑟 𐑯 𐑑𐑧𐑒𐑕𐑑 𐑦𐑯 𐑖𐑱𐑝𐑾𐑯 𐑨𐑤𐑓𐑩𐑚𐑧𐑑 𐑦𐑯𐑕𐑑𐑧𐑛 𐑝 𐑤𐑨𐑑𐑦𐑯',
+                close: '𐑒𐑤𐑴𐑟'
+            }
+        };
 
         const wordDisplay = document.getElementById('wordDisplay');
         const typingInput = document.getElementById('typingInput');
@@ -405,14 +582,7 @@
                 mode === 'learn' ? 'block' : 'none';
 
             // Update stat label based on mode
-            const levelLabel = document.getElementById('levelLabel');
-            if (mode === 'learn') {
-                levelLabel.textContent = 'Lesson';
-            } else if (mode === 'practice') {
-                levelLabel.textContent = 'Level';
-            } else {
-                levelLabel.textContent = 'Level';
-            }
+            updateUILanguage();
 
             // Reset and reload
             resetPractice();
@@ -825,8 +995,85 @@
             }
         });
 
+        // Settings functions
+        function openSettings() {
+            document.getElementById('settingsModal').classList.add('show');
+        }
+
+        function closeSettings() {
+            document.getElementById('settingsModal').classList.remove('show');
+        }
+
+        function toggleShavianUI() {
+            useShavianUI = document.getElementById('shavianUIToggle').checked;
+            localStorage.setItem('useShavianUI', useShavianUI);
+            updateUILanguage();
+        }
+
+        function updateUILanguage() {
+            const lang = useShavianUI ? 'shavian' : 'latin';
+            const t = translations[lang];
+
+            // Update subtitle
+            document.querySelector('.subtitle').textContent = t.subtitle;
+
+            // Update mode buttons
+            document.getElementById('learnBtn').textContent = t.learn;
+            document.getElementById('playBtn').textContent = t.play;
+            document.getElementById('practiceBtn').textContent = t.practice;
+            document.querySelector('.settings-btn').textContent = t.settings;
+
+            // Update Learn mode labels
+            document.querySelector('#learnLevelInfo label').textContent = t.keyboardLayout;
+            document.querySelector('#ligatureToggleContainer label').innerHTML =
+                `<input type="checkbox" id="ligatureToggle" onchange="onLigatureToggle()" ${useLigatures ? 'checked' : ''}> ${t.ligatures}`;
+            document.querySelectorAll('#learnLevelInfo label')[1].textContent = t.lesson;
+
+            // Update Practice mode label
+            document.querySelector('#practiceLengthSelector label').textContent = t.wordLength;
+
+            // Update stats labels
+            document.querySelector('.stat-label').textContent =
+                currentMode === 'learn' ? t.lesson_label : t.level_label;
+            document.querySelectorAll('.stat-label')[1].textContent = t.words;
+            document.querySelectorAll('.stat-label')[2].textContent = t.accuracy;
+
+            // Update instructions
+            document.querySelector('.instructions').textContent = t.instructions;
+
+            // Update completion modal
+            document.querySelector('#completionModal h2').textContent = t.congratulations;
+            document.querySelector('#completionModal p').textContent = t.completed50;
+            document.querySelectorAll('.stat-row')[0].childNodes[0].textContent = t.accuracy_final + ' ';
+            document.querySelectorAll('.stat-row')[1].childNodes[0].textContent = t.levelReached + ' ';
+            document.querySelector('#completionModal button').textContent = t.practiceAgain;
+
+            // Update settings modal
+            document.querySelector('#settingsModal h2').textContent = t.settingsTitle;
+            document.querySelector('#shavianUIToggle + span').textContent = t.displayShavian;
+            document.querySelector('.settings-option-desc').textContent = t.displayShavianDesc;
+            document.querySelector('.settings-close-btn').textContent = t.close;
+
+            // Update lesson dropdown Auto option
+            const autoOption = document.querySelector('#levelSelect option[value="auto"]');
+            if (autoOption) {
+                autoOption.textContent = t.auto;
+            }
+        }
+
+        // Load saved preference
+        function loadPreferences() {
+            const savedPref = localStorage.getItem('useShavianUI');
+            if (savedPref !== null) {
+                useShavianUI = savedPref === 'true';
+                document.getElementById('shavianUIToggle').checked = useShavianUI;
+            }
+        }
+
         // Start the app
+        loadPreferences();
         init();
+        updateUILanguage();
     </script>
 </body>
 </html>
