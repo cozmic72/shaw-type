@@ -643,6 +643,7 @@
         // Mode switching
         function setMode(mode) {
             currentMode = mode;
+            localStorage.setItem('currentMode', currentMode);
 
             // Update button states
             document.getElementById('learnBtn').classList.toggle('active', mode === 'learn');
@@ -669,6 +670,7 @@
 
         function onLayoutChangeSettings() {
             currentLayout = document.getElementById('layoutSelectSettings').value;
+            localStorage.setItem('keyboardLayout', currentLayout);
             // Show/hide ligature toggle based on layout
             // Only show for imperial, qwerty, and jafl
             const supportsLigatures = currentLayout === 'imperial' ||
@@ -682,6 +684,7 @@
 
         function onLigatureToggleSettings() {
             useLigatures = document.getElementById('ligatureToggleSettings').checked;
+            localStorage.setItem('useLigatures', useLigatures);
             updateLevelSelector();
             loadNewWord();
         }
@@ -1205,12 +1208,44 @@
             }
         }
 
-        // Load saved preference
+        // Load saved preferences
         function loadPreferences() {
-            const savedPref = localStorage.getItem('useShavianUI');
-            if (savedPref !== null) {
-                useShavianUI = savedPref === 'true';
+            // Load Shavian UI preference
+            const savedShavianUI = localStorage.getItem('useShavianUI');
+            if (savedShavianUI !== null) {
+                useShavianUI = savedShavianUI === 'true';
                 document.getElementById('shavianUIToggle').checked = useShavianUI;
+            }
+
+            // Load keyboard layout
+            const savedLayout = localStorage.getItem('keyboardLayout');
+            if (savedLayout !== null) {
+                currentLayout = savedLayout;
+            }
+
+            // Load ligature preference
+            const savedLigatures = localStorage.getItem('useLigatures');
+            if (savedLigatures !== null) {
+                useLigatures = savedLigatures === 'true';
+            }
+
+            // Load current mode
+            const savedMode = localStorage.getItem('currentMode');
+            if (savedMode !== null) {
+                currentMode = savedMode;
+                // Update button states
+                document.getElementById('learnBtn').classList.remove('active');
+                document.getElementById('playBtn').classList.remove('active');
+                document.getElementById('practiceBtn').classList.remove('active');
+                if (currentMode === 'learn') {
+                    document.getElementById('learnBtn').classList.add('active');
+                    document.getElementById('learnLevelInfo').style.display = 'block';
+                } else if (currentMode === 'play') {
+                    document.getElementById('playBtn').classList.add('active');
+                } else if (currentMode === 'practice') {
+                    document.getElementById('practiceBtn').classList.add('active');
+                    document.getElementById('practiceLengthSelector').style.display = 'block';
+                }
             }
         }
 
