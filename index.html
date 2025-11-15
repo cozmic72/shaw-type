@@ -1298,6 +1298,9 @@
                             const beforeLigature = inputChars.slice(0, -2).join('');
                             const compound = COMPONENT_TO_LIGATURE[ligatureKey];
                             typingInput.value = beforeLigature + compound;
+                            console.log('Ligature formed:', ligatureKey, '→', compound);
+                        } else {
+                            console.log('No ligature found for:', ligatureKey, 'Available:', Object.keys(COMPONENT_TO_LIGATURE));
                         }
                     } else {
                         // Wrong continuation - the pending character was wrong
@@ -1341,38 +1344,30 @@
         });
 
         typingInput.addEventListener('keydown', (e) => {
-            // Allow Enter or Space to skip to next word
+            // Allow Enter or Space to advance - but only if word is correct
             if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
                 const userInput = typingInput.value.trim();
 
                 if (userInput.length > 0) {
-                    // Resolve any pending ligature as incorrect
-                    if (hasPendingLigature) {
-                        totalLettersTyped++;
-                        currentLevelLettersTyped++;
-                        hasPendingLigature = false;
-                    }
-
-                    // Count any remaining untyped characters as errors (using expanded forms)
+                    // Check if word is correct using expanded forms
                     const inputExpanded = expandLigatures(userInput);
                     const wordExpanded = expandLigatures(currentWord);
 
-                    if (inputExpanded.length < wordExpanded.length) {
-                        // User skipped without completing - count remaining letters as typed incorrectly
-                        const remainingLetters = wordExpanded.length - inputExpanded.length;
-                        totalLettersTyped += remainingLetters;
-                        currentLevelLettersTyped += remainingLetters;
-                    }
-
-                    // If word matches exactly (using expanded forms), count as completed
+                    // Only advance if the word matches exactly
                     if (inputExpanded.length === wordExpanded.length &&
                         inputExpanded.every((char, i) => char === wordExpanded[i])) {
-                        wordsCompleted++;
-                    }
+                        // Resolve any pending ligature as correct
+                        if (hasPendingLigature) {
+                            // The pending ligature was correct
+                            hasPendingLigature = false;
+                        }
 
-                    updateStats();
-                    loadNewWord();
+                        wordsCompleted++;
+                        updateStats();
+                        loadNewWord();
+                    }
+                    // If word doesn't match, do nothing - user must keep typing or fix it
                 }
             }
         });
