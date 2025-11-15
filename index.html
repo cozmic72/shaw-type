@@ -1255,7 +1255,21 @@
         let hasPendingLigature = false; // Track if last character was a ligature candidate
 
         typingInput.addEventListener('input', (e) => {
-            const userInput = e.target.value;
+            let userInput = e.target.value;
+
+            // Check if we can form a ligature from the last two characters (always)
+            const inputChars = Array.from(userInput);
+            if (inputChars.length >= 2) {
+                const lastTwo = inputChars[inputChars.length - 2] + inputChars[inputChars.length - 1];
+                if (COMPONENT_TO_LIGATURE[lastTwo]) {
+                    // Form the ligature
+                    const beforeLigature = inputChars.slice(0, -2).join('');
+                    const compound = COMPONENT_TO_LIGATURE[lastTwo];
+                    userInput = beforeLigature + compound;
+                    typingInput.value = userInput;
+                    console.log('Ligature formed:', lastTwo, '→', compound);
+                }
+            }
 
             // Expand to component characters for accurate tracking
             const inputExpanded = expandLigatures(userInput);
@@ -1286,22 +1300,6 @@
                         // Ligature completed correctly - count both characters as correct
                         correctLetters += 2;
                         currentLevelCorrectLetters += 2;
-
-                        // Replace the two component characters with the compound ligature
-                        const inputChars = Array.from(userInput);
-                        const firstChar = inputChars[inputChars.length - 2];
-                        const secondChar = inputChars[inputChars.length - 1];
-                        const ligatureKey = firstChar + secondChar;
-
-                        if (COMPONENT_TO_LIGATURE[ligatureKey]) {
-                            // Replace last two characters with the ligature
-                            const beforeLigature = inputChars.slice(0, -2).join('');
-                            const compound = COMPONENT_TO_LIGATURE[ligatureKey];
-                            typingInput.value = beforeLigature + compound;
-                            console.log('Ligature formed:', ligatureKey, '→', compound);
-                        } else {
-                            console.log('No ligature found for:', ligatureKey, 'Available:', Object.keys(COMPONENT_TO_LIGATURE));
-                        }
                     } else {
                         // Wrong continuation - the pending character was wrong
                         totalLettersTyped++;
