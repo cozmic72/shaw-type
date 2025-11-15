@@ -227,8 +227,14 @@
         <h1>𐑖𐑱𐑝𐑾𐑯 Typing Practice</h1>
 
         <div class="mode-selector" style="text-align: center; margin-bottom: 20px;">
-            <button id="progressiveBtn" class="mode-btn active" onclick="setMode('progressive')">Progressive</button>
+            <button id="learnBtn" class="mode-btn active" onclick="setMode('learn')">Learn</button>
+            <button id="playBtn" class="mode-btn" onclick="setMode('play')">Play</button>
             <button id="practiceBtn" class="mode-btn" onclick="setMode('practice')">Practice</button>
+        </div>
+
+        <div id="learnLevelInfo" style="text-align: center; margin-bottom: 15px; color: #666; font-size: 14px;">
+            <div id="learnLevelName" style="font-weight: bold; color: #667eea;"></div>
+            <div id="learnLevelDesc" style="font-size: 12px; margin-top: 5px;"></div>
         </div>
 
         <div id="practiceLengthSelector" style="display: none; text-align: center; margin-bottom: 20px;">
@@ -289,6 +295,7 @@
     <script>
         // Words will be loaded from JSON file
         let wordsByLength = {};
+        let learnWords = {};
         let wordsLoaded = false;
 
         let currentWord = '';
@@ -299,7 +306,7 @@
         let recentWords = []; // Track recent words to avoid repeats
 
         // Mode management
-        let currentMode = 'progressive'; // 'progressive' or 'practice'
+        let currentMode = 'learn'; // 'learn', 'play', or 'practice'
         let practiceLength = '3'; // Default practice length
 
         const wordDisplay = document.getElementById('wordDisplay');
@@ -322,12 +329,15 @@
             currentMode = mode;
 
             // Update button states
-            document.getElementById('progressiveBtn').classList.toggle('active', mode === 'progressive');
+            document.getElementById('learnBtn').classList.toggle('active', mode === 'learn');
+            document.getElementById('playBtn').classList.toggle('active', mode === 'play');
             document.getElementById('practiceBtn').classList.toggle('active', mode === 'practice');
 
-            // Show/hide practice selector
+            // Show/hide selectors
             document.getElementById('practiceLengthSelector').style.display =
                 mode === 'practice' ? 'block' : 'none';
+            document.getElementById('learnLevelInfo').style.display =
+                mode === 'learn' ? 'block' : 'none';
 
             // Reset and reload
             resetPractice();
@@ -342,7 +352,19 @@
         function getWordPool() {
             let pool = [];
 
-            if (currentMode === 'practice') {
+            if (currentMode === 'learn') {
+                // Learn mode: use keyboard-based progressive levels
+                const level = Math.min(getCurrentLevel(), 6); // Learn has 6 levels
+                const levelData = learnWords[level];
+                if (levelData && levelData.words) {
+                    pool = levelData.words;
+                    // Update level info display
+                    document.getElementById('learnLevelName').textContent =
+                        `Level ${level}: ${levelData.name}`;
+                    document.getElementById('learnLevelDesc').textContent =
+                        levelData.description;
+                }
+            } else if (currentMode === 'practice') {
                 // Practice mode: use selected length(s)
                 if (practiceLength.includes('-')) {
                     // Range like "4-6"
@@ -360,7 +382,7 @@
                     }
                 }
             } else {
-                // Progressive mode: use level-based selection
+                // Play mode: use level-based selection
                 const level = getCurrentLevel();
 
                 if (level === 1) {
@@ -387,12 +409,22 @@
         // Load words from JSON
         async function loadWords() {
             try {
-                const response = await fetch('words.json');
-                const data = await response.json();
+                // Load practice words
+                const wordsResponse = await fetch('words.json');
+                const wordsData = await wordsResponse.json();
                 // Convert string keys to numbers
-                Object.keys(data).forEach(key => {
-                    wordsByLength[parseInt(key)] = data[key];
+                Object.keys(wordsData).forEach(key => {
+                    wordsByLength[parseInt(key)] = wordsData[key];
                 });
+
+                // Load learn mode words
+                const learnResponse = await fetch('learn_words.json');
+                const learnData = await learnResponse.json();
+                // Convert string keys to numbers
+                Object.keys(learnData).forEach(key => {
+                    learnWords[parseInt(key)] = learnData[key];
+                });
+
                 wordsLoaded = true;
                 return true;
             } catch (error) {
