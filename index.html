@@ -487,6 +487,22 @@
 
             <div class="settings-option">
                 <label style="display: block; margin-bottom: 10px; color: #666; font-weight: normal;">
+                    English Dialect
+                </label>
+                <div style="display: flex; gap: 20px;">
+                    <label style="cursor: pointer;">
+                        <input type="radio" name="dialectSettings" value="gb" checked onchange="onDialectChangeSettings()" style="margin-right: 8px;">
+                        British
+                    </label>
+                    <label style="cursor: pointer;">
+                        <input type="radio" name="dialectSettings" value="us" onchange="onDialectChangeSettings()" style="margin-right: 8px;">
+                        American
+                    </label>
+                </div>
+            </div>
+
+            <div class="settings-option">
+                <label style="display: block; margin-bottom: 10px; color: #666; font-weight: normal;">
                     Keyboard Layout
                 </label>
                 <select id="layoutSelectSettings" onchange="onLayoutChangeSettings()" style="width: 100%; padding: 8px; font-size: 16px; border: 2px solid #e0e0e0; border-radius: 8px;">
@@ -538,6 +554,22 @@
         <div class="settings-content" style="max-width: 600px;">
             <h2>Welcome to Shaw Type!</h2>
             <p style="margin: 15px 0; color: #666;">Choose your preferences to get started:</p>
+
+            <div class="settings-option">
+                <label style="display: block; margin-bottom: 10px; color: #666; font-weight: normal;">
+                    English Dialect
+                </label>
+                <div style="display: flex; gap: 20px;">
+                    <label style="cursor: pointer;">
+                        <input type="radio" name="dialectWelcome" value="gb" checked onchange="onDialectChangeWelcome()" style="margin-right: 8px;">
+                        British
+                    </label>
+                    <label style="cursor: pointer;">
+                        <input type="radio" name="dialectWelcome" value="us" onchange="onDialectChangeWelcome()" style="margin-right: 8px;">
+                        American
+                    </label>
+                </div>
+            </div>
 
             <div class="settings-option">
                 <label style="display: block; margin-bottom: 10px; color: #666; font-weight: normal;">
@@ -655,6 +687,7 @@
         let useLigatures = true; // Toggle for ligatures
         let selectedLevel = 'auto'; // Level selection: 'auto' or 1-7
         let useShavianUI = false; // Toggle for Shavian UI
+        let currentDialect = 'gb'; // 'gb' or 'us' - English dialect for word lists
 
         // UI text translations
         const translations = {
@@ -834,6 +867,19 @@
 
             // Reset and reload
             resetPractice();
+        }
+
+        function onDialectChangeSettings() {
+            const selected = document.querySelector('input[name="dialectSettings"]:checked');
+            if (selected) {
+                currentDialect = selected.value;
+                localStorage.setItem('dialect', currentDialect);
+                // Reload words with new dialect
+                loadWords().then(() => {
+                    updateLevelSelector();
+                    loadNewWord();
+                });
+            }
         }
 
         function onLayoutChangeSettings() {
@@ -1024,7 +1070,7 @@
         async function loadWords() {
             try {
                 // Load practice words
-                const wordsResponse = await fetch('words.json');
+                const wordsResponse = await fetch(`words_${currentDialect}.json`);
                 const wordsData = await wordsResponse.json();
                 // Convert string keys to numbers
                 Object.keys(wordsData).forEach(key => {
@@ -1032,7 +1078,7 @@
                 });
 
                 // Load learn mode words for Imperial
-                const learnImperialResponse = await fetch('learn_words_imperial.json');
+                const learnImperialResponse = await fetch(`learn_words_imperial_${currentDialect}.json`);
                 const learnImperialData = await learnImperialResponse.json();
                 // Convert string keys to numbers
                 Object.keys(learnImperialData).forEach(key => {
@@ -1040,7 +1086,7 @@
                 });
 
                 // Load learn mode words for QWERTY
-                const learnQwertyResponse = await fetch('learn_words_qwerty.json');
+                const learnQwertyResponse = await fetch(`learn_words_qwerty_${currentDialect}.json`);
                 const learnQwertyData = await learnQwertyResponse.json();
                 // Convert string keys to numbers
                 Object.keys(learnQwertyData).forEach(key => {
@@ -1048,7 +1094,7 @@
                 });
 
                 // Load learn mode words for Imperial (no ligatures)
-                const learnImperialNoLigResponse = await fetch('learn_words_imperial_no_lig.json');
+                const learnImperialNoLigResponse = await fetch(`learn_words_imperial_${currentDialect}_no_lig.json`);
                 const learnImperialNoLigData = await learnImperialNoLigResponse.json();
                 // Convert string keys to numbers
                 Object.keys(learnImperialNoLigData).forEach(key => {
@@ -1056,7 +1102,7 @@
                 });
 
                 // Load compound letters lesson
-                const learnCompoundResponse = await fetch('learn_words_compound.json');
+                const learnCompoundResponse = await fetch(`learn_words_compound_${currentDialect}.json`);
                 const learnCompoundData = await learnCompoundResponse.json();
                 // Convert string keys to numbers
                 Object.keys(learnCompoundData).forEach(key => {
@@ -1064,7 +1110,7 @@
                 });
 
                 // Load learn mode words for Shaw 2-layer
-                const learn2layerResponse = await fetch('learn_words_2layer.json');
+                const learn2layerResponse = await fetch(`learn_words_2layer_${currentDialect}.json`);
                 const learn2layerData = await learn2layerResponse.json();
                 // Convert string keys to numbers
                 Object.keys(learn2layerData).forEach(key => {
@@ -1072,7 +1118,7 @@
                 });
 
                 // Load learn mode words for Shaw-JAFL (with ligatures)
-                const learnJaflResponse = await fetch('learn_words_jafl.json');
+                const learnJaflResponse = await fetch(`learn_words_jafl_${currentDialect}.json`);
                 const learnJaflData = await learnJaflResponse.json();
                 // Convert string keys to numbers
                 Object.keys(learnJaflData).forEach(key => {
@@ -1080,7 +1126,7 @@
                 });
 
                 // Load learn mode words for Shaw-JAFL (no ligatures)
-                const learnJaflNoLigResponse = await fetch('learn_words_jafl_no_lig.json');
+                const learnJaflNoLigResponse = await fetch(`learn_words_jafl_${currentDialect}_no_lig.json`);
                 const learnJaflNoLigData = await learnJaflNoLigResponse.json();
                 // Convert string keys to numbers
                 Object.keys(learnJaflNoLigData).forEach(key => {
@@ -1498,6 +1544,19 @@
         }
 
         // Welcome modal functions
+        function onDialectChangeWelcome() {
+            const selected = document.querySelector('input[name="dialectWelcome"]:checked');
+            if (selected) {
+                currentDialect = selected.value;
+                localStorage.setItem('dialect', currentDialect);
+                // Reload words with new dialect
+                loadWords().then(() => {
+                    updateLevelSelector();
+                    loadNewWord();
+                });
+            }
+        }
+
         function onLayoutChangeWelcome() {
             currentLayout = document.getElementById('layoutSelectWelcome').value;
             localStorage.setItem('keyboardLayout', currentLayout);
@@ -1530,6 +1589,9 @@
             const welcomeShown = localStorage.getItem('welcomeShown');
             if (!welcomeShown) {
                 // Sync welcome modal with current settings
+                const dialectRadio = document.querySelector(`input[name="dialectWelcome"][value="${currentDialect}"]`);
+                if (dialectRadio) dialectRadio.checked = true;
+
                 document.getElementById('layoutSelectWelcome').value = currentLayout;
                 document.getElementById('ligatureToggleWelcome').checked = useLigatures;
                 document.getElementById('shavianUIToggleWelcome').checked = useShavianUI;
@@ -1551,6 +1613,9 @@
         // Settings functions
         function openSettings() {
             // Sync settings with current state
+            const dialectRadio = document.querySelector(`input[name="dialectSettings"][value="${currentDialect}"]`);
+            if (dialectRadio) dialectRadio.checked = true;
+
             document.getElementById('layoutSelectSettings').value = currentLayout;
             document.getElementById('ligatureToggleSettings').checked = useLigatures;
 
@@ -1645,6 +1710,12 @@
             if (savedShavianUI !== null) {
                 useShavianUI = savedShavianUI === 'true';
                 document.getElementById('shavianUIToggle').checked = useShavianUI;
+            }
+
+            // Load dialect preference
+            const savedDialect = localStorage.getItem('dialect');
+            if (savedDialect !== null && (savedDialect === 'gb' || savedDialect === 'us')) {
+                currentDialect = savedDialect;
             }
 
             // Load keyboard layout
