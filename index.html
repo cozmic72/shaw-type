@@ -223,14 +223,14 @@
         }
 
         .settings-btn {
-            padding: 8px 20px;
-            font-size: 14px;
+            padding: 10px 15px;
+            font-size: 20px;
             border: 2px solid #999;
             background: white;
             color: #666;
             border-radius: 8px;
             cursor: pointer;
-            margin-top: 15px;
+            margin-left: 10px;
             transition: all 0.3s;
         }
 
@@ -347,9 +347,7 @@
             <button id="learnBtn" class="mode-btn" onclick="setMode('learn')">Learn</button>
             <button id="playBtn" class="mode-btn active" onclick="setMode('play')">Play</button>
             <button id="practiceBtn" class="mode-btn" onclick="setMode('practice')">Practice</button>
-            <div>
-                <button class="settings-btn" onclick="openSettings()">⚙ Settings</button>
-            </div>
+            <button class="settings-btn" onclick="openSettings()" title="Settings">⚙</button>
         </div>
 
         <div id="learnLevelInfo" style="display: none; text-align: center; margin-bottom: 15px; color: #666; font-size: 14px;">
@@ -488,7 +486,7 @@
                 learn: 'Learn',
                 play: 'Play',
                 practice: 'Practice',
-                settings: '⚙ Settings',
+                settings: '⚙',
                 keyboardLayout: 'Keyboard Layout:',
                 ligatures: 'Use automatic ligatures (e.g., type 𐑩+𐑮 → 𐑼)',
                 lesson: 'Lesson:',
@@ -515,7 +513,7 @@
                 learn: '𐑤𐑻𐑯',
                 play: '𐑐𐑤𐑱',
                 practice: '𐑐𐑮𐑨𐑒𐑑𐑦𐑕',
-                settings: '⚙ 𐑕𐑧𐑑𐑦𐑙𐑟',
+                settings: '⚙',
                 keyboardLayout: '𐑒𐑰𐑚𐑪𐑮𐑛 𐑤𐑱𐑬𐑑:',
                 ligatures: '𐑿𐑟 𐑷𐑑𐑩𐑥𐑨𐑑𐑦𐑒 𐑤𐑦𐑜𐑩𐑗𐑻𐑟 (e.g., type 𐑩+𐑮 → 𐑼)',
                 lesson: '𐑤𐑧𐑕𐑩𐑯:',
