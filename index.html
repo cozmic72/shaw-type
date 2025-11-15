@@ -423,15 +423,10 @@
             <button id="learnBtn" class="mode-btn" onclick="setMode('learn')">Practice</button>
         </div>
 
-        <div id="learnLevelInfo" style="display: none; text-align: center; margin-bottom: 15px; color: #666; font-size: 14px;">
-            <div style="margin-bottom: 10px;">
-                <label style="color: #666; margin-right: 10px;">Lesson:</label>
-                <select id="levelSelect" onchange="onLevelChange()" style="min-width: 200px;">
-                    <option value="auto">Auto (progress based)</option>
-                </select>
-            </div>
-            <div id="learnLevelName" style="font-weight: bold; color: #667eea;"></div>
-            <div id="learnLevelDesc" style="font-size: 12px; margin-top: 5px;"></div>
+        <div id="learnLevelInfo" style="display: none; text-align: center; margin-bottom: 15px;">
+            <button onclick="openLessonSelector()" style="padding: 10px 20px; font-size: 14px; background: white; color: #667eea; border: 2px solid #667eea; border-radius: 8px; cursor: pointer; transition: all 0.3s;">
+                Choose Lesson
+            </button>
         </div>
 
         <div class="word-display">
@@ -598,6 +593,20 @@
             </div>
 
             <button class="settings-close-btn" onclick="closeWelcomeModal()" style="margin-top: 25px; width: 100%;">Start</button>
+        </div>
+    </div>
+
+    <!-- Lesson Selector Modal -->
+    <div class="settings-modal" id="lessonModal">
+        <div class="settings-content" style="max-width: 500px;">
+            <h2>Choose a Lesson</h2>
+            <p style="margin: 15px 0; color: #666;">Select a lesson to practice:</p>
+
+            <div id="lessonList" style="margin: 20px 0;">
+                <!-- Lessons will be populated dynamically -->
+            </div>
+
+            <button class="settings-close-btn" onclick="closeLessonModal()">Cancel</button>
         </div>
     </div>
 
