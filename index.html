@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shavian Typing Practice</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        .word-display {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            min-height: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .word-display .word {
+            font-size: 48px;
+            letter-spacing: 4px;
+        }
+
+        .word-display .char {
+            display: inline-block;
+            transition: all 0.2s ease;
+        }
+
+        .word-display .char.correct {
+            opacity: 0.4;
+            color: #28a745;
+        }
+
+        .word-display .char.incorrect {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .input-container {
+            margin-bottom: 20px;
+        }
+
+        #typingInput {
+            width: 100%;
+            padding: 15px;
+            font-size: 32px;
+            border: 3px solid #e0e0e0;
+            border-radius: 10px;
+            text-align: center;
+            letter-spacing: 4px;
+            transition: border-color 0.3s;
+        }
+
+        #typingInput:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            color: #333;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .instructions {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            margin-top: 20px;
+        }
+
+        .completion-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .completion-modal.show {
+            display: flex;
+        }
+
+        .completion-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 500px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .completion-content h2 {
+            color: #667eea;
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+
+        .completion-content .final-score {
+            font-size: 48px;
+            font-weight: bold;
+            color: #333;
+            margin: 20px 0;
+        }
+
+        .completion-content .stat-row {
+            margin: 10px 0;
+            font-size: 18px;
+            color: #666;
+        }
+
+        .completion-content button {
+            margin-top: 30px;
+            padding: 15px 40px;
+            font-size: 18px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .completion-content button:hover {
+            background: #5568d3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>𐑖𐑱𐑝𐑾𐑯 Typing Practice</h1>
+
+        <div class="word-display">
+            <div class="word" id="wordDisplay"></div>
+        </div>
+
+        <div class="input-container">
+            <input type="text" id="typingInput" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+        </div>
+
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-label">Level</div>
+                <div class="stat-value" id="levelDisplay">1</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Words</div>
+                <div class="stat-value" id="wordCount">0</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Accuracy</div>
+                <div class="stat-value" id="accuracy">100%</div>
+            </div>
+        </div>
+
+        <div class="instructions">
+            Type the word shown above. Press Enter or Space to move to the next word.
+        </div>
+    </div>
+
+    <!-- Completion Modal -->
+    <div class="completion-modal" id="completionModal">
+        <div class="completion-content">
+            <h2>Congratulations!</h2>
+            <p>You completed 50 words!</p>
+            <div class="final-score" id="finalScore">--</div>
+            <div class="stat-row">Accuracy: <span id="finalAccuracy">--</span></div>
+            <div class="stat-row">Level Reached: <span id="finalLevel">--</span></div>
+            <button onclick="resetPractice()">Practice Again</button>
+        </div>
+    </div>
+
+    <script>
+        // Word list: 1-7 letter Shavian words sorted by frequency (350 total)
+        const allWords = [
+            "𐑞", "𐑝", "𐑯", "𐑑", "𐑩", "𐑲", "𐑓", "𐑿", "𐑸", "𐑹",
+            "𐑼", "𐑴", "𐑝", "𐑱", "𐑓", "𐑺", "𐑭", "𐑩", "𐑓", "𐑩",
+            "𐑰", "𐑽", "𐑓", "𐑓", "𐑩", "𐑓", "𐑷", "𐑓", "𐑑", "𐑱",
+            "𐑖", "𐑻", "𐑵", "𐑴", "𐑱", "𐑴", "𐑴", "𐑹", "𐑭", "𐑱",
+            "𐑩", "𐑭", "𐑨", "𐑔", "𐑛", "𐑩", "𐑴", "𐑴", "𐑴", "𐑹",
+            "𐑦𐑯", "𐑦𐑑", "𐑦𐑟", "𐑪𐑯", "𐑣𐑰", "𐑚𐑰", "𐑞𐑺", "𐑚𐑲", "𐑨𐑑", "𐑞𐑱",
+            "𐑨𐑟", "𐑖𐑰", "𐑢𐑰", "𐑩𐑯", "𐑯𐑴", "𐑣𐑻", "𐑢𐑻", "𐑛𐑵", "𐑷𐑤", "𐑦𐑓",
+            "𐑑𐑵", "𐑕𐑴", "𐑣𐑵", "𐑥𐑹", "𐑳𐑐", "𐑥𐑲", "𐑬𐑑", "𐑕𐑰", "𐑯𐑿", "𐑘𐑹",
+            "𐑯𐑬", "𐑥𐑰", "𐑥𐑱", "𐑬𐑼", "𐑣𐑬", "𐑢𐑱", "𐑜𐑴", "𐑣𐑽", "𐑘𐑽", "𐑴𐑯",
+            "𐑕𐑱", "𐑥𐑼", "𐑳𐑕", "𐑛𐑱", "𐑢𐑲", "𐑰𐑗", "𐑬𐑑", "𐑪𐑓", "𐑓𐑹", "𐑢𐑺",
+            "𐑢𐑪𐑟", "𐑞𐑨𐑑", "𐑢𐑦𐑞", "𐑣𐑨𐑝", "𐑯𐑪𐑑", "𐑞𐑦𐑕", "𐑚𐑳𐑑", "𐑣𐑨𐑛", "𐑣𐑦𐑟", "𐑢𐑦𐑗",
+            "𐑚𐑰𐑯", "𐑢𐑫𐑛", "𐑣𐑨𐑟", "𐑢𐑦𐑤", "𐑢𐑪𐑑", "𐑢𐑳𐑯", "𐑒𐑨𐑯", "𐑕𐑧𐑛", "𐑕𐑳𐑥", "𐑞𐑧𐑥",
+            "𐑒𐑫𐑛", "𐑣𐑦𐑥", "𐑦𐑑𐑕", "𐑞𐑧𐑯", "𐑑𐑲𐑥", "𐑤𐑲𐑒", "𐑛𐑦𐑛", "𐑳𐑞𐑼", "𐑞𐑰𐑟", "𐑧𐑯𐑦",
+            "𐑢𐑧𐑤", "𐑖𐑫𐑛", "𐑞𐑨𐑯", "𐑜𐑧𐑑", "𐑴𐑝𐑼", "𐑚𐑨𐑒", "𐑥𐑳𐑗", "𐑘𐑽𐑟", "𐑞𐑴𐑟", "𐑘𐑧𐑩",
+            "𐑔𐑮𐑵", "𐑢𐑻𐑒", "𐑜𐑪𐑑", "𐑔𐑮𐑰", "𐑛𐑬𐑯", "𐑥𐑱𐑒", "𐑮𐑲𐑑", "𐑕𐑳𐑗", "𐑜𐑫𐑛", "𐑑𐑱𐑒",
+            "𐑓𐑮𐑪𐑥", "𐑩𐑚𐑬𐑑", "𐑦𐑯𐑑𐑵", "𐑴𐑯𐑤𐑦", "𐑡𐑳𐑕𐑑", "𐑷𐑤𐑕𐑴", "𐑓𐑻𐑕𐑑", "𐑝𐑧𐑮𐑦", "𐑥𐑴𐑕𐑑", "𐑔𐑦𐑙𐑒",
+            "𐑥𐑧𐑯𐑦", "𐑚𐑰𐑦𐑙", "𐑕𐑑𐑦𐑤", "𐑥𐑳𐑕𐑑", "𐑤𐑭𐑕𐑑", "𐑰𐑝𐑩𐑯", "𐑭𐑓𐑑𐑼", "𐑜𐑴𐑦𐑙", "𐑚𐑦𐑓𐑹", "𐑳𐑯𐑛𐑼",
+            "𐑢𐑻𐑤𐑛", "𐑢𐑪𐑯𐑑", "𐑩𐑜𐑧𐑯", "𐑯𐑧𐑝𐑼", "𐑮𐑾𐑤𐑦", "𐑢𐑧𐑯𐑑", "𐑷𐑤𐑞𐑴", "𐑕𐑥𐑷𐑤", "𐑜𐑮𐑱𐑑", "𐑐𐑤𐑱𐑕",
+            "𐑓𐑲𐑯𐑛", "𐑔𐑦𐑙𐑟", "𐑒𐑢𐑲𐑑", "𐑧𐑝𐑮𐑦", "𐑤𐑱𐑑𐑼", "𐑢𐑧𐑞𐑼", "𐑐𐑶𐑯𐑑", "𐑪𐑓𐑩𐑯", "𐑥𐑳𐑯𐑦", "𐑕𐑒𐑵𐑤",
+            "𐑓𐑨𐑒𐑑", "𐑓𐑻𐑞𐑼", "𐑓𐑬𐑯𐑛", "𐑕𐑦𐑯𐑕", "𐑚𐑧𐑑𐑼", "𐑼𐑬𐑯𐑛", "𐑣𐑧𐑤𐑐", "𐑣𐑨𐑯𐑛", "𐑚𐑧𐑕𐑑", "𐑕𐑑𐑱𐑑",
+            "𐑐𐑰𐑐𐑩𐑤", "𐑚𐑦𐑒𐑪𐑟", "𐑣𐑬𐑧𐑝𐑼", "𐑩𐑯𐑳𐑞𐑼", "𐑯𐑳𐑥𐑚𐑼", "𐑢𐑦𐑞𐑦𐑯", "𐑷𐑤𐑢𐑱𐑟", "𐑢𐑦𐑞𐑬𐑑", "𐑤𐑴𐑒𐑩𐑤", "𐑯𐑧𐑒𐑕𐑑",
+            "𐑤𐑦𐑑𐑩𐑤", "𐑕𐑴𐑖𐑩𐑤", "𐑢𐑦𐑥𐑦𐑯", "𐑜𐑦𐑝𐑩𐑯", "𐑣𐑨𐑝𐑦𐑙", "𐑑𐑱𐑒𐑩𐑯", "𐑯𐑳𐑔𐑦𐑙", "𐑩𐑯𐑑𐑦𐑤", "𐑚𐑦𐑒𐑳𐑥", "𐑕𐑻𐑝𐑦𐑕",
+            "𐑐𐑩𐑤𐑰𐑕", "𐑤𐑫𐑒𐑦𐑙", "𐑢𐑻𐑒𐑦𐑙", "𐑥𐑱𐑒𐑦𐑙", "𐑩𐑒𐑮𐑪𐑕", "𐑮𐑦𐑕𐑻𐑗", "𐑕𐑩𐑐𐑹𐑑", "𐑐𐑻𐑕𐑩𐑯", "𐑥𐑸𐑒𐑩𐑑", "𐑮𐑦𐑐𐑹𐑑",
+            "𐑥𐑳𐑯𐑔𐑕", "𐑚𐑦𐑜𐑨𐑯", "𐑢𐑫𐑥𐑩𐑯", "𐑦𐑓𐑧𐑒𐑑", "𐑤𐑲𐑒𐑤𐑦", "𐑚𐑦𐑒𐑱𐑥", "𐑨𐑒𐑖𐑩𐑯", "𐑑𐑱𐑒𐑦𐑙", "𐑕𐑑𐑳𐑛𐑦", "𐑕𐑻𐑑𐑩𐑯",
+            "𐑤𐑧𐑝𐑩𐑤", "𐑥𐑹𐑯𐑦𐑙", "𐑚𐑦𐑤𐑰𐑝", "𐑜𐑧𐑑𐑦𐑙", "𐑑𐑱𐑚𐑩𐑤", "𐑕𐑧𐑯𐑑𐑼", "𐑜𐑮𐑵𐑐𐑕", "𐑕𐑑𐑮𐑰𐑑", "𐑦𐑯𐑛𐑰𐑛", "𐑬𐑑𐑕𐑲𐑛",
+            "𐑚𐑦𐑑𐑢𐑰𐑯", "𐑩𐑜𐑧𐑯𐑕𐑑", "𐑕𐑳𐑥𐑔𐑦𐑙", "𐑕𐑦𐑕𐑑𐑩𐑥", "𐑛𐑘𐑫𐑼𐑦𐑙", "𐑕𐑧𐑒𐑩𐑯𐑛", "𐑚𐑮𐑦𐑑𐑦𐑖", "𐑤𐑳𐑯𐑛𐑩𐑯", "𐑐𐑼𐑣𐑨𐑐𐑕", "𐑷𐑤𐑮𐑧𐑛𐑦",
+            "𐑚𐑦𐑟𐑯𐑩𐑕", "𐑷𐑤𐑥𐑴𐑕𐑑", "𐑒𐑳𐑯𐑑𐑮𐑦", "𐑥𐑧𐑥𐑚𐑼𐑟", "𐑐𐑳𐑚𐑤𐑦𐑒", "𐑑𐑩𐑢𐑹𐑛𐑟", "𐑧𐑯𐑦𐑔𐑦𐑙", "𐑐𐑪𐑤𐑩𐑕𐑦", "𐑓𐑪𐑤𐑴𐑦𐑙", "𐑚𐑮𐑦𐑑𐑩𐑯",
+            "𐑑𐑩𐑜𐑧𐑞𐑼", "𐑥𐑦𐑤𐑘𐑩𐑯", "𐑕𐑧𐑝𐑼𐑩𐑤", "𐑦𐑑𐑕𐑧𐑤𐑓", "𐑚𐑦𐑣𐑲𐑯𐑛", "𐑐𐑮𐑴𐑕𐑧𐑕", "𐑐𐑮𐑩𐑝𐑲𐑛", "𐑥𐑴𐑥𐑩𐑯𐑑", "𐑕𐑐𐑧𐑖𐑩𐑤", "𐑮𐑦𐑟𐑳𐑤𐑑",
+            "𐑢𐑪𐑯𐑑𐑩𐑛", "𐑡𐑧𐑯𐑼𐑩𐑤", "𐑕𐑧𐑯𐑗𐑼𐑦", "𐑣𐑦𐑕𐑑𐑼𐑦", "𐑿𐑠𐑫𐑩𐑤𐑦", "𐑒𐑩𐑥𐑦𐑑𐑦", "𐑕𐑳𐑥𐑢𐑳𐑯", "𐑕𐑧𐑒𐑖𐑩𐑯", "𐑕𐑦𐑥𐑦𐑤𐑼", "𐑥𐑦𐑯𐑦𐑑𐑕",
+            "𐑦𐑙𐑜𐑤𐑦𐑖", "𐑕𐑦𐑥𐑐𐑤𐑦", "𐑗𐑱𐑯𐑡𐑩𐑟", "𐑣𐑻𐑕𐑧𐑤𐑓", "𐑕𐑦𐑙𐑜𐑩𐑤", "𐑐𐑺𐑩𐑯𐑑𐑕", "𐑐𐑮𐑲𐑝𐑩𐑑", "𐑮𐑰𐑕𐑩𐑯𐑑", "𐑩𐑒𐑹𐑛𐑦𐑙", "𐑑𐑢𐑧𐑯𐑑𐑦",
+            "𐑛𐑦𐑓𐑼𐑩𐑯𐑑", "𐑗𐑦𐑤𐑛𐑮𐑩𐑯", "𐑯𐑨𐑖𐑩𐑯𐑩𐑤", "𐑒𐑳𐑥𐑐𐑩𐑯𐑦", "𐑐𐑪𐑕𐑩𐑚𐑩𐑤", "𐑣𐑦𐑥𐑕𐑧𐑤𐑓", "𐑐𐑮𐑪𐑚𐑤𐑩𐑥", "𐑦𐑯𐑑𐑮𐑩𐑕𐑑", "𐑨𐑒𐑗𐑫𐑩𐑤𐑦", "𐑒𐑢𐑧𐑕𐑗𐑩𐑯",
+            "𐑕𐑻𐑝𐑦𐑕𐑩𐑟", "𐑒𐑩𐑯𐑑𐑮𐑴𐑤", "𐑦𐑙𐑜𐑤𐑩𐑯𐑛", "𐑐𐑮𐑴𐑜𐑮𐑨𐑥", "𐑐𐑩𐑟𐑦𐑖𐑩𐑯", "𐑥𐑦𐑯𐑦𐑕𐑑𐑼", "𐑧𐑝𐑦𐑛𐑩𐑯𐑕", "𐑕𐑳𐑥𐑑𐑲𐑥𐑟", "𐑘𐑧𐑕𐑑𐑼𐑛𐑱", "𐑮𐑦𐑥𐑧𐑥𐑚𐑼",
+            "𐑣𐑳𐑯𐑛𐑮𐑩𐑛", "𐑤𐑨𐑙𐑜𐑢𐑦𐑡", "𐑧𐑝𐑮𐑦𐑔𐑦𐑙", "𐑕𐑻𐑑𐑩𐑯𐑤𐑦", "𐑷𐑔𐑪𐑮𐑦𐑑𐑦", "𐑯𐑧𐑕𐑩𐑕𐑼𐑦", "𐑕𐑧𐑯𐑑𐑮𐑩𐑤", "𐑐𐑮𐑨𐑒𐑑𐑦𐑕", "𐑐𐑻𐑕𐑩𐑯𐑩𐑤", "𐑐𐑱𐑖𐑩𐑯𐑑𐑕",
+            "𐑕𐑦𐑕𐑑𐑩𐑥𐑟", "𐑒𐑳𐑯𐑑𐑮𐑦𐑟", "𐑛𐑦𐑕𐑦𐑠𐑩𐑯", "𐑘𐑫𐑼𐑩𐑐𐑾𐑯", "𐑒𐑢𐑪𐑤𐑦𐑑𐑦", "𐑕𐑳𐑚𐑡𐑧𐑒𐑑", "𐑕𐑑𐑮𐑳𐑒𐑗𐑼", "𐑩𐑑𐑧𐑯𐑖𐑩𐑯", "𐑥𐑵𐑝𐑥𐑩𐑯𐑑", "𐑧𐑝𐑮𐑦𐑢𐑳𐑯",
+            "𐑒𐑩𐑥𐑐𐑿𐑑𐑼", "𐑤𐑦𐑥𐑦𐑑𐑩𐑛", "𐑐𐑮𐑧𐑟𐑩𐑯𐑑", "𐑒𐑩𐑥𐑐𐑤𐑰𐑑", "𐑮𐑦𐑟𐑳𐑤𐑑𐑕", "𐑐𐑮𐑪𐑐𐑼𐑑𐑦", "𐑐𐑮𐑪𐑡𐑧𐑒𐑑", "𐑚𐑦𐑣𐑱𐑝𐑘𐑼", "𐑛𐑦𐑮𐑧𐑒𐑑𐑼", "𐑕𐑳𐑛𐑩𐑯𐑤𐑦"
+        ];
+
+        // Organize words by length (using Unicode character count)
+        const wordsByLength = {
+            1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: []
+        };
+
+        allWords.forEach(word => {
+            const length = Array.from(word).length;
+            if (wordsByLength[length]) {
+                wordsByLength[length].push(word);
+            }
+        });
+
+        let currentWord = '';
+        let wordsCompleted = 0;
+        let currentLevel = 1;
+        let totalAttempts = 0;
+        let correctAttempts = 0;
+        let recentWords = []; // Track recent words to avoid repeats
+
+        const wordDisplay = document.getElementById('wordDisplay');
+        const typingInput = document.getElementById('typingInput');
+        const wordCountEl = document.getElementById('wordCount');
+        const accuracyEl = document.getElementById('accuracy');
+        const levelDisplayEl = document.getElementById('levelDisplay');
+
+        // Get current level based on words completed
+        function getCurrentLevel() {
+            if (wordsCompleted < 10) return 1;
+            if (wordsCompleted < 20) return 2;
+            if (wordsCompleted < 35) return 3;
+            if (wordsCompleted < 50) return 4;
+            return 5;
+        }
+
+        // Get available words for current level
+        function getWordPool() {
+            const level = getCurrentLevel();
+            let pool = [];
+
+            if (level === 1) {
+                // Level 1: 1-2 character words
+                pool = [...wordsByLength[1], ...wordsByLength[2]];
+            } else if (level === 2) {
+                // Level 2: 2-3 character words
+                pool = [...wordsByLength[2], ...wordsByLength[3]];
+            } else if (level === 3) {
+                // Level 3: 3-4 character words
+                pool = [...wordsByLength[3], ...wordsByLength[4]];
+            } else if (level === 4) {
+                // Level 4: 4-6 character words
+                pool = [...wordsByLength[4], ...wordsByLength[5], ...wordsByLength[6]];
+            } else {
+                // Level 5: 5+ character words
+                pool = [...wordsByLength[5], ...wordsByLength[6], ...wordsByLength[7]];
+            }
+
+            return pool;
+        }
+
+        // Initialize
+        function init() {
+            loadNewWord();
+            typingInput.focus();
+        }
+
+        function loadNewWord() {
+            const pool = getWordPool();
+
+            // Avoid recently used words (keep history of last 10 words)
+            const historySize = Math.min(10, Math.floor(pool.length / 2));
+            let newWord;
+            let attempts = 0;
+            const maxAttempts = 50;
+
+            do {
+                newWord = pool[Math.floor(Math.random() * pool.length)];
+                attempts++;
+            } while (recentWords.includes(newWord) && attempts < maxAttempts);
+
+            currentWord = newWord;
+
+            // Update recent words history
+            recentWords.push(currentWord);
+            if (recentWords.length > historySize) {
+                recentWords.shift(); // Remove oldest word
+            }
+
+            typingInput.value = '';
+            updateWordDisplay();
+            updateLevel();
+        }
+
+        function updateLevel() {
+            const newLevel = getCurrentLevel();
+            if (newLevel !== currentLevel) {
+                currentLevel = newLevel;
+            }
+            levelDisplayEl.textContent = currentLevel;
+        }
+
+        function updateWordDisplay() {
+            const userInput = typingInput.value;
+            let html = '';
+
+            // Convert to arrays of actual Unicode characters (not code units)
+            const wordChars = Array.from(currentWord);
+            const inputChars = Array.from(userInput);
+
+            for (let i = 0; i < wordChars.length; i++) {
+                const char = wordChars[i];
+                let className = '';
+
+                if (i < inputChars.length) {
+                    if (inputChars[i] === char) {
+                        className = 'correct';
+                    } else {
+                        className = 'incorrect';
+                    }
+                }
+
+                html += `<span class="char ${className}">${char}</span>`;
+            }
+
+            wordDisplay.innerHTML = html;
+        }
+
+        function updateStats() {
+            wordCountEl.textContent = wordsCompleted;
+            const accuracy = totalAttempts === 0 ? 100 : Math.round((correctAttempts / totalAttempts) * 100);
+            accuracyEl.textContent = accuracy + '%';
+        }
+
+        function checkCompletion() {
+            const userInput = typingInput.value;
+
+            // Direct string comparison works fine for equality
+            if (userInput === currentWord) {
+                // Word completed correctly
+                totalAttempts++;
+                correctAttempts++;
+                wordsCompleted++;
+                updateStats();
+
+                // Check if reached 50 words
+                if (wordsCompleted === 50) {
+                    showCompletionModal();
+                } else {
+                    // Load new word after a short delay
+                    setTimeout(() => {
+                        loadNewWord();
+                    }, 200);
+                }
+            }
+        }
+
+        function showCompletionModal() {
+            const accuracy = totalAttempts === 0 ? 100 : Math.round((correctAttempts / totalAttempts) * 100);
+            document.getElementById('finalScore').textContent = accuracy + '%';
+            document.getElementById('finalAccuracy').textContent = accuracy + '%';
+            document.getElementById('finalLevel').textContent = currentLevel;
+            document.getElementById('completionModal').classList.add('show');
+        }
+
+        function resetPractice() {
+            // Reset all stats
+            wordsCompleted = 0;
+            totalAttempts = 0;
+            correctAttempts = 0;
+            currentLevel = 1;
+            recentWords = [];
+
+            // Hide modal
+            document.getElementById('completionModal').classList.remove('show');
+
+            // Update display
+            updateStats();
+            updateLevel();
+            loadNewWord();
+            typingInput.focus();
+        }
+
+        // Event listeners
+        typingInput.addEventListener('input', (e) => {
+            const userInput = e.target.value;
+
+            // Convert to arrays of actual Unicode characters
+            const wordChars = Array.from(currentWord);
+            const inputChars = Array.from(userInput);
+
+            // Check if user is typing correctly
+            let hasError = false;
+            for (let i = 0; i < inputChars.length; i++) {
+                if (i >= wordChars.length || inputChars[i] !== wordChars[i]) {
+                    hasError = true;
+                    totalAttempts++;
+                    break;
+                }
+            }
+
+            updateWordDisplay();
+            checkCompletion();
+        });
+
+        typingInput.addEventListener('keydown', (e) => {
+            // Allow Enter or Space to skip to next word
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                const userInput = typingInput.value.trim();
+
+                if (userInput.length > 0) {
+                    totalAttempts++;
+                    if (userInput === currentWord) {
+                        correctAttempts++;
+                        wordsCompleted++;
+                    }
+                    updateStats();
+                    loadNewWord();
+                }
+            }
+        });
+
+        // Start the app
+        init();
+    </script>
+</body>
+</html>
