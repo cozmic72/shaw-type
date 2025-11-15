@@ -516,6 +516,17 @@
         </div>
     </div>
 
+    <!-- Content Modal -->
+    <div class="settings-modal" id="contentModal">
+        <div class="settings-content" style="max-width: 700px; max-height: 80vh; overflow-y: auto;">
+            <h2 id="contentModalTitle">Content</h2>
+            <div id="contentModalBody" style="margin-top: 20px;">
+                Loading...
+            </div>
+            <button class="settings-close-btn" onclick="closeContentModal()">Close</button>
+        </div>
+    </div>
+
     <script>
         // Words will be loaded from JSON file
         let wordsByLength = {};
@@ -1399,6 +1410,43 @@
                 closeBurgerMenu();
             }
         });
+
+        // Content modal functions
+        async function openContentModal(page) {
+            closeBurgerMenu();
+
+            const modal = document.getElementById('contentModal');
+            const titleEl = document.getElementById('contentModalTitle');
+            const bodyEl = document.getElementById('contentModalBody');
+
+            // Set title
+            titleEl.textContent = page.charAt(0).toUpperCase() + page.slice(1);
+            bodyEl.innerHTML = 'Loading...';
+
+            // Show modal
+            modal.classList.add('show');
+
+            // Load content based on current language
+            const lang = useShavianUI ? 'shavian' : 'latin';
+            const filename = `${page}_${lang}.html`;
+
+            try {
+                const response = await fetch(filename);
+                if (response.ok) {
+                    const html = await response.text();
+                    bodyEl.innerHTML = html;
+                } else {
+                    bodyEl.innerHTML = '<p>Content not found.</p>';
+                }
+            } catch (error) {
+                bodyEl.innerHTML = '<p>Error loading content.</p>';
+                console.error('Error loading content:', error);
+            }
+        }
+
+        function closeContentModal() {
+            document.getElementById('contentModal').classList.remove('show');
+        }
 
         // Settings functions
         function openSettings() {
