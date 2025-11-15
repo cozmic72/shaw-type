@@ -224,7 +224,7 @@
 
         .settings-btn {
             padding: 10px 15px;
-            font-size: 22px;
+            font-size: 28px;
             border: none;
             background: transparent;
             color: #999;
@@ -350,21 +350,6 @@
 
         <div id="learnLevelInfo" style="display: none; text-align: center; margin-bottom: 15px; color: #666; font-size: 14px;">
             <div style="margin-bottom: 10px;">
-                <label style="color: #666; margin-right: 10px;">Keyboard Layout:</label>
-                <select id="layoutSelect" onchange="onLayoutChange()">
-                    <option value="imperial">Shaw Imperial</option>
-                    <option value="qwerty">Shaw QWERTY</option>
-                    <option value="2layer">Shaw 2-layer (shift)</option>
-                    <option value="jafl">Shaw-JAFL</option>
-                </select>
-            </div>
-            <div id="ligatureToggleContainer" style="margin-bottom: 10px;">
-                <label style="color: #666;">
-                    <input type="checkbox" id="ligatureToggle" onchange="onLigatureToggle()" checked>
-                    Use automatic ligatures (e.g., type 𐑩+𐑮 → 𐑼)
-                </label>
-            </div>
-            <div style="margin-bottom: 10px;">
                 <label style="color: #666; margin-right: 10px;">Lesson:</label>
                 <select id="levelSelect" onchange="onLevelChange()" style="min-width: 200px;">
                     <option value="auto">Auto (progress based)</option>
@@ -437,6 +422,25 @@
     <div class="settings-modal" id="settingsModal">
         <div class="settings-content">
             <h2>Settings</h2>
+
+            <div class="settings-option">
+                <label style="display: block; margin-bottom: 10px; color: #666; font-weight: normal;">
+                    Keyboard Layout
+                </label>
+                <select id="layoutSelectSettings" onchange="onLayoutChangeSettings()" style="width: 100%; padding: 8px; font-size: 16px; border: 2px solid #e0e0e0; border-radius: 8px;">
+                    <option value="imperial">Shaw Imperial</option>
+                    <option value="qwerty">Shaw QWERTY</option>
+                    <option value="2layer">Shaw 2-layer (shift)</option>
+                    <option value="jafl">Shaw-JAFL</option>
+                </select>
+            </div>
+
+            <div class="settings-option" id="ligatureSettingOption">
+                <label>
+                    <input type="checkbox" id="ligatureToggleSettings" onchange="onLigatureToggleSettings()">
+                    <span>Use automatic ligatures (e.g., type 𐑩+𐑮 → 𐑼)</span>
+                </label>
+            </div>
 
             <div class="settings-option">
                 <label>
@@ -589,21 +593,21 @@
             loadNewWord();
         }
 
-        function onLayoutChange() {
-            currentLayout = document.getElementById('layoutSelect').value;
+        function onLayoutChangeSettings() {
+            currentLayout = document.getElementById('layoutSelectSettings').value;
             // Show/hide ligature toggle based on layout
             // Only show for imperial, qwerty, and jafl
             const supportsLigatures = currentLayout === 'imperial' ||
                                      currentLayout === 'qwerty' ||
                                      currentLayout === 'jafl';
-            document.getElementById('ligatureToggleContainer').style.display =
+            document.getElementById('ligatureSettingOption').style.display =
                 supportsLigatures ? 'block' : 'none';
             updateLevelSelector();
             loadNewWord();
         }
 
-        function onLigatureToggle() {
-            useLigatures = document.getElementById('ligatureToggle').checked;
+        function onLigatureToggleSettings() {
+            useLigatures = document.getElementById('ligatureToggleSettings').checked;
             updateLevelSelector();
             loadNewWord();
         }
@@ -993,6 +997,17 @@
 
         // Settings functions
         function openSettings() {
+            // Sync settings with current state
+            document.getElementById('layoutSelectSettings').value = currentLayout;
+            document.getElementById('ligatureToggleSettings').checked = useLigatures;
+
+            // Show/hide ligature option based on current layout
+            const supportsLigatures = currentLayout === 'imperial' ||
+                                     currentLayout === 'qwerty' ||
+                                     currentLayout === 'jafl';
+            document.getElementById('ligatureSettingOption').style.display =
+                supportsLigatures ? 'block' : 'none';
+
             document.getElementById('settingsModal').classList.add('show');
         }
 
@@ -1020,10 +1035,7 @@
             document.querySelector('.settings-btn').textContent = t.settings;
 
             // Update Learn mode labels
-            document.querySelector('#learnLevelInfo label').textContent = t.keyboardLayout;
-            document.querySelector('#ligatureToggleContainer label').innerHTML =
-                `<input type="checkbox" id="ligatureToggle" onchange="onLigatureToggle()" ${useLigatures ? 'checked' : ''}> ${t.ligatures}`;
-            document.querySelectorAll('#learnLevelInfo label')[1].textContent = t.lesson;
+            document.querySelector('#learnLevelInfo label').textContent = t.lesson;
 
             // Update Practice mode label
             document.querySelector('#practiceLengthSelector label').textContent = t.wordLength;
