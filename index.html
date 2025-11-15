@@ -1287,6 +1287,19 @@
                         // Ligature completed correctly - count both characters as correct
                         correctLetters += 2;
                         currentLevelCorrectLetters += 2;
+
+                        // Replace the two component characters with the compound ligature
+                        const inputChars = Array.from(userInput);
+                        const firstChar = inputChars[inputChars.length - 2];
+                        const secondChar = inputChars[inputChars.length - 1];
+                        const ligatureKey = firstChar + secondChar;
+
+                        if (COMPONENT_TO_LIGATURE[ligatureKey]) {
+                            // Replace last two characters with the ligature
+                            const beforeLigature = inputChars.slice(0, -2).join('');
+                            const compound = COMPONENT_TO_LIGATURE[ligatureKey];
+                            typingInput.value = beforeLigature + compound;
+                        }
                     } else {
                         // Wrong continuation - the pending character was wrong
                         totalLettersTyped++;
@@ -1318,7 +1331,8 @@
                 }
             }
 
-            previousInput = userInput;
+            // Use typingInput.value in case we replaced a ligature
+            previousInput = typingInput.value;
             updateWordDisplay();
             updateStats();
             checkCompletion();
