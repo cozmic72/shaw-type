@@ -527,6 +527,42 @@
         </div>
     </div>
 
+    <!-- Welcome Modal -->
+    <div class="settings-modal" id="welcomeModal">
+        <div class="settings-content" style="max-width: 600px;">
+            <h2>Welcome to Shaw Type!</h2>
+            <p style="margin: 15px 0; color: #666;">Choose your preferences to get started:</p>
+
+            <div class="settings-option">
+                <label style="display: block; margin-bottom: 10px; color: #666; font-weight: normal;">
+                    Keyboard Layout
+                </label>
+                <select id="layoutSelectWelcome" onchange="onLayoutChangeWelcome()" style="width: 100%; padding: 8px; font-size: 16px; border: 2px solid #e0e0e0; border-radius: 8px;">
+                    <option value="imperial">Shaw Imperial</option>
+                    <option value="qwerty">Shaw QWERTY</option>
+                    <option value="2layer">Shaw 2-layer (shift)</option>
+                    <option value="jafl">Shaw-JAFL</option>
+                </select>
+            </div>
+
+            <div class="settings-option" id="ligatureWelcomeOption">
+                <label>
+                    <input type="checkbox" id="ligatureToggleWelcome" checked onchange="onLigatureToggleWelcome()">
+                    <span>Automatic ligatures (𐑩+𐑮→𐑼, 𐑘+𐑵→𐑿)</span>
+                </label>
+            </div>
+
+            <div class="settings-option">
+                <label>
+                    <input type="checkbox" id="shavianUIToggleWelcome" onchange="toggleShavianUIWelcome()">
+                    <span>Display UI in Shavian</span>
+                </label>
+            </div>
+
+            <button class="settings-close-btn" onclick="closeWelcomeModal()" style="margin-top: 25px; width: 100%;">Start</button>
+        </div>
+    </div>
+
     <script>
         // Words will be loaded from JSON file
         let wordsByLength = {};
@@ -1059,8 +1095,15 @@
             await loadWords();
             if (wordsLoaded) {
                 updateLevelSelector(); // Populate lesson dropdown
-                loadNewWord();
-                typingInput.focus();
+
+                // Check if we should show welcome screen
+                const welcomeShown = localStorage.getItem('welcomeShown');
+                if (!welcomeShown) {
+                    showWelcomeIfNeeded();
+                } else {
+                    loadNewWord();
+                    typingInput.focus();
+                }
             }
         }
 
@@ -1446,6 +1489,51 @@
 
         function closeContentModal() {
             document.getElementById('contentModal').classList.remove('show');
+        }
+
+        // Welcome modal functions
+        function onLayoutChangeWelcome() {
+            currentLayout = document.getElementById('layoutSelectWelcome').value;
+            localStorage.setItem('keyboardLayout', currentLayout);
+
+            // Show/hide ligature toggle
+            const supportsLigatures = currentLayout === 'imperial' || currentLayout === 'qwerty' || currentLayout === 'jafl';
+            document.getElementById('ligatureWelcomeOption').style.display = supportsLigatures ? 'block' : 'none';
+        }
+
+        function onLigatureToggleWelcome() {
+            useLigatures = document.getElementById('ligatureToggleWelcome').checked;
+            localStorage.setItem('useLigatures', useLigatures);
+        }
+
+        function toggleShavianUIWelcome() {
+            useShavianUI = document.getElementById('shavianUIToggleWelcome').checked;
+            localStorage.setItem('useShavianUI', useShavianUI);
+            updateUILanguage();
+        }
+
+        function closeWelcomeModal() {
+            localStorage.setItem('welcomeShown', 'true');
+            document.getElementById('welcomeModal').classList.remove('show');
+            updateLevelSelector();
+            loadNewWord();
+            typingInput.focus();
+        }
+
+        function showWelcomeIfNeeded() {
+            const welcomeShown = localStorage.getItem('welcomeShown');
+            if (!welcomeShown) {
+                // Sync welcome modal with current settings
+                document.getElementById('layoutSelectWelcome').value = currentLayout;
+                document.getElementById('ligatureToggleWelcome').checked = useLigatures;
+                document.getElementById('shavianUIToggleWelcome').checked = useShavianUI;
+
+                // Show/hide ligature option
+                const supportsLigatures = currentLayout === 'imperial' || currentLayout === 'qwerty' || currentLayout === 'jafl';
+                document.getElementById('ligatureWelcomeOption').style.display = supportsLigatures ? 'block' : 'none';
+
+                document.getElementById('welcomeModal').classList.add('show');
+            }
         }
 
         // Settings functions
