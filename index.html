@@ -551,12 +551,11 @@
             latin: {
                 title: 'Shaw Type',
                 subtitle: '𐑖𐑱𐑝𐑾𐑯 𐑑𐑲𐑐𐑦𐑙 𐑐𐑮𐑨𐑒𐑑𐑦𐑕',
-                learn: 'Learn',
-                play: 'Play',
                 practice: 'Practice',
+                play: 'Play',
                 settings: 'Settings',
                 keyboardLayout: 'Keyboard Layout',
-                ligatures: 'Automatic ligatures\n(type 𐑩 + 𐑮 to make 𐑼, etc.)',
+                ligatures: 'Automatic ligatures (𐑩+𐑮→𐑼, 𐑘+𐑵→𐑿)',
                 lesson: 'Lesson:',
                 auto: 'Auto (progress based)',
                 wordLength: 'Word Length:',
@@ -616,12 +615,11 @@
             shavian: {
                 title: '·𐑖𐑷 𐑑𐑲𐑐',
                 subtitle: '·𐑖𐑱𐑝𐑾𐑯 Typing Practice',
-                learn: '𐑤𐑻𐑯',
-                play: '𐑐𐑤𐑱',
                 practice: '𐑐𐑮𐑨𐑒𐑑𐑦𐑕',
+                play: '𐑐𐑤𐑱',
                 settings: '𐑕𐑧𐑑𐑦𐑙𐑟',
                 keyboardLayout: '𐑒𐑰𐑚𐑪𐑮𐑛 𐑤𐑱𐑬𐑑',
-                ligatures: '𐑷𐑑𐑩𐑥𐑧𐑑𐑦𐑒 𐑤𐑦𐑜𐑩𐑗𐑼𐑟\n(𐑑𐑲𐑐 𐑩 + 𐑮 to make 𐑼, 𐑯𐑯𐑯)',
+                ligatures: '𐑷𐑑𐑩𐑥𐑧𐑑𐑦𐑒 𐑤𐑦𐑜𐑩𐑗𐑼𐑟 (𐑩+𐑮→𐑼, 𐑘+𐑵→𐑿)',
                 lesson: '𐑤𐑧𐑕𐑩𐑯:',
                 auto: '𐑷𐑑𐑴 (𐑐𐑮𐑴𐑜𐑮𐑧𐑕 𐑚𐑱𐑕𐑑)',
                 wordLength: '𐑢𐑻𐑛 𐑤𐑧𐑙𐑔:',
@@ -1362,10 +1360,8 @@
             document.querySelector('.subtitle').textContent = t.subtitle;
 
             // Update mode buttons
-            document.getElementById('learnBtn').textContent = t.learn;
+            document.getElementById('learnBtn').textContent = t.practice;
             document.getElementById('playBtn').textContent = t.play;
-            document.getElementById('practiceBtn').textContent = t.practice;
-            document.querySelector('.settings-btn').textContent = t.settings;
 
             // Update Learn mode labels
             document.querySelector('#learnLevelInfo label').textContent = t.lesson;
@@ -1442,20 +1438,16 @@
 
             // Load current mode
             const savedMode = localStorage.getItem('currentMode');
-            if (savedMode !== null) {
+            if (savedMode !== null && (savedMode === 'learn' || savedMode === 'play')) {
                 currentMode = savedMode;
                 // Update button states
                 document.getElementById('learnBtn').classList.remove('active');
                 document.getElementById('playBtn').classList.remove('active');
-                document.getElementById('practiceBtn').classList.remove('active');
                 if (currentMode === 'learn') {
                     document.getElementById('learnBtn').classList.add('active');
                     document.getElementById('learnLevelInfo').style.display = 'block';
                 } else if (currentMode === 'play') {
                     document.getElementById('playBtn').classList.add('active');
-                } else if (currentMode === 'practice') {
-                    document.getElementById('practiceBtn').classList.add('active');
-                    document.getElementById('practiceLengthSelector').style.display = 'block';
                 }
             }
 
