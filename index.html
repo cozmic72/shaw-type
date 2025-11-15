@@ -489,12 +489,22 @@
                 play: 'Play',
                 practice: 'Practice',
                 settings: 'Settings',
-                keyboardLayout: 'Keyboard Layout:',
+                keyboardLayout: 'Keyboard Layout',
                 ligatures: 'My keyboard auto-converts ligatures (e.g., 𐑩+𐑮 → 𐑼)',
                 lesson: 'Lesson:',
                 auto: 'Auto (progress based)',
                 wordLength: 'Word Length:',
                 characters: 'characters',
+                // Word length options
+                length1: '1 character',
+                length2: '2 characters',
+                length3: '3 characters',
+                length4: '4 characters',
+                length5: '5 characters',
+                length6: '6 characters',
+                length7: '7 characters',
+                length46: '4-6 characters',
+                length57: '5-7 characters',
                 lesson_label: 'Lesson',
                 level_label: 'Level',
                 words: 'Words',
@@ -516,12 +526,22 @@
                 play: '𐑐𐑤𐑱',
                 practice: '𐑐𐑮𐑨𐑒𐑑𐑦𐑕',
                 settings: '𐑕𐑧𐑑𐑦𐑙𐑟',
-                keyboardLayout: '𐑒𐑰𐑚𐑪𐑮𐑛 𐑤𐑱𐑬𐑑:',
+                keyboardLayout: '𐑒𐑰𐑚𐑪𐑮𐑛 𐑤𐑱𐑬𐑑',
                 ligatures: '𐑥𐑲 𐑒𐑰𐑚𐑪𐑮𐑛 𐑷𐑑𐑴-𐑒𐑩𐑯𐑝𐑻𐑑𐑕 𐑤𐑦𐑜𐑩𐑗𐑻𐑟 (e.g., 𐑩+𐑮 → 𐑼)',
                 lesson: '𐑤𐑧𐑕𐑩𐑯:',
                 auto: '𐑷𐑑𐑴 (𐑐𐑮𐑴𐑜𐑮𐑧𐑕 𐑚𐑱𐑕𐑑)',
                 wordLength: '𐑢𐑻𐑛 𐑤𐑧𐑙𐑔:',
                 characters: '𐑒𐑨𐑮𐑩𐑒𐑑𐑼𐑟',
+                // Word length options
+                length1: '1 𐑒𐑨𐑮𐑩𐑒𐑑𐑼',
+                length2: '2 𐑒𐑨𐑮𐑩𐑒𐑑𐑼𐑟',
+                length3: '3 𐑒𐑨𐑮𐑩𐑒𐑑𐑼𐑟',
+                length4: '4 𐑒𐑨𐑮𐑩𐑒𐑑𐑼𐑟',
+                length5: '5 𐑒𐑨𐑮𐑩𐑒𐑑𐑼𐑟',
+                length6: '6 𐑒𐑨𐑮𐑩𐑒𐑑𐑼𐑟',
+                length7: '7 𐑒𐑨𐑮𐑩𐑒𐑑𐑼𐑟',
+                length46: '4-6 𐑒𐑨𐑮𐑩𐑒𐑑𐑼𐑟',
+                length57: '5-7 𐑒𐑨𐑮𐑩𐑒𐑑𐑼𐑟',
                 lesson_label: '𐑤𐑧𐑕𐑩𐑯',
                 level_label: '𐑤𐑧𐑝𐑩𐑤',
                 words: '𐑢𐑻𐑛𐑟',
@@ -1037,8 +1057,20 @@
             // Update Learn mode labels
             document.querySelector('#learnLevelInfo label').textContent = t.lesson;
 
-            // Update Practice mode label
+            // Update Practice mode label and options
             document.querySelector('#practiceLengthSelector label').textContent = t.wordLength;
+            const lengthSelect = document.getElementById('lengthSelect');
+            if (lengthSelect) {
+                lengthSelect.options[0].textContent = t.length1;
+                lengthSelect.options[1].textContent = t.length2;
+                lengthSelect.options[2].textContent = t.length3;
+                lengthSelect.options[3].textContent = t.length4;
+                lengthSelect.options[4].textContent = t.length5;
+                lengthSelect.options[5].textContent = t.length6;
+                lengthSelect.options[6].textContent = t.length7;
+                lengthSelect.options[7].textContent = t.length46;
+                lengthSelect.options[8].textContent = t.length57;
+            }
 
             // Update stats labels
             document.querySelector('.stat-label').textContent =
@@ -1061,6 +1093,10 @@
             document.querySelector('#shavianUIToggle + span').textContent = t.displayShavian;
             document.querySelector('.settings-option-desc').textContent = t.displayShavianDesc;
             document.querySelector('.settings-close-btn').textContent = t.close;
+
+            // Update settings labels
+            document.querySelector('.settings-option label').textContent = t.keyboardLayout;
+            document.querySelector('#ligatureToggleSettings + span').textContent = t.ligatures;
 
             // Update lesson dropdown Auto option
             const autoOption = document.querySelector('#levelSelect option[value="auto"]');
