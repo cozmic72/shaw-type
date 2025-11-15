@@ -16,6 +16,7 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             padding: 20px;
@@ -223,9 +224,10 @@
 
         .copyright {
             text-align: center;
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 12px;
+            color: #000000;
+            font-size: 14px;
             margin-top: 20px;
+            padding: 10px;
         }
     </style>
 </head>
@@ -245,6 +247,8 @@
                 <select id="layoutSelect" onchange="onLayoutChange()">
                     <option value="imperial">Shaw Imperial</option>
                     <option value="qwerty">Shaw QWERTY</option>
+                    <option value="2layer">Shaw 2-layer (shift)</option>
+                    <option value="jafl">Shaw-JAFL</option>
                 </select>
             </div>
             <div id="ligatureToggleContainer" style="margin-bottom: 10px;">
@@ -322,6 +326,9 @@
         let learnWordsImperial = {};
         let learnWordsImperialNoLig = {};
         let learnWordsQwerty = {};
+        let learnWords2layer = {};
+        let learnWordsJafl = {};
+        let learnWordsJaflNoLig = {};
         let learnWordsCompound = {};
         let wordsLoaded = false;
 
@@ -392,8 +399,12 @@
         function onLayoutChange() {
             currentLayout = document.getElementById('layoutSelect').value;
             // Show/hide ligature toggle based on layout
+            // Only show for imperial, qwerty, and jafl
+            const supportsLigatures = currentLayout === 'imperial' ||
+                                     currentLayout === 'qwerty' ||
+                                     currentLayout === 'jafl';
             document.getElementById('ligatureToggleContainer').style.display =
-                currentLayout === 'imperial' ? 'block' : 'none';
+                supportsLigatures ? 'block' : 'none';
             loadNewWord();
         }
 
@@ -419,8 +430,12 @@
                 } else {
                     if (currentLayout === 'imperial') {
                         learnWords = useLigatures ? learnWordsImperial : learnWordsImperialNoLig;
-                    } else {
+                    } else if (currentLayout === 'qwerty') {
                         learnWords = learnWordsQwerty;
+                    } else if (currentLayout === '2layer') {
+                        learnWords = learnWords2layer;
+                    } else if (currentLayout === 'jafl') {
+                        learnWords = useLigatures ? learnWordsJafl : learnWordsJaflNoLig;
                     }
                     level = Math.min(currentLvl, 6);
                 }
@@ -517,6 +532,30 @@
                 // Convert string keys to numbers
                 Object.keys(learnCompoundData).forEach(key => {
                     learnWordsCompound[parseInt(key)] = learnCompoundData[key];
+                });
+
+                // Load learn mode words for Shaw 2-layer
+                const learn2layerResponse = await fetch('learn_words_2layer.json');
+                const learn2layerData = await learn2layerResponse.json();
+                // Convert string keys to numbers
+                Object.keys(learn2layerData).forEach(key => {
+                    learnWords2layer[parseInt(key)] = learn2layerData[key];
+                });
+
+                // Load learn mode words for Shaw-JAFL (with ligatures)
+                const learnJaflResponse = await fetch('learn_words_jafl.json');
+                const learnJaflData = await learnJaflResponse.json();
+                // Convert string keys to numbers
+                Object.keys(learnJaflData).forEach(key => {
+                    learnWordsJafl[parseInt(key)] = learnJaflData[key];
+                });
+
+                // Load learn mode words for Shaw-JAFL (no ligatures)
+                const learnJaflNoLigResponse = await fetch('learn_words_jafl_no_lig.json');
+                const learnJaflNoLigData = await learnJaflNoLigResponse.json();
+                // Convert string keys to numbers
+                Object.keys(learnJaflNoLigData).forEach(key => {
+                    learnWordsJaflNoLig[parseInt(key)] = learnJaflNoLigData[key];
                 });
 
                 wordsLoaded = true;

@@ -36,6 +36,50 @@ LAYOUT_QWERTY = {
     'bottom': LAYOUT_QWERTY_BASE['bottom'] + LAYOUT_QWERTY_SHIFT['bottom']
 }
 
+# Shaw 2-layer (shift) keyboard layout (no number row)
+# Base layer
+LAYOUT_2LAYER_BASE = {
+    'qwerty': '𐑵𐑧𐑨𐑭𐑬𐑝𐑢𐑞𐑣',  # q to p keys (minus punctuation)
+    'home': '𐑤𐑦𐑩𐑯𐑷𐑖𐑑𐑕𐑒𐑐',  # a to ; keys
+    'bottom': '𐑪𐑳𐑼𐑴𐑗'  # z to m keys (minus punctuation)
+}
+
+# Shift layer
+LAYOUT_2LAYER_SHIFT = {
+    'qwerty': '𐑿𐑱𐑲𐑸𐑶𐑓𐑘𐑔𐑙',  # q to p keys (shifted, minus punctuation)
+    'home': '𐑮𐑰𐑾𐑥𐑹𐑠𐑛𐑟𐑜𐑚',  # a to ; keys (shifted)
+    'bottom': '𐑺𐑻𐑽𐑫𐑡'  # z to m keys (shifted, minus punctuation)
+}
+
+# Combine both layers for Shaw 2-layer
+LAYOUT_2LAYER = {
+    'qwerty': LAYOUT_2LAYER_BASE['qwerty'] + LAYOUT_2LAYER_SHIFT['qwerty'],
+    'home': LAYOUT_2LAYER_BASE['home'] + LAYOUT_2LAYER_SHIFT['home'],
+    'bottom': LAYOUT_2LAYER_BASE['bottom'] + LAYOUT_2LAYER_SHIFT['bottom']
+}
+
+# Shaw-JAFL keyboard layout (no number row)
+# Base layer
+LAYOUT_JAFL_BASE = {
+    'qwerty': '𐑱𐑧𐑰𐑥𐑒𐑐𐑑𐑛𐑓',  # q to p keys (minus punctuation)
+    'home': '𐑪𐑨𐑩𐑦𐑳𐑤𐑮𐑕𐑯𐑢',  # a to ; keys
+    'bottom': '𐑲𐑴𐑞𐑟𐑣𐑝𐑚'  # z to m keys (minus punctuation)
+}
+
+# Shift layer
+LAYOUT_JAFL_SHIFT = {
+    'qwerty': '𐑬𐑹𐑸𐑿𐑜𐑗𐑡',  # q to p keys (shifted, minus punctuation)
+    'home': '𐑷𐑭𐑩𐑵𐑫𐑮𐑖𐑙𐑘',  # a to ; keys (shifted, note 𐑩 appears in both)
+    'bottom': '𐑶𐑔𐑠'  # z to m keys (shifted, minus punctuation)
+}
+
+# Combine both layers for Shaw-JAFL
+LAYOUT_JAFL = {
+    'qwerty': LAYOUT_JAFL_BASE['qwerty'] + LAYOUT_JAFL_SHIFT['qwerty'],
+    'home': LAYOUT_JAFL_BASE['home'] + LAYOUT_JAFL_SHIFT['home'],
+    'bottom': LAYOUT_JAFL_BASE['bottom'] + LAYOUT_JAFL_SHIFT['bottom']
+}
+
 # Ligatures: compound letters formed by typing two characters
 # Format: ligature -> (char1, char2)
 LIGATURES = {
@@ -111,6 +155,74 @@ LEARN_LEVELS_QWERTY = {
         'name': 'All Keys',
         'chars': '𐑩𐑕𐑛𐑓𐑜𐑣𐑘𐑒𐑤𐑨𐑖𐑼𐑲·𐑞𐑡𐑧𐑮𐑑𐑦𐑪𐑱𐑸𐑔𐑰𐑴𐑹𐑟𐑻𐑗𐑝𐑚𐑯𐑥𐑺𐑽𐑿𐑙𐑵𐑶𐑢𐑭𐑳𐑐𐑬𐑾𐑷𐑫𐑠⸰',  # All
         'description': 'Complete keyboard (all layers)'
+    }
+}
+
+# Define progressive levels for Shaw 2-layer (creative!)
+LEARN_LEVELS_2LAYER = {
+    1: {
+        'name': 'Essential Phonemes',
+        'chars': '𐑩𐑯𐑑𐑛𐑕𐑝𐑞𐑤𐑮',  # Most frequent sounds: schwa, n, t, d, s, v, th, l, r
+        'description': 'Master the 9 most common sounds in English'
+    },
+    2: {
+        'name': 'Vowel Voyage',
+        'chars': '𐑩𐑯𐑑𐑛𐑕𐑝𐑞𐑤𐑮𐑦𐑧𐑨𐑪𐑳𐑴𐑵𐑬𐑭𐑷',  # Add vowels from base layer
+        'description': 'Navigate through English vowel sounds'
+    },
+    3: {
+        'name': 'Consonant Command',
+        'chars': '𐑩𐑯𐑑𐑛𐑕𐑝𐑞𐑤𐑮𐑦𐑧𐑨𐑪𐑳𐑴𐑵𐑬𐑭𐑷𐑖𐑒𐑐𐑢𐑣𐑗',  # Add remaining base consonants
+        'description': 'Build confidence with base layer consonants'
+    },
+    4: {
+        'name': 'Ligature Power',
+        'chars': '𐑩𐑯𐑑𐑛𐑕𐑝𐑞𐑤𐑮𐑦𐑧𐑨𐑪𐑳𐑴𐑵𐑬𐑭𐑷𐑖𐑒𐑐𐑢𐑣𐑗𐑼𐑸𐑹𐑽𐑺𐑻',  # Add ligatures from both layers
+        'description': 'Harness the efficiency of compound letters'
+    },
+    5: {
+        'name': 'Shift Mastery',
+        'chars': '𐑩𐑯𐑑𐑛𐑕𐑝𐑞𐑤𐑮𐑦𐑧𐑨𐑪𐑳𐑴𐑵𐑬𐑭𐑷𐑖𐑒𐑐𐑢𐑣𐑗𐑼𐑸𐑹𐑽𐑺𐑻𐑿𐑱𐑲𐑰𐑾𐑶𐑓𐑘𐑔𐑙𐑥𐑠𐑜𐑚𐑟𐑫𐑡',  # Add most shift keys
+        'description': 'Unlock the full potential of the shift layer'
+    },
+    6: {
+        'name': 'Complete Control',
+        'chars': '𐑩𐑯𐑑𐑛𐑕𐑝𐑞𐑤𐑮𐑦𐑧𐑨𐑪𐑳𐑴𐑵𐑬𐑭𐑷𐑖𐑒𐑐𐑢𐑣𐑗𐑼𐑸𐑹𐑽𐑺𐑻𐑿𐑱𐑲𐑰𐑾𐑶𐑓𐑘𐑔𐑙𐑥𐑠𐑜𐑚𐑟𐑫𐑡',  # All keys
+        'description': 'Command every key with confidence'
+    }
+}
+
+# Define progressive levels for Shaw-JAFL (creative!)
+LEARN_LEVELS_JAFL = {
+    1: {
+        'name': 'Core Foundation',
+        'chars': '𐑩𐑯𐑑𐑛𐑕𐑤𐑮𐑦𐑝𐑞',  # Most frequent letters available
+        'description': 'Build your foundation with essential sounds'
+    },
+    2: {
+        'name': 'Home Sweet Home',
+        'chars': '𐑪𐑨𐑩𐑦𐑳𐑤𐑮𐑕𐑯𐑢',  # Full home row (base)
+        'description': 'Master the comfort of the home row'
+    },
+    3: {
+        'name': 'Upper Expedition',
+        'chars': '𐑪𐑨𐑩𐑦𐑳𐑤𐑮𐑕𐑯𐑢𐑱𐑧𐑰𐑥𐑒𐑐𐑑𐑛𐑓',  # Add upper row (base)
+        'description': 'Journey to the upper reaches of your keyboard'
+    },
+    4: {
+        'name': 'Lower Exploration',
+        'chars': '𐑪𐑨𐑩𐑦𐑳𐑤𐑮𐑕𐑯𐑢𐑱𐑧𐑰𐑥𐑒𐑐𐑑𐑛𐑓𐑲𐑴𐑞𐑟𐑣𐑝𐑚',  # Add lower row (base)
+        'description': 'Explore the depths below home position'
+    },
+    5: {
+        'name': 'Shift Introduction',
+        'chars': '𐑪𐑨𐑩𐑦𐑳𐑤𐑮𐑕𐑯𐑢𐑱𐑧𐑰𐑥𐑒𐑐𐑑𐑛𐑓𐑲𐑴𐑞𐑟𐑣𐑝𐑚𐑷𐑭𐑵𐑫𐑖𐑙𐑘',  # Add common shift keys
+        'description': 'Discover new dimensions with the shift key'
+    },
+    6: {
+        'name': 'Master Typist',
+        'chars': '𐑪𐑨𐑩𐑦𐑳𐑤𐑮𐑕𐑯𐑢𐑱𐑧𐑰𐑥𐑒𐑐𐑑𐑛𐑓𐑲𐑴𐑞𐑟𐑣𐑝𐑚𐑷𐑭𐑵𐑫𐑖𐑙𐑘𐑬𐑹𐑸𐑿𐑜𐑗𐑡𐑶𐑔𐑠',  # All keys
+        'description': 'Achieve mastery over the complete keyboard'
     }
 }
 
@@ -262,4 +374,31 @@ if __name__ == '__main__':
         'shavian-gb-word-frequencies.txt',
         all_imperial_chars,
         'learn_words_compound.json'
+    )
+
+    # Generate for Shaw 2-layer (no ligature support - ligatures are direct keys)
+    generate_learn_word_lists(
+        'shavian-gb-word-frequencies.txt',
+        LEARN_LEVELS_2LAYER,
+        'learn_words_2layer.json',
+        'Shaw 2-layer (shift)',
+        use_ligatures=False
+    )
+
+    # Generate for Shaw-JAFL (with ligatures)
+    generate_learn_word_lists(
+        'shavian-gb-word-frequencies.txt',
+        LEARN_LEVELS_JAFL,
+        'learn_words_jafl.json',
+        'Shaw-JAFL',
+        use_ligatures=True
+    )
+
+    # Generate for Shaw-JAFL (without ligatures)
+    generate_learn_word_lists(
+        'shavian-gb-word-frequencies.txt',
+        LEARN_LEVELS_JAFL,
+        'learn_words_jafl_no_lig.json',
+        'Shaw-JAFL (No Ligatures)',
+        use_ligatures=False
     )
