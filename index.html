@@ -574,7 +574,7 @@
                 practice: 'Practice',
                 settings: 'Settings',
                 keyboardLayout: 'Keyboard Layout',
-                ligatures: 'My keyboard auto-converts ligatures (e.g., 𐑩+𐑮 → 𐑼)',
+                ligatures: 'Practice with compound ligatures (𐑼, 𐑸, 𐑹, 𐑿, 𐑽)',
                 lesson: 'Lesson:',
                 auto: 'Auto (progress based)',
                 wordLength: 'Word Length:',
@@ -639,7 +639,7 @@
                 practice: '𐑐𐑮𐑨𐑒𐑑𐑦𐑕',
                 settings: '𐑕𐑧𐑑𐑦𐑙𐑟',
                 keyboardLayout: '𐑒𐑰𐑚𐑪𐑮𐑛 𐑤𐑱𐑬𐑑',
-                ligatures: '𐑥𐑲 𐑒𐑰𐑚𐑪𐑮𐑛 𐑷𐑑𐑴-𐑒𐑩𐑯𐑝𐑻𐑑𐑕 𐑤𐑦𐑜𐑩𐑗𐑻𐑟 (e.g., 𐑩+𐑮 → 𐑼)',
+                ligatures: '𐑐𐑮𐑨𐑒𐑑𐑦𐑕 𐑢𐑦𐑞 𐑒𐑪𐑥𐑐𐑬𐑯𐑛 𐑤𐑦𐑜𐑩𐑗𐑻𐑟 (𐑼, 𐑸, 𐑹, 𐑿, 𐑽)',
                 lesson: '𐑤𐑧𐑕𐑩𐑯:',
                 auto: '𐑷𐑑𐑴 (𐑐𐑮𐑴𐑜𐑮𐑧𐑕 𐑚𐑱𐑕𐑑)',
                 wordLength: '𐑢𐑻𐑛 𐑤𐑧𐑙𐑔:',
@@ -1280,10 +1280,9 @@
                     totalLettersTyped++;
                     currentLevelLettersTyped++;
 
-                    // Check if this completes the ligature correctly (should be 𐑮)
+                    // Check if this completes the ligature correctly
                     if (expandedIndex < wordExpanded.length &&
-                        inputExpanded[expandedIndex] === wordExpanded[expandedIndex] &&
-                        inputExpanded[expandedIndex] === '𐑮') {
+                        inputExpanded[expandedIndex] === wordExpanded[expandedIndex]) {
                         // Ligature completed correctly - count both characters as correct
                         correctLetters += 2;
                         currentLevelCorrectLetters += 2;
@@ -1308,9 +1307,12 @@
                     hasPendingLigature = false;
                 } else {
                     // Check if this could be the start of a ligature candidate
-                    const isLigatureCandidate = expandedIndex < wordExpanded.length - 1 &&
-                        wordExpanded[expandedIndex + 1] === '𐑮' &&
-                        ['𐑩', '𐑭', '𐑷', '𐑘', '𐑾'].includes(wordExpanded[expandedIndex]);
+                    // Look ahead to see if the next two characters form a known ligature
+                    let isLigatureCandidate = false;
+                    if (expandedIndex < wordExpanded.length - 1) {
+                        const twoChars = wordExpanded[expandedIndex] + wordExpanded[expandedIndex + 1];
+                        isLigatureCandidate = COMPONENT_TO_LIGATURE[twoChars] !== undefined;
+                    }
 
                     if (expandedIndex < wordExpanded.length &&
                         inputExpanded[expandedIndex] === wordExpanded[expandedIndex] &&
