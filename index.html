@@ -484,6 +484,7 @@
         // UI text translations
         const translations = {
             latin: {
+                title: 'Shaw Type',
                 subtitle: '𐑖𐑱𐑝𐑾𐑯 𐑑𐑲𐑐𐑦𐑙 𐑐𐑮𐑨𐑒𐑑𐑦𐑕',
                 learn: 'Learn',
                 play: 'Play',
@@ -547,6 +548,7 @@
                 close: 'Close'
             },
             shavian: {
+                title: '·𐑖𐑷 𐑑𐑲𐑐',
                 subtitle: '·𐑖𐑱𐑝𐑾𐑯 Typing Practice',
                 learn: '𐑤𐑻𐑯',
                 play: '𐑐𐑤𐑱',
@@ -1142,7 +1144,8 @@
             const lang = useShavianUI ? 'shavian' : 'latin';
             const t = translations[lang];
 
-            // Update subtitle
+            // Update title and subtitle
+            document.querySelector('h1').textContent = t.title;
             document.querySelector('.subtitle').textContent = t.subtitle;
 
             // Update mode buttons
