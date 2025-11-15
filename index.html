@@ -258,7 +258,7 @@
                 </label>
             </div>
             <div style="margin-bottom: 10px;">
-                <label style="color: #666; margin-right: 10px;">Level:</label>
+                <label style="color: #666; margin-right: 10px;">Lesson:</label>
                 <select id="levelSelect" onchange="onLevelChange()">
                     <option value="auto">Auto (progress based)</option>
                     <option value="1">1</option>
@@ -299,7 +299,7 @@
 
         <div class="stats">
             <div class="stat">
-                <div class="stat-label">Level</div>
+                <div class="stat-label" id="levelLabel">Lesson</div>
                 <div class="stat-value" id="levelDisplay">1</div>
             </div>
             <div class="stat">
@@ -400,6 +400,16 @@
                 mode === 'practice' ? 'block' : 'none';
             document.getElementById('learnLevelInfo').style.display =
                 mode === 'learn' ? 'block' : 'none';
+
+            // Update stat label based on mode
+            const levelLabel = document.getElementById('levelLabel');
+            if (mode === 'learn') {
+                levelLabel.textContent = 'Lesson';
+            } else if (mode === 'practice') {
+                levelLabel.textContent = 'Level';
+            } else {
+                levelLabel.textContent = 'Level';
+            }
 
             // Reset and reload
             resetPractice();
@@ -649,7 +659,13 @@
             if (newLevel !== currentLevel) {
                 currentLevel = newLevel;
             }
-            levelDisplayEl.textContent = currentLevel;
+
+            // Show '-' for practice mode, otherwise show the level/lesson number
+            if (currentMode === 'practice') {
+                levelDisplayEl.textContent = '-';
+            } else {
+                levelDisplayEl.textContent = currentLevel;
+            }
         }
 
         function updateWordDisplay() {
