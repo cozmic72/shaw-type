@@ -259,15 +259,8 @@
             </div>
             <div style="margin-bottom: 10px;">
                 <label style="color: #666; margin-right: 10px;">Lesson:</label>
-                <select id="levelSelect" onchange="onLevelChange()">
+                <select id="levelSelect" onchange="onLevelChange()" style="min-width: 200px;">
                     <option value="auto">Auto (progress based)</option>
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                    <option value="5">5</option>
-                    <option value="6">6</option>
-                    <option value="7">7 (Compound Letters)</option>
                 </select>
             </div>
             <div id="learnLevelName" style="font-weight: bold; color: #667eea;"></div>
@@ -446,21 +439,53 @@
 
         function updateLevelSelector() {
             const levelSelect = document.getElementById('levelSelect');
-            const maxLevel = (currentLayout === 'imperial' && useLigatures) ? 7 : 6;
 
-            // Update options visibility
-            for (let i = 1; i <= 7; i++) {
-                const option = levelSelect.querySelector(`option[value="${i}"]`);
-                if (option) {
-                    option.style.display = (i <= maxLevel) ? 'block' : 'none';
+            // Get the appropriate word list for current settings
+            let learnWords;
+            if (currentLayout === 'imperial') {
+                learnWords = useLigatures ? learnWordsImperial : learnWordsImperialNoLig;
+            } else if (currentLayout === 'qwerty') {
+                learnWords = learnWordsQwerty;
+            } else if (currentLayout === '2layer') {
+                learnWords = learnWords2layer;
+            } else if (currentLayout === 'jafl') {
+                learnWords = useLigatures ? learnWordsJafl : learnWordsJaflNoLig;
+            }
+
+            // Clear existing options except "Auto"
+            levelSelect.innerHTML = '<option value="auto">Auto (progress based)</option>';
+
+            // Add lesson options with names
+            if (learnWords) {
+                const maxLevel = (currentLayout === 'imperial' && useLigatures) ? 7 : 6;
+
+                for (let i = 1; i <= maxLevel; i++) {
+                    const levelData = learnWords[i];
+                    if (levelData) {
+                        const option = document.createElement('option');
+                        option.value = i;
+                        option.textContent = `${i}. ${levelData.name}`;
+                        levelSelect.appendChild(option);
+                    }
+                }
+
+                // Add compound letters lesson for Imperial with ligatures
+                if (currentLayout === 'imperial' && useLigatures && learnWordsCompound[1]) {
+                    const option = document.createElement('option');
+                    option.value = 7;
+                    option.textContent = `7. ${learnWordsCompound[1].name}`;
+                    levelSelect.appendChild(option);
                 }
             }
 
             // Reset to auto if selected level is now unavailable
+            const maxLevel = (currentLayout === 'imperial' && useLigatures) ? 7 : 6;
             if (selectedLevel !== 'auto' && parseInt(selectedLevel) > maxLevel) {
                 selectedLevel = 'auto';
-                levelSelect.value = 'auto';
             }
+
+            // Restore selected value
+            levelSelect.value = selectedLevel;
         }
 
         // Get available words for current mode
@@ -622,6 +647,7 @@
         async function init() {
             await loadWords();
             if (wordsLoaded) {
+                updateLevelSelector(); // Populate lesson dropdown
                 loadNewWord();
                 typingInput.focus();
             }
