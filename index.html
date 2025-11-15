@@ -236,12 +236,12 @@
         <h1>𐑖𐑱𐑝𐑾𐑯 Typing Practice</h1>
 
         <div class="mode-selector" style="text-align: center; margin-bottom: 20px;">
-            <button id="learnBtn" class="mode-btn active" onclick="setMode('learn')">Learn</button>
-            <button id="playBtn" class="mode-btn" onclick="setMode('play')">Play</button>
+            <button id="learnBtn" class="mode-btn" onclick="setMode('learn')">Learn</button>
+            <button id="playBtn" class="mode-btn active" onclick="setMode('play')">Play</button>
             <button id="practiceBtn" class="mode-btn" onclick="setMode('practice')">Practice</button>
         </div>
 
-        <div id="learnLevelInfo" style="text-align: center; margin-bottom: 15px; color: #666; font-size: 14px;">
+        <div id="learnLevelInfo" style="display: none; text-align: center; margin-bottom: 15px; color: #666; font-size: 14px;">
             <div style="margin-bottom: 10px;">
                 <label style="color: #666; margin-right: 10px;">Keyboard Layout:</label>
                 <select id="layoutSelect" onchange="onLayoutChange()">
@@ -292,7 +292,7 @@
 
         <div class="stats">
             <div class="stat">
-                <div class="stat-label" id="levelLabel">Lesson</div>
+                <div class="stat-label" id="levelLabel">Level</div>
                 <div class="stat-value" id="levelDisplay">1</div>
             </div>
             <div class="stat">
@@ -346,7 +346,7 @@
         let recentWords = []; // Track recent words to avoid repeats
 
         // Mode management
-        let currentMode = 'learn'; // 'learn', 'play', or 'practice'
+        let currentMode = 'play'; // 'learn', 'play', or 'practice'
         let practiceLength = '3'; // Default practice length
         let currentLayout = 'imperial'; // 'imperial' or 'qwerty'
         let useLigatures = true; // Toggle for ligatures
