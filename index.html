@@ -402,6 +402,25 @@
             margin-top: 20px;
             padding: 10px;
         }
+
+        .lesson-option {
+            padding: 15px;
+            margin: 10px 0;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .lesson-option:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .lesson-option strong {
+            color: #333;
+            font-size: 16px;
+        }
     </style>
 </head>
 <body>
@@ -452,6 +471,10 @@
             </div>
         </div>
 
+        <div id="currentLessonInfo" style="display: none; text-align: left; margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 8px; font-size: 13px; color: #666;">
+            <strong id="currentLessonName"></strong>
+        </div>
+
         <div class="instructions">
             Type the word shown above. Press Enter or Space to move to the next word.
         </div>
@@ -464,14 +487,16 @@
     <!-- Completion Modal -->
     <div class="completion-modal" id="completionModal">
         <div class="completion-content">
-            <h2>Congratulations!</h2>
-            <p>You completed 30 words!</p>
+            <h2 id="completionTitle">Congratulations!</h2>
+            <p id="completionMessage">You completed 30 words!</p>
             <div class="final-score" id="finalScore">--</div>
             <div class="stat-row">Accuracy: <span id="finalAccuracy">--</span></div>
-            <div class="stat-row">High Score: <span id="finalHighScore">--</span></div>
-            <div class="stat-row">Level Reached: <span id="finalLevel">--</span></div>
+            <div class="stat-row" id="highScoreRow">High Score: <span id="finalHighScore">--</span></div>
+            <div class="stat-row" id="levelReachedRow">Level Reached: <span id="finalLevel">--</span></div>
             <div id="levelStatsContainer" class="level-stats-container"></div>
-            <button onclick="resetPractice()">Practice Again</button>
+            <div id="completionButtons">
+                <button onclick="resetPractice()">Practice Again</button>
+            </div>
         </div>
     </div>
 
@@ -870,6 +895,15 @@
             // Show/hide selectors
             document.getElementById('learnLevelInfo').style.display =
                 mode === 'learn' ? 'block' : 'none';
+            document.getElementById('currentLessonInfo').style.display =
+                mode === 'learn' ? 'block' : 'none';
+
+            // Reset subtitle for play mode
+            if (mode === 'play') {
+                const lang = useShavianUI ? 'shavian' : 'latin';
+                const t = translations[lang];
+                document.querySelector('.subtitle').textContent = t.subtitle;
+            }
 
             // Update stat label based on mode
             updateUILanguage();
@@ -1044,11 +1078,12 @@
                 const levelData = learnWords[level];
                 if (levelData && levelData.words) {
                     pool = levelData.words;
-                    // Update level info display
-                    document.getElementById('learnLevelName').textContent =
-                        `Level ${currentLvl}: ${levelData.name}`;
-                    document.getElementById('learnLevelDesc').textContent =
-                        levelData.description;
+                    // Update lesson info display
+                    const translatedName = translateLessonName(levelData.name);
+                    document.getElementById('currentLessonName').textContent =
+                        `Lesson ${currentLvl}: ${translatedName}`;
+                    // Update subtitle with lesson description
+                    document.querySelector('.subtitle').textContent = levelData.description;
                 }
             } else {
                 // Play mode: use level-based selection
@@ -1301,8 +1336,9 @@
                 wordsCompleted++;
                 updateStats();
 
-                // Check if reached 30 words (6 levels × 5 words)
-                if (wordsCompleted === 30) {
+                // Check completion based on mode
+                const completionCount = currentMode === 'learn' ? 10 : 30;
+                if (wordsCompleted === completionCount) {
                     showCompletionModal();
                 } else {
                     // Load new word after a short delay
@@ -1333,24 +1369,50 @@
                 localStorage.setItem('highScore', highScore.toString());
             }
 
+            // Customize modal based on mode
+            if (currentMode === 'learn') {
+                document.getElementById('completionTitle').textContent = 'Session Complete!';
+                document.getElementById('completionMessage').textContent = 'You completed 10 words!';
+                document.getElementById('highScoreRow').style.display = 'none';
+                document.getElementById('levelReachedRow').style.display = 'none';
+                document.getElementById('levelStatsContainer').style.display = 'none';
+
+                // Show buttons for continue or choose lesson
+                document.getElementById('completionButtons').innerHTML = `
+                    <button onclick="continueLesson()">Continue</button>
+                    <button onclick="chooseDifferentLesson()" style="margin-left: 10px; background: white; color: #667eea; border: 2px solid #667eea;">Choose Different Lesson</button>
+                `;
+            } else {
+                document.getElementById('completionTitle').textContent = 'Congratulations!';
+                document.getElementById('completionMessage').textContent = 'You completed 30 words!';
+                document.getElementById('highScoreRow').style.display = 'block';
+                document.getElementById('levelReachedRow').style.display = 'block';
+                document.getElementById('levelStatsContainer').style.display = 'block';
+
+                document.getElementById('finalLevel').textContent = currentLevel;
+
+                // Update high score display
+                const highScoreFormatted = highScore.toFixed(1) + '%';
+                document.getElementById('finalHighScore').textContent = highScoreFormatted;
+
+                // Generate per-level stats HTML
+                const lang = useShavianUI ? 'shavian' : 'latin';
+                const t = translations[lang];
+                let levelStatsHTML = '';
+                levelStats.forEach(stat => {
+                    const levelAccuracyFormatted = stat.accuracy.toFixed(1);
+                    const levelLabel = currentMode === 'learn' ? t.lesson_label : t.level_label;
+                    levelStatsHTML += `<div class="level-stat">${levelLabel} ${stat.level}: ${levelAccuracyFormatted}%</div>`;
+                });
+                document.getElementById('levelStatsContainer').innerHTML = levelStatsHTML;
+
+                document.getElementById('completionButtons').innerHTML = `
+                    <button onclick="resetPractice()">Practice Again</button>
+                `;
+            }
+
             document.getElementById('finalScore').textContent = accuracyFormatted;
             document.getElementById('finalAccuracy').textContent = accuracyFormatted;
-            document.getElementById('finalLevel').textContent = currentLevel;
-
-            // Update high score display
-            const highScoreFormatted = highScore.toFixed(1) + '%';
-            document.getElementById('finalHighScore').textContent = highScoreFormatted;
-
-            // Generate per-level stats HTML
-            const lang = useShavianUI ? 'shavian' : 'latin';
-            const t = translations[lang];
-            let levelStatsHTML = '';
-            levelStats.forEach(stat => {
-                const levelAccuracyFormatted = stat.accuracy.toFixed(1);
-                const levelLabel = currentMode === 'learn' ? t.lesson_label : t.level_label;
-                levelStatsHTML += `<div class="level-stat">${levelLabel} ${stat.level}: ${levelAccuracyFormatted}%</div>`;
-            });
-            document.getElementById('levelStatsContainer').innerHTML = levelStatsHTML;
 
             document.getElementById('completionModal').classList.add('show');
         }
@@ -1375,6 +1437,43 @@
             updateLevel();
             loadNewWord();
             typingInput.focus();
+        }
+
+        function continueLesson() {
+            // Reset session stats but keep same lesson
+            wordsCompleted = 0;
+            totalLettersTyped = 0;
+            correctLetters = 0;
+            recentWords = [];
+            currentLevelLettersTyped = 0;
+            currentLevelCorrectLetters = 0;
+            hasPendingLigature = false;
+
+            // Hide modal
+            document.getElementById('completionModal').classList.remove('show');
+
+            // Update display
+            updateStats();
+            loadNewWord();
+            typingInput.focus();
+        }
+
+        function chooseDifferentLesson() {
+            // Hide completion modal
+            document.getElementById('completionModal').classList.remove('show');
+
+            // Reset session stats
+            wordsCompleted = 0;
+            totalLettersTyped = 0;
+            correctLetters = 0;
+            recentWords = [];
+            currentLevelLettersTyped = 0;
+            currentLevelCorrectLetters = 0;
+            hasPendingLigature = false;
+            updateStats();
+
+            // Open lesson selector
+            openLessonSelector();
         }
 
         // Event listeners
@@ -1642,6 +1741,87 @@
             document.getElementById('settingsModal').classList.remove('show');
         }
 
+        // Lesson selector functions
+        function openLessonSelector() {
+            // Get the appropriate word list for current settings
+            let learnWords;
+            if (currentLayout === 'imperial') {
+                learnWords = useLigatures ? learnWordsImperial : learnWordsImperialNoLig;
+            } else if (currentLayout === 'qwerty') {
+                learnWords = learnWordsQwerty;
+            } else if (currentLayout === '2layer') {
+                learnWords = learnWords2layer;
+            } else if (currentLayout === 'jafl') {
+                learnWords = useLigatures ? learnWordsJafl : learnWordsJaflNoLig;
+            }
+
+            const lessonList = document.getElementById('lessonList');
+            lessonList.innerHTML = '';
+
+            // Add Auto option
+            const autoBtn = document.createElement('div');
+            autoBtn.className = 'lesson-option';
+            autoBtn.innerHTML = `
+                <strong>Auto (progress based)</strong>
+                <p style="margin: 5px 0 0 0; font-size: 12px; color: #888;">Automatically advance through lessons</p>
+            `;
+            autoBtn.onclick = () => selectLesson('auto');
+            if (selectedLevel === 'auto') {
+                autoBtn.style.background = '#f0f0ff';
+            }
+            lessonList.appendChild(autoBtn);
+
+            // Determine max level for current layout
+            const maxLevel = (currentLayout === 'imperial' && useLigatures) ? 7 : 6;
+
+            // Add lesson options
+            for (let i = 1; i <= maxLevel; i++) {
+                let levelData;
+                // For Imperial with ligatures, insert compound letters at position 5
+                if (currentLayout === 'imperial' && useLigatures && i === 5) {
+                    levelData = learnWordsCompound[1];
+                } else {
+                    const actualLevel = (currentLayout === 'imperial' && useLigatures && i > 5) ? i - 1 : i;
+                    levelData = learnWords[actualLevel];
+                }
+
+                if (levelData) {
+                    const lessonBtn = document.createElement('div');
+                    lessonBtn.className = 'lesson-option';
+                    const translatedName = translateLessonName(levelData.name);
+                    lessonBtn.innerHTML = `
+                        <strong>Lesson ${i}: ${translatedName}</strong>
+                        <p style="margin: 5px 0 0 0; font-size: 12px; color: #888;">${levelData.description}</p>
+                    `;
+                    lessonBtn.onclick = () => selectLesson(i);
+                    if (selectedLevel == i) {
+                        lessonBtn.style.background = '#f0f0ff';
+                    }
+                    lessonList.appendChild(lessonBtn);
+                }
+            }
+
+            document.getElementById('lessonModal').classList.add('show');
+        }
+
+        function selectLesson(level) {
+            selectedLevel = level;
+            closeLessonModal();
+            // Reset session for new lesson
+            wordsCompleted = 0;
+            totalLettersTyped = 0;
+            correctLetters = 0;
+            recentWords = [];
+            currentLevelLettersTyped = 0;
+            currentLevelCorrectLetters = 0;
+            updateStats();
+            loadNewWord();
+        }
+
+        function closeLessonModal() {
+            document.getElementById('lessonModal').classList.remove('show');
+        }
+
         function toggleShavianUI() {
             useShavianUI = document.getElementById('shavianUIToggle').checked;
             localStorage.setItem('useShavianUI', useShavianUI);
@@ -1659,24 +1839,6 @@
             // Update mode buttons
             document.getElementById('learnBtn').textContent = t.practice;
             document.getElementById('playBtn').textContent = t.play;
-
-            // Update Learn mode labels
-            document.querySelector('#learnLevelInfo label').textContent = t.lesson;
-
-            // Update Practice mode label and options
-            document.querySelector('#practiceLengthSelector label').textContent = t.wordLength;
-            const lengthSelect = document.getElementById('lengthSelect');
-            if (lengthSelect) {
-                lengthSelect.options[0].textContent = t.length1;
-                lengthSelect.options[1].textContent = t.length2;
-                lengthSelect.options[2].textContent = t.length3;
-                lengthSelect.options[3].textContent = t.length4;
-                lengthSelect.options[4].textContent = t.length5;
-                lengthSelect.options[5].textContent = t.length6;
-                lengthSelect.options[6].textContent = t.length7;
-                lengthSelect.options[7].textContent = t.length46;
-                lengthSelect.options[8].textContent = t.length57;
-            }
 
             // Update stats labels
             document.querySelector('.stat-label').textContent =
