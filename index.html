@@ -620,14 +620,14 @@
         // Get current level based on words completed
         function getCurrentLevel() {
             if (currentMode === 'learn' && currentLayout === 'imperial' && useLigatures) {
-                // Imperial with ligatures has 7 levels (including compound letters)
+                // Imperial with ligatures has 7 levels (compound letters at level 5)
                 if (wordsCompleted < 10) return 1;
                 if (wordsCompleted < 20) return 2;
                 if (wordsCompleted < 30) return 3;
                 if (wordsCompleted < 40) return 4;
-                if (wordsCompleted < 50) return 5;
-                if (wordsCompleted < 60) return 6;
-                return 7; // Compound letters lesson
+                if (wordsCompleted < 50) return 5; // Compound letters lesson
+                if (wordsCompleted < 60) return 6; // Almost Complete
+                return 7; // All Keys
             } else {
                 // Other modes use 6 levels
                 if (wordsCompleted < 10) return 1;
@@ -747,23 +747,25 @@
                 const maxLevel = (currentLayout === 'imperial' && useLigatures) ? 7 : 6;
 
                 for (let i = 1; i <= maxLevel; i++) {
-                    const levelData = learnWords[i];
-                    if (levelData) {
+                    // For Imperial with ligatures, insert compound letters at position 5
+                    if (currentLayout === 'imperial' && useLigatures && i === 5 && learnWordsCompound[1]) {
                         const option = document.createElement('option');
-                        option.value = i;
-                        const translatedName = translateLessonName(levelData.name);
-                        option.textContent = `${i}. ${translatedName}`;
+                        option.value = 5;
+                        const translatedName = translateLessonName(learnWordsCompound[1].name);
+                        option.textContent = `5. ${translatedName}`;
                         levelSelect.appendChild(option);
+                    } else {
+                        // Map levels for Imperial with ligatures: 6→5, 7→6
+                        const actualLevel = (currentLayout === 'imperial' && useLigatures && i > 5) ? i - 1 : i;
+                        const levelData = learnWords[actualLevel];
+                        if (levelData) {
+                            const option = document.createElement('option');
+                            option.value = i;
+                            const translatedName = translateLessonName(levelData.name);
+                            option.textContent = `${i}. ${translatedName}`;
+                            levelSelect.appendChild(option);
+                        }
                     }
-                }
-
-                // Add compound letters lesson for Imperial with ligatures
-                if (currentLayout === 'imperial' && useLigatures && learnWordsCompound[1]) {
-                    const option = document.createElement('option');
-                    option.value = 7;
-                    const translatedName = translateLessonName(learnWordsCompound[1].name);
-                    option.textContent = `7. ${translatedName}`;
-                    levelSelect.appendChild(option);
                 }
             }
 
@@ -789,7 +791,7 @@
                 let level = currentLvl;
 
                 // Check if we're in compound letters lesson
-                if (currentLayout === 'imperial' && useLigatures && currentLvl === 7) {
+                if (currentLayout === 'imperial' && useLigatures && currentLvl === 5) {
                     learnWords = learnWordsCompound;
                     level = 1; // Compound lesson only has level 1
                 } else {
@@ -802,7 +804,13 @@
                     } else if (currentLayout === 'jafl') {
                         learnWords = useLigatures ? learnWordsJafl : learnWordsJaflNoLig;
                     }
-                    level = Math.min(currentLvl, 6);
+
+                    // For Imperial with ligatures, adjust level mapping after compound letters
+                    if (currentLayout === 'imperial' && useLigatures && currentLvl > 5) {
+                        level = currentLvl - 1; // Map level 6 → 5 (Almost Complete), level 7 → 6 (All Keys)
+                    } else {
+                        level = Math.min(currentLvl, 6);
+                    }
                 }
 
                 const levelData = learnWords[level];
