@@ -233,6 +233,13 @@
         </div>
 
         <div id="learnLevelInfo" style="text-align: center; margin-bottom: 15px; color: #666; font-size: 14px;">
+            <div style="margin-bottom: 10px;">
+                <label style="color: #666; margin-right: 10px;">Keyboard Layout:</label>
+                <select id="layoutSelect" onchange="onLayoutChange()">
+                    <option value="imperial">Shaw Imperial</option>
+                    <option value="qwerty">Shaw QWERTY</option>
+                </select>
+            </div>
             <div id="learnLevelName" style="font-weight: bold; color: #667eea;"></div>
             <div id="learnLevelDesc" style="font-size: 12px; margin-top: 5px;"></div>
         </div>
@@ -295,7 +302,8 @@
     <script>
         // Words will be loaded from JSON file
         let wordsByLength = {};
-        let learnWords = {};
+        let learnWordsImperial = {};
+        let learnWordsQwerty = {};
         let wordsLoaded = false;
 
         let currentWord = '';
@@ -308,6 +316,7 @@
         // Mode management
         let currentMode = 'learn'; // 'learn', 'play', or 'practice'
         let practiceLength = '3'; // Default practice length
+        let currentLayout = 'imperial'; // 'imperial' or 'qwerty'
 
         const wordDisplay = document.getElementById('wordDisplay');
         const typingInput = document.getElementById('typingInput');
@@ -348,6 +357,11 @@
             loadNewWord();
         }
 
+        function onLayoutChange() {
+            currentLayout = document.getElementById('layoutSelect').value;
+            loadNewWord();
+        }
+
         // Get available words for current mode
         function getWordPool() {
             let pool = [];
@@ -355,6 +369,7 @@
             if (currentMode === 'learn') {
                 // Learn mode: use keyboard-based progressive levels
                 const level = Math.min(getCurrentLevel(), 6); // Learn has 6 levels
+                const learnWords = currentLayout === 'imperial' ? learnWordsImperial : learnWordsQwerty;
                 const levelData = learnWords[level];
                 if (levelData && levelData.words) {
                     pool = levelData.words;
@@ -417,12 +432,20 @@
                     wordsByLength[parseInt(key)] = wordsData[key];
                 });
 
-                // Load learn mode words
-                const learnResponse = await fetch('learn_words.json');
-                const learnData = await learnResponse.json();
+                // Load learn mode words for Imperial
+                const learnImperialResponse = await fetch('learn_words_imperial.json');
+                const learnImperialData = await learnImperialResponse.json();
                 // Convert string keys to numbers
-                Object.keys(learnData).forEach(key => {
-                    learnWords[parseInt(key)] = learnData[key];
+                Object.keys(learnImperialData).forEach(key => {
+                    learnWordsImperial[parseInt(key)] = learnImperialData[key];
+                });
+
+                // Load learn mode words for QWERTY
+                const learnQwertyResponse = await fetch('learn_words_qwerty.json');
+                const learnQwertyData = await learnQwertyResponse.json();
+                // Convert string keys to numbers
+                Object.keys(learnQwertyData).forEach(key => {
+                    learnWordsQwerty[parseInt(key)] = learnQwertyData[key];
                 });
 
                 wordsLoaded = true;
