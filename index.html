@@ -185,6 +185,26 @@
             color: #666;
         }
 
+        .level-stats-container {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .level-stat {
+            padding: 5px 0;
+            font-size: 14px;
+            color: #555;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .level-stat:last-child {
+            border-bottom: none;
+        }
+
         .completion-content button {
             margin-top: 30px;
             padding: 15px 40px;
@@ -410,10 +430,12 @@
     <div class="completion-modal" id="completionModal">
         <div class="completion-content">
             <h2>Congratulations!</h2>
-            <p>You completed 50 words!</p>
+            <p>You completed 30 words!</p>
             <div class="final-score" id="finalScore">--</div>
             <div class="stat-row">Accuracy: <span id="finalAccuracy">--</span></div>
+            <div class="stat-row">High Score: <span id="finalHighScore">--</span></div>
             <div class="stat-row">Level Reached: <span id="finalLevel">--</span></div>
+            <div id="levelStatsContainer" class="level-stats-container"></div>
             <button onclick="resetPractice()">Practice Again</button>
         </div>
     </div>
@@ -469,9 +491,13 @@
         let currentWord = '';
         let wordsCompleted = 0;
         let currentLevel = 1;
-        let totalAttempts = 0;
-        let correctAttempts = 0;
+        let totalLettersTyped = 0;
+        let correctLetters = 0;
         let recentWords = []; // Track recent words to avoid repeats
+        let highScore = 0; // High score from localStorage
+        let levelStats = []; // Per-level statistics
+        let currentLevelLettersTyped = 0; // Letters typed in current level
+        let currentLevelCorrectLetters = 0; // Correct letters in current level
 
         // Mode management
         let currentMode = 'play'; // 'learn', 'play', or 'practice'
@@ -538,8 +564,9 @@
                 lessonMasterTypist: 'Master Typist',
                 instructions: 'Type the word shown above. Press Enter or Space to move to the next word.',
                 congratulations: 'Congratulations!',
-                completed50: 'You completed 50 words!',
+                completed30: 'You completed 30 words!',
                 accuracy_final: 'Accuracy:',
+                highScore: 'High Score:',
                 levelReached: 'Level Reached:',
                 practiceAgain: 'Practice Again',
                 settingsTitle: 'Settings',
@@ -602,8 +629,9 @@
                 lessonMasterTypist: '𐑥𐑭𐑕𐑑𐑼 𐑑𐑲𐑐𐑦𐑕𐑑',
                 instructions: '𐑑𐑲𐑐 𐑞 𐑢𐑻𐑛 𐑖𐑴𐑯 𐑩𐑚𐑳𐑝. 𐑐𐑮𐑧𐑕 𐑧𐑯𐑑𐑼 𐑹 𐑕𐑐𐑱𐑕 𐑑 𐑥𐑵𐑝 𐑑 𐑞 𐑯𐑧𐑒𐑕𐑑 𐑢𐑻𐑛.',
                 congratulations: '𐑒𐑩𐑙𐑜𐑮𐑨𐑗𐑫𐑤𐑱𐑖𐑩𐑯𐑟!',
-                completed50: '𐑿 𐑒𐑩𐑥𐑐𐑤𐑰𐑑𐑩𐑛 50 𐑢𐑻𐑛𐑟!',
+                completed30: '𐑿 𐑒𐑩𐑥𐑐𐑤𐑰𐑑𐑩𐑛 30 𐑢𐑻𐑛𐑟!',
                 accuracy_final: '𐑨𐑒𐑘𐑫𐑮𐑩𐑕𐑦:',
+                highScore: '𐑣𐑲 𐑕𐑒𐑹:',
                 levelReached: '𐑤𐑧𐑝𐑩𐑤 𐑮𐑰𐑗𐑑:',
                 practiceAgain: '𐑐𐑮𐑨𐑒𐑑𐑦𐑕 𐑩𐑜𐑱𐑯',
                 settingsTitle: '𐑕𐑧𐑑𐑦𐑙𐑟',
@@ -619,24 +647,25 @@
         const accuracyEl = document.getElementById('accuracy');
         const levelDisplayEl = document.getElementById('levelDisplay');
 
-        // Get current level based on words completed
+        // Get current level based on words completed (5 words per level)
         function getCurrentLevel() {
             if (currentMode === 'learn' && currentLayout === 'imperial' && useLigatures) {
                 // Imperial with ligatures has 7 levels (compound letters at level 5)
-                if (wordsCompleted < 10) return 1;
-                if (wordsCompleted < 20) return 2;
-                if (wordsCompleted < 30) return 3;
-                if (wordsCompleted < 40) return 4;
-                if (wordsCompleted < 50) return 5; // Compound letters lesson
-                if (wordsCompleted < 60) return 6; // Almost Complete
+                if (wordsCompleted < 5) return 1;
+                if (wordsCompleted < 10) return 2;
+                if (wordsCompleted < 15) return 3;
+                if (wordsCompleted < 20) return 4;
+                if (wordsCompleted < 25) return 5; // Compound letters lesson
+                if (wordsCompleted < 30) return 6; // Almost Complete
                 return 7; // All Keys
             } else {
-                // Other modes use 6 levels
-                if (wordsCompleted < 10) return 1;
-                if (wordsCompleted < 20) return 2;
-                if (wordsCompleted < 35) return 3;
-                if (wordsCompleted < 50) return 4;
-                return wordsCompleted < 60 ? 5 : 6;
+                // Other modes use 6 levels (5 words per level = 30 words total)
+                if (wordsCompleted < 5) return 1;
+                if (wordsCompleted < 10) return 2;
+                if (wordsCompleted < 15) return 3;
+                if (wordsCompleted < 20) return 4;
+                if (wordsCompleted < 25) return 5;
+                return 6;
             }
         }
 
@@ -978,6 +1007,7 @@
             }
 
             typingInput.value = '';
+            previousInput = ''; // Reset previous input for new word
             updateWordDisplay();
             updateLevel();
         }
@@ -985,6 +1015,20 @@
         function updateLevel() {
             const newLevel = getCurrentLevel();
             if (newLevel !== currentLevel) {
+                // Save stats for the completed level
+                const levelAccuracy = currentLevelLettersTyped === 0 ? 100.0 :
+                    ((currentLevelCorrectLetters / currentLevelLettersTyped) * 100);
+                levelStats.push({
+                    level: currentLevel,
+                    accuracy: levelAccuracy,
+                    lettersTyped: currentLevelLettersTyped,
+                    correctLetters: currentLevelCorrectLetters
+                });
+
+                // Reset current level stats
+                currentLevelLettersTyped = 0;
+                currentLevelCorrectLetters = 0;
+
                 currentLevel = newLevel;
             }
 
@@ -1024,7 +1068,7 @@
 
         function updateStats() {
             wordCountEl.textContent = wordsCompleted;
-            const accuracy = totalAttempts === 0 ? 100 : Math.round((correctAttempts / totalAttempts) * 100);
+            const accuracy = totalLettersTyped === 0 ? 100 : ((correctLetters / totalLettersTyped) * 100).toFixed(1);
             accuracyEl.textContent = accuracy + '%';
         }
 
@@ -1034,13 +1078,11 @@
             // Direct string comparison works fine for equality
             if (userInput === currentWord) {
                 // Word completed correctly
-                totalAttempts++;
-                correctAttempts++;
                 wordsCompleted++;
                 updateStats();
 
-                // Check if reached 50 words
-                if (wordsCompleted === 50) {
+                // Check if reached 30 words (6 levels × 5 words)
+                if (wordsCompleted === 30) {
                     showCompletionModal();
                 } else {
                     // Load new word after a short delay
@@ -1052,20 +1094,57 @@
         }
 
         function showCompletionModal() {
-            const accuracy = totalAttempts === 0 ? 100 : Math.round((correctAttempts / totalAttempts) * 100);
-            document.getElementById('finalScore').textContent = accuracy + '%';
-            document.getElementById('finalAccuracy').textContent = accuracy + '%';
+            // Save stats for the final level
+            const finalLevelAccuracy = currentLevelLettersTyped === 0 ? 100.0 :
+                ((currentLevelCorrectLetters / currentLevelLettersTyped) * 100);
+            levelStats.push({
+                level: currentLevel,
+                accuracy: finalLevelAccuracy,
+                lettersTyped: currentLevelLettersTyped,
+                correctLetters: currentLevelCorrectLetters
+            });
+
+            const accuracy = totalLettersTyped === 0 ? 100.0 : ((correctLetters / totalLettersTyped) * 100);
+            const accuracyFormatted = accuracy.toFixed(1) + '%';
+
+            // Update high score if current score is better
+            if (accuracy > highScore) {
+                highScore = accuracy;
+                localStorage.setItem('highScore', highScore.toString());
+            }
+
+            document.getElementById('finalScore').textContent = accuracyFormatted;
+            document.getElementById('finalAccuracy').textContent = accuracyFormatted;
             document.getElementById('finalLevel').textContent = currentLevel;
+
+            // Update high score display
+            const highScoreFormatted = highScore.toFixed(1) + '%';
+            document.getElementById('finalHighScore').textContent = highScoreFormatted;
+
+            // Generate per-level stats HTML
+            const lang = useShavianUI ? 'shavian' : 'latin';
+            const t = translations[lang];
+            let levelStatsHTML = '';
+            levelStats.forEach(stat => {
+                const levelAccuracyFormatted = stat.accuracy.toFixed(1);
+                const levelLabel = currentMode === 'learn' ? t.lesson_label : t.level_label;
+                levelStatsHTML += `<div class="level-stat">${levelLabel} ${stat.level}: ${levelAccuracyFormatted}%</div>`;
+            });
+            document.getElementById('levelStatsContainer').innerHTML = levelStatsHTML;
+
             document.getElementById('completionModal').classList.add('show');
         }
 
         function resetPractice() {
             // Reset all stats
             wordsCompleted = 0;
-            totalAttempts = 0;
-            correctAttempts = 0;
+            totalLettersTyped = 0;
+            correctLetters = 0;
             currentLevel = 1;
             recentWords = [];
+            levelStats = [];
+            currentLevelLettersTyped = 0;
+            currentLevelCorrectLetters = 0;
 
             // Hide modal
             document.getElementById('completionModal').classList.remove('show');
@@ -1078,24 +1157,33 @@
         }
 
         // Event listeners
+        let previousInput = '';
         typingInput.addEventListener('input', (e) => {
             const userInput = e.target.value;
 
             // Convert to arrays of actual Unicode characters
             const wordChars = Array.from(currentWord);
             const inputChars = Array.from(userInput);
+            const prevInputChars = Array.from(previousInput);
 
-            // Check if user is typing correctly
-            let hasError = false;
-            for (let i = 0; i < inputChars.length; i++) {
-                if (i >= wordChars.length || inputChars[i] !== wordChars[i]) {
-                    hasError = true;
-                    totalAttempts++;
-                    break;
+            // Track letter-level accuracy
+            // Only count new characters typed (not backspaces)
+            if (inputChars.length > prevInputChars.length) {
+                // User typed a new character
+                const newCharIndex = prevInputChars.length;
+                totalLettersTyped++;
+                currentLevelLettersTyped++;
+
+                // Check if the new character is correct
+                if (newCharIndex < wordChars.length && inputChars[newCharIndex] === wordChars[newCharIndex]) {
+                    correctLetters++;
+                    currentLevelCorrectLetters++;
                 }
             }
 
+            previousInput = userInput;
             updateWordDisplay();
+            updateStats();
             checkCompletion();
         });
 
@@ -1106,11 +1194,22 @@
                 const userInput = typingInput.value.trim();
 
                 if (userInput.length > 0) {
-                    totalAttempts++;
+                    // Count any remaining untyped characters as errors
+                    const wordChars = Array.from(currentWord);
+                    const inputChars = Array.from(userInput);
+
+                    if (inputChars.length < wordChars.length) {
+                        // User skipped without completing - count remaining letters as typed incorrectly
+                        const remainingLetters = wordChars.length - inputChars.length;
+                        totalLettersTyped += remainingLetters;
+                        currentLevelLettersTyped += remainingLetters;
+                    }
+
+                    // If word matches exactly, count as completed
                     if (userInput === currentWord) {
-                        correctAttempts++;
                         wordsCompleted++;
                     }
+
                     updateStats();
                     loadNewWord();
                 }
@@ -1186,9 +1285,10 @@
 
             // Update completion modal
             document.querySelector('#completionModal h2').textContent = t.congratulations;
-            document.querySelector('#completionModal p').textContent = t.completed50;
+            document.querySelector('#completionModal p').textContent = t.completed30;
             document.querySelectorAll('.stat-row')[0].childNodes[0].textContent = t.accuracy_final + ' ';
-            document.querySelectorAll('.stat-row')[1].childNodes[0].textContent = t.levelReached + ' ';
+            document.querySelectorAll('.stat-row')[1].childNodes[0].textContent = t.highScore + ' ';
+            document.querySelectorAll('.stat-row')[2].childNodes[0].textContent = t.levelReached + ' ';
             document.querySelector('#completionModal button').textContent = t.practiceAgain;
 
             // Update settings modal
@@ -1246,6 +1346,12 @@
                     document.getElementById('practiceBtn').classList.add('active');
                     document.getElementById('practiceLengthSelector').style.display = 'block';
                 }
+            }
+
+            // Load high score
+            const savedHighScore = localStorage.getItem('highScore');
+            if (savedHighScore !== null) {
+                highScore = parseFloat(savedHighScore);
             }
         }
 
