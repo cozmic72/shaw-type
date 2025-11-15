@@ -257,6 +257,19 @@
                     Use automatic ligatures (e.g., type 𐑩+𐑮 → 𐑼)
                 </label>
             </div>
+            <div style="margin-bottom: 10px;">
+                <label style="color: #666; margin-right: 10px;">Level:</label>
+                <select id="levelSelect" onchange="onLevelChange()">
+                    <option value="auto">Auto (progress based)</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7 (Compound Letters)</option>
+                </select>
+            </div>
             <div id="learnLevelName" style="font-weight: bold; color: #667eea;"></div>
             <div id="learnLevelDesc" style="font-size: 12px; margin-top: 5px;"></div>
         </div>
@@ -344,6 +357,7 @@
         let practiceLength = '3'; // Default practice length
         let currentLayout = 'imperial'; // 'imperial' or 'qwerty'
         let useLigatures = true; // Toggle for ligatures
+        let selectedLevel = 'auto'; // Level selection: 'auto' or 1-7
 
         const wordDisplay = document.getElementById('wordDisplay');
         const typingInput = document.getElementById('typingInput');
@@ -405,12 +419,38 @@
                                      currentLayout === 'jafl';
             document.getElementById('ligatureToggleContainer').style.display =
                 supportsLigatures ? 'block' : 'none';
+            updateLevelSelector();
             loadNewWord();
         }
 
         function onLigatureToggle() {
             useLigatures = document.getElementById('ligatureToggle').checked;
+            updateLevelSelector();
             loadNewWord();
+        }
+
+        function onLevelChange() {
+            selectedLevel = document.getElementById('levelSelect').value;
+            loadNewWord();
+        }
+
+        function updateLevelSelector() {
+            const levelSelect = document.getElementById('levelSelect');
+            const maxLevel = (currentLayout === 'imperial' && useLigatures) ? 7 : 6;
+
+            // Update options visibility
+            for (let i = 1; i <= 7; i++) {
+                const option = levelSelect.querySelector(`option[value="${i}"]`);
+                if (option) {
+                    option.style.display = (i <= maxLevel) ? 'block' : 'none';
+                }
+            }
+
+            // Reset to auto if selected level is now unavailable
+            if (selectedLevel !== 'auto' && parseInt(selectedLevel) > maxLevel) {
+                selectedLevel = 'auto';
+                levelSelect.value = 'auto';
+            }
         }
 
         // Get available words for current mode
@@ -419,7 +459,8 @@
 
             if (currentMode === 'learn') {
                 // Learn mode: use keyboard-based progressive levels
-                const currentLvl = getCurrentLevel();
+                // Use selected level if not auto, otherwise calculate from progress
+                const currentLvl = selectedLevel === 'auto' ? getCurrentLevel() : parseInt(selectedLevel);
                 let learnWords;
                 let level = currentLvl;
 
