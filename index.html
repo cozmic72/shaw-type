@@ -190,11 +190,61 @@
         .completion-content button:hover {
             background: #5568d3;
         }
+
+        .mode-btn {
+            padding: 10px 30px;
+            font-size: 16px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 0 10px;
+            transition: all 0.3s;
+        }
+
+        .mode-btn:hover {
+            background: #f0f0ff;
+        }
+
+        .mode-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        #lengthSelect {
+            padding: 8px 15px;
+            font-size: 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>𐑖𐑱𐑝𐑾𐑯 Typing Practice</h1>
+
+        <div class="mode-selector" style="text-align: center; margin-bottom: 20px;">
+            <button id="progressiveBtn" class="mode-btn active" onclick="setMode('progressive')">Progressive</button>
+            <button id="practiceBtn" class="mode-btn" onclick="setMode('practice')">Practice</button>
+        </div>
+
+        <div id="practiceLengthSelector" style="display: none; text-align: center; margin-bottom: 20px;">
+            <label style="color: #666; margin-right: 10px;">Word Length:</label>
+            <select id="lengthSelect" onchange="onLengthChange()">
+                <option value="1">1 character</option>
+                <option value="2">2 characters</option>
+                <option value="3">3 characters</option>
+                <option value="4">4 characters</option>
+                <option value="5">5 characters</option>
+                <option value="6">6 characters</option>
+                <option value="7">7 characters</option>
+                <option value="4-6">4-6 characters</option>
+                <option value="5-7">5-7 characters</option>
+            </select>
+        </div>
 
         <div class="word-display">
             <div class="word" id="wordDisplay"></div>
@@ -248,6 +298,10 @@
         let correctAttempts = 0;
         let recentWords = []; // Track recent words to avoid repeats
 
+        // Mode management
+        let currentMode = 'progressive'; // 'progressive' or 'practice'
+        let practiceLength = '3'; // Default practice length
+
         const wordDisplay = document.getElementById('wordDisplay');
         const typingInput = document.getElementById('typingInput');
         const wordCountEl = document.getElementById('wordCount');
@@ -263,26 +317,68 @@
             return 5;
         }
 
-        // Get available words for current level
+        // Mode switching
+        function setMode(mode) {
+            currentMode = mode;
+
+            // Update button states
+            document.getElementById('progressiveBtn').classList.toggle('active', mode === 'progressive');
+            document.getElementById('practiceBtn').classList.toggle('active', mode === 'practice');
+
+            // Show/hide practice selector
+            document.getElementById('practiceLengthSelector').style.display =
+                mode === 'practice' ? 'block' : 'none';
+
+            // Reset and reload
+            resetPractice();
+        }
+
+        function onLengthChange() {
+            practiceLength = document.getElementById('lengthSelect').value;
+            loadNewWord();
+        }
+
+        // Get available words for current mode
         function getWordPool() {
-            const level = getCurrentLevel();
             let pool = [];
 
-            if (level === 1) {
-                // Level 1: 1-2 character words
-                pool = [...wordsByLength[1], ...wordsByLength[2]];
-            } else if (level === 2) {
-                // Level 2: 2-3 character words
-                pool = [...wordsByLength[2], ...wordsByLength[3]];
-            } else if (level === 3) {
-                // Level 3: 3-4 character words
-                pool = [...wordsByLength[3], ...wordsByLength[4]];
-            } else if (level === 4) {
-                // Level 4: 4-6 character words
-                pool = [...wordsByLength[4], ...wordsByLength[5], ...wordsByLength[6]];
+            if (currentMode === 'practice') {
+                // Practice mode: use selected length(s)
+                if (practiceLength.includes('-')) {
+                    // Range like "4-6"
+                    const [min, max] = practiceLength.split('-').map(Number);
+                    for (let i = min; i <= max; i++) {
+                        if (wordsByLength[i]) {
+                            pool = [...pool, ...wordsByLength[i]];
+                        }
+                    }
+                } else {
+                    // Single length
+                    const length = parseInt(practiceLength);
+                    if (wordsByLength[length]) {
+                        pool = [...wordsByLength[length]];
+                    }
+                }
             } else {
-                // Level 5: 5+ character words
-                pool = [...wordsByLength[5], ...wordsByLength[6], ...wordsByLength[7]];
+                // Progressive mode: use level-based selection
+                const level = getCurrentLevel();
+
+                if (level === 1) {
+                    // Level 1: 1-2 character words
+                    pool = [...wordsByLength[1], ...wordsByLength[2]];
+                } else if (level === 2) {
+                    // Level 2: 2-3 character words
+                    pool = [...wordsByLength[2], ...wordsByLength[3]];
+                } else if (level === 3) {
+                    // Level 3: 3-4 character words
+                    pool = [...wordsByLength[3], ...wordsByLength[4]];
+                } else if (level === 4) {
+                    // Level 4: 4-6 character words
+                    pool = [...wordsByLength[4], ...wordsByLength[5], ...wordsByLength[6]];
+                } else {
+                    // Level 5: 5+ character words
+                    pool = [...wordsByLength[5], ...wordsByLength[6], ...wordsByLength[7]];
+                }
             }
 
             return pool;
