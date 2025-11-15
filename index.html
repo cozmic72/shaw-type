@@ -512,6 +512,12 @@
                 <div class="settings-option-desc">Show labels and text in Shavian alphabet instead of Latin</div>
             </div>
 
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #e0e0e0;">
+                <button onclick="resetWelcomeScreen()" style="width: 100%; padding: 12px; font-size: 14px; background: white; color: #667eea; border: 2px solid #667eea; border-radius: 8px; cursor: pointer; margin-bottom: 15px;">
+                    Show Welcome Screen Again
+                </button>
+            </div>
+
             <button class="settings-close-btn" onclick="closeSettings()">Close</button>
         </div>
     </div>
@@ -1534,6 +1540,12 @@
 
                 document.getElementById('welcomeModal').classList.add('show');
             }
+        }
+
+        function resetWelcomeScreen() {
+            localStorage.removeItem('welcomeShown');
+            closeSettings();
+            showWelcomeIfNeeded();
         }
 
         // Settings functions
