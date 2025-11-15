@@ -1065,7 +1065,7 @@
 
             typingInput.value = '';
             previousInput = ''; // Reset previous input for new word
-            pendingLigatureIndex = -1; // Reset pending ligature for new word
+            hasPendingLigature = false; // Reset pending ligature for new word
             updateWordDisplay();
             updateLevel();
         }
@@ -1238,7 +1238,7 @@
             levelStats = [];
             currentLevelLettersTyped = 0;
             currentLevelCorrectLetters = 0;
-            pendingLigatureIndex = -1;
+            hasPendingLigature = false;
 
             // Hide modal
             document.getElementById('completionModal').classList.remove('show');
@@ -1252,7 +1252,7 @@
 
         // Event listeners
         let previousInput = '';
-        let pendingLigatureIndex = -1; // Track if we have an unresolved ligature candidate
+        let hasPendingLigature = false; // Track if last character was a ligature candidate
 
         typingInput.addEventListener('input', (e) => {
             const userInput = e.target.value;
@@ -1263,40 +1263,37 @@
             const wordExpanded = expandLigatures(currentWord);
 
             // Handle backspace - resolve pending ligature as incorrect
-            if (inputExpanded.length < prevInputExpanded.length && pendingLigatureIndex >= 0) {
+            if (inputExpanded.length < prevInputExpanded.length && hasPendingLigature) {
                 // User backspaced while a ligature candidate was pending - count it as wrong
                 totalLettersTyped++;
                 currentLevelLettersTyped++;
-                // Don't increment correctLetters - it's wrong
-                pendingLigatureIndex = -1;
+                hasPendingLigature = false;
             }
 
             // Track letter-level accuracy at the expanded character level
             // Only count new expanded characters typed (not backspaces)
             if (inputExpanded.length > prevInputExpanded.length) {
-                // Check if we had a pending ligature that's now being resolved
-                if (pendingLigatureIndex >= 0) {
-                    const expandedIndex = pendingLigatureIndex + 1;
+                const expandedIndex = prevInputExpanded.length;
+
+                // Check if we're resolving a pending ligature
+                if (hasPendingLigature) {
                     totalLettersTyped++;
                     currentLevelLettersTyped++;
 
-                    // Check if this completes the ligature correctly
+                    // Check if this completes the ligature correctly (should be 𐑮)
                     if (expandedIndex < wordExpanded.length &&
-                        inputExpanded[expandedIndex] === wordExpanded[expandedIndex]) {
+                        inputExpanded[expandedIndex] === wordExpanded[expandedIndex] &&
+                        inputExpanded[expandedIndex] === '𐑮') {
                         // Ligature completed correctly - count both characters as correct
-                        correctLetters += 2; // The pending one + this one
+                        correctLetters += 2;
                         currentLevelCorrectLetters += 2;
                     } else {
                         // Wrong continuation - the pending character was wrong
-                        totalLettersTyped++; // Count the pending one too
+                        totalLettersTyped++;
                         currentLevelLettersTyped++;
-                        // Don't add to correctLetters - both are wrong
                     }
-                    pendingLigatureIndex = -1;
+                    hasPendingLigature = false;
                 } else {
-                    // Normal character entry (not resolving a pending ligature)
-                    const expandedIndex = prevInputExpanded.length;
-
                     // Check if this could be the start of a ligature candidate
                     const isLigatureCandidate = expandedIndex < wordExpanded.length - 1 &&
                         wordExpanded[expandedIndex + 1] === '𐑮' &&
@@ -1306,7 +1303,7 @@
                         inputExpanded[expandedIndex] === wordExpanded[expandedIndex] &&
                         isLigatureCandidate) {
                         // This is a potential ligature start - mark as pending, don't count yet
-                        pendingLigatureIndex = expandedIndex;
+                        hasPendingLigature = true;
                     } else {
                         // Normal character - count it now
                         totalLettersTyped++;
@@ -1335,11 +1332,10 @@
 
                 if (userInput.length > 0) {
                     // Resolve any pending ligature as incorrect
-                    if (pendingLigatureIndex >= 0) {
+                    if (hasPendingLigature) {
                         totalLettersTyped++;
                         currentLevelLettersTyped++;
-                        // Don't increment correctLetters - it's wrong
-                        pendingLigatureIndex = -1;
+                        hasPendingLigature = false;
                     }
 
                     // Count any remaining untyped characters as errors (using expanded forms)
