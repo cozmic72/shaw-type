@@ -250,7 +250,7 @@ def can_type_with_chars(word, available_chars, use_ligatures=True):
     return all(char in available_chars for char in expanded)
 
 
-def generate_learn_word_lists(word_freq_file, learn_levels, output_file, layout_name, use_ligatures=True):
+def generate_learn_word_lists(word_freq_file, learn_levels, output_file, layout_name, use_ligatures=True, dialect='gb'):
     """
     Generate word lists for each learning level for a specific layout.
     """
@@ -263,7 +263,7 @@ def generate_learn_word_lists(word_freq_file, learn_levels, output_file, layout_
                 word = parts[0]
                 all_words.append(word)
 
-    print(f"\n{layout_name} Layout:")
+    print(f"\n{layout_name} Layout ({dialect.upper()}):")
     print(f"Loaded {len(all_words)} words from frequency file")
     if use_ligatures:
         print(f"  Using ligature expansion")
@@ -297,7 +297,7 @@ def generate_learn_word_lists(word_freq_file, learn_levels, output_file, layout_
     print(f"  Saved to {output_file}")
 
 
-def generate_compound_letters_lesson(word_freq_file, available_chars, output_file):
+def generate_compound_letters_lesson(word_freq_file, available_chars, output_file, dialect='gb'):
     """
     Generate a special lesson focusing on words containing ligatures.
     """
@@ -310,7 +310,7 @@ def generate_compound_letters_lesson(word_freq_file, available_chars, output_fil
                 word = parts[0]
                 all_words.append(word)
 
-    print(f"\nCompound Letters Lesson:")
+    print(f"\nCompound Letters Lesson ({dialect.upper()}):")
 
     # Find words that contain ligatures
     ligature_words = []
@@ -336,69 +336,86 @@ def generate_compound_letters_lesson(word_freq_file, available_chars, output_fil
 
 
 if __name__ == '__main__':
-    # Generate for Shaw Imperial (with ligatures)
-    generate_learn_word_lists(
-        'shavian-gb-word-frequencies.txt',
-        LEARN_LEVELS_IMPERIAL,
-        'learn_words_imperial.json',
-        'Shaw Imperial',
-        use_ligatures=True
-    )
-
-    # Generate for Shaw Imperial (without ligatures)
-    generate_learn_word_lists(
-        'shavian-gb-word-frequencies.txt',
-        LEARN_LEVELS_IMPERIAL,
-        'learn_words_imperial_no_lig.json',
-        'Shaw Imperial (No Ligatures)',
-        use_ligatures=False
-    )
-
-    # Generate for Shaw QWERTY (no ligatures)
-    generate_learn_word_lists(
-        'shavian-gb-word-frequencies.txt',
-        LEARN_LEVELS_QWERTY,
-        'learn_words_qwerty.json',
-        'Shaw QWERTY',
-        use_ligatures=False
-    )
-
-    # Generate compound letters lesson (all Imperial keys)
+    # All imperial chars for compound letters lesson
     all_imperial_chars = ''.join([
         LAYOUT_IMPERIAL['number'],
         LAYOUT_IMPERIAL['qwerty'],
         LAYOUT_IMPERIAL['home'],
         LAYOUT_IMPERIAL['bottom']
     ])
-    generate_compound_letters_lesson(
-        'shavian-gb-word-frequencies.txt',
-        all_imperial_chars,
-        'learn_words_compound.json'
-    )
 
-    # Generate for Shaw 2-layer (no ligature support - ligatures are direct keys)
-    generate_learn_word_lists(
-        'shavian-gb-word-frequencies.txt',
-        LEARN_LEVELS_2LAYER,
-        'learn_words_2layer.json',
-        'Shaw 2-layer (shift)',
-        use_ligatures=False
-    )
+    # Generate for both GB and US dialects
+    for dialect in ['gb', 'us']:
+        word_freq_file = f'shavian-{dialect}-word-frequencies.txt'
 
-    # Generate for Shaw-JAFL (with ligatures)
-    generate_learn_word_lists(
-        'shavian-gb-word-frequencies.txt',
-        LEARN_LEVELS_JAFL,
-        'learn_words_jafl.json',
-        'Shaw-JAFL',
-        use_ligatures=True
-    )
+        print(f"\n{'='*60}")
+        print(f"Generating word lists for {dialect.upper()} English")
+        print(f"{'='*60}")
 
-    # Generate for Shaw-JAFL (without ligatures)
-    generate_learn_word_lists(
-        'shavian-gb-word-frequencies.txt',
-        LEARN_LEVELS_JAFL,
-        'learn_words_jafl_no_lig.json',
-        'Shaw-JAFL (No Ligatures)',
-        use_ligatures=False
-    )
+        # Generate for Shaw Imperial (with ligatures)
+        generate_learn_word_lists(
+            word_freq_file,
+            LEARN_LEVELS_IMPERIAL,
+            f'learn_words_imperial_{dialect}.json',
+            'Shaw Imperial',
+            use_ligatures=True,
+            dialect=dialect
+        )
+
+        # Generate for Shaw Imperial (without ligatures)
+        generate_learn_word_lists(
+            word_freq_file,
+            LEARN_LEVELS_IMPERIAL,
+            f'learn_words_imperial_{dialect}_no_lig.json',
+            'Shaw Imperial (No Ligatures)',
+            use_ligatures=False,
+            dialect=dialect
+        )
+
+        # Generate for Shaw QWERTY (no ligatures)
+        generate_learn_word_lists(
+            word_freq_file,
+            LEARN_LEVELS_QWERTY,
+            f'learn_words_qwerty_{dialect}.json',
+            'Shaw QWERTY',
+            use_ligatures=False,
+            dialect=dialect
+        )
+
+        # Generate compound letters lesson (all Imperial keys)
+        generate_compound_letters_lesson(
+            word_freq_file,
+            all_imperial_chars,
+            f'learn_words_compound_{dialect}.json',
+            dialect=dialect
+        )
+
+        # Generate for Shaw 2-layer (no ligature support - ligatures are direct keys)
+        generate_learn_word_lists(
+            word_freq_file,
+            LEARN_LEVELS_2LAYER,
+            f'learn_words_2layer_{dialect}.json',
+            'Shaw 2-layer (shift)',
+            use_ligatures=False,
+            dialect=dialect
+        )
+
+        # Generate for Shaw-JAFL (with ligatures)
+        generate_learn_word_lists(
+            word_freq_file,
+            LEARN_LEVELS_JAFL,
+            f'learn_words_jafl_{dialect}.json',
+            'Shaw-JAFL',
+            use_ligatures=True,
+            dialect=dialect
+        )
+
+        # Generate for Shaw-JAFL (without ligatures)
+        generate_learn_word_lists(
+            word_freq_file,
+            LEARN_LEVELS_JAFL,
+            f'learn_words_jafl_{dialect}_no_lig.json',
+            'Shaw-JAFL (No Ligatures)',
+            use_ligatures=False,
+            dialect=dialect
+        )
