@@ -185,6 +185,44 @@ def generate_learn_word_lists(word_freq_file, learn_levels, output_file, layout_
     print(f"  Saved to {output_file}")
 
 
+def generate_compound_letters_lesson(word_freq_file, available_chars, output_file):
+    """
+    Generate a special lesson focusing on words containing ligatures.
+    """
+    # Load all words
+    all_words = []
+    with open(word_freq_file, 'r', encoding='utf-8') as f:
+        for line in f:
+            parts = line.strip().split()
+            if len(parts) >= 2:
+                word = parts[0]
+                all_words.append(word)
+
+    print(f"\nCompound Letters Lesson:")
+
+    # Find words that contain ligatures
+    ligature_words = []
+    for word in all_words:
+        for ligature in LIGATURES.keys():
+            if ligature in word and can_type_with_chars(word, available_chars, use_ligatures=True):
+                ligature_words.append(word)
+                break
+
+    lesson_data = {
+        'name': 'Compound Letters',
+        'description': 'Practice typing ligatures: 𐑼 𐑸 𐑹 𐑿 𐑽',
+        'chars': available_chars,
+        'words': ligature_words[:100]  # Top 100
+    }
+
+    print(f"  Found {len(ligature_words[:100])} words with ligatures")
+
+    with open(output_file, 'w', encoding='utf-8') as f:
+        json.dump({'1': lesson_data}, f, ensure_ascii=False, indent=2)
+
+    print(f"  Saved to {output_file}")
+
+
 if __name__ == '__main__':
     # Generate for Shaw Imperial (with ligatures)
     generate_learn_word_lists(
@@ -195,6 +233,15 @@ if __name__ == '__main__':
         use_ligatures=True
     )
 
+    # Generate for Shaw Imperial (without ligatures)
+    generate_learn_word_lists(
+        'shavian-gb-word-frequencies.txt',
+        LEARN_LEVELS_IMPERIAL,
+        'learn_words_imperial_no_lig.json',
+        'Shaw Imperial (No Ligatures)',
+        use_ligatures=False
+    )
+
     # Generate for Shaw QWERTY (no ligatures)
     generate_learn_word_lists(
         'shavian-gb-word-frequencies.txt',
@@ -202,4 +249,17 @@ if __name__ == '__main__':
         'learn_words_qwerty.json',
         'Shaw QWERTY',
         use_ligatures=False
+    )
+
+    # Generate compound letters lesson (all Imperial keys)
+    all_imperial_chars = ''.join([
+        LAYOUT_IMPERIAL['number'],
+        LAYOUT_IMPERIAL['qwerty'],
+        LAYOUT_IMPERIAL['home'],
+        LAYOUT_IMPERIAL['bottom']
+    ])
+    generate_compound_letters_lesson(
+        'shavian-gb-word-frequencies.txt',
+        all_imperial_chars,
+        'learn_words_compound.json'
     )
