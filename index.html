@@ -347,6 +347,54 @@
             cursor: pointer;
         }
 
+        .burger-menu {
+            position: relative;
+            display: inline-block;
+        }
+
+        .burger-btn {
+            font-size: 24px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px 12px;
+            color: #667eea;
+            transition: color 0.3s;
+        }
+
+        .burger-btn:hover {
+            color: #5568d3;
+        }
+
+        .burger-dropdown {
+            display: none;
+            position: absolute;
+            left: 0;
+            top: 100%;
+            background: white;
+            min-width: 160px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            border-radius: 8px;
+            z-index: 1000;
+            overflow: hidden;
+        }
+
+        .burger-dropdown.show {
+            display: block;
+        }
+
+        .burger-dropdown a {
+            color: #333;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            transition: background 0.3s;
+        }
+
+        .burger-dropdown a:hover {
+            background: #f0f0ff;
+        }
+
         .copyright {
             text-align: center;
             color: #000000;
@@ -361,7 +409,16 @@
         <h1>Shaw Type</h1>
         <div class="subtitle">𐑖𐑱𐑝𐑾𐑯 𐑑𐑲𐑐𐑦𐑙 𐑐𐑮𐑨𐑒𐑑𐑦𐑕</div>
 
-        <div class="mode-selector" style="text-align: center; margin-bottom: 20px;">
+        <div class="mode-selector" style="display: flex; align-items: center; justify-content: center; margin-bottom: 20px; gap: 10px;">
+            <div class="burger-menu">
+                <button class="burger-btn" onclick="toggleBurgerMenu()">☰</button>
+                <div class="burger-dropdown" id="burgerDropdown">
+                    <a href="#" onclick="openContentModal('about'); return false;">About</a>
+                    <a href="#" onclick="openContentModal('keyboards'); return false;">Keyboards</a>
+                    <a href="#" onclick="openContentModal('resources'); return false;">Resources</a>
+                    <a href="#" onclick="openSettings(); closeBurgerMenu(); return false;">Settings</a>
+                </div>
+            </div>
             <button id="playBtn" class="mode-btn active" onclick="setMode('play')">Play</button>
             <button id="learnBtn" class="mode-btn" onclick="setMode('learn')">Practice</button>
         </div>
@@ -1322,6 +1379,24 @@
                     }
                     // If word doesn't match, do nothing - user must keep typing or fix it
                 }
+            }
+        });
+
+        // Burger menu functions
+        function toggleBurgerMenu() {
+            const dropdown = document.getElementById('burgerDropdown');
+            dropdown.classList.toggle('show');
+        }
+
+        function closeBurgerMenu() {
+            const dropdown = document.getElementById('burgerDropdown');
+            dropdown.classList.remove('show');
+        }
+
+        // Close burger menu if clicking outside
+        window.addEventListener('click', function(e) {
+            if (!e.target.matches('.burger-btn') && !e.target.closest('.burger-menu')) {
+                closeBurgerMenu();
             }
         });
 
