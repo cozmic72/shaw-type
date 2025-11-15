@@ -499,6 +499,63 @@
         let currentLevelLettersTyped = 0; // Letters typed in current level
         let currentLevelCorrectLetters = 0; // Correct letters in current level
 
+        // Ligature mappings
+        const LIGATURES = {
+            '𐑼': ['𐑩', '𐑮'], // ER
+            '𐑸': ['𐑭', '𐑮'], // AR
+            '𐑹': ['𐑷', '𐑮'], // OR
+            '𐑿': ['𐑘', '𐑵'], // YEW
+            '𐑽': ['𐑾', '𐑮']  // AIR
+        };
+
+        // Reverse mapping: component pairs to compound
+        const COMPONENT_TO_LIGATURE = {};
+        Object.keys(LIGATURES).forEach(compound => {
+            const [first, second] = LIGATURES[compound];
+            const key = first + second;
+            COMPONENT_TO_LIGATURE[key] = compound;
+        });
+
+        // Expand a string, replacing compound ligatures with their components
+        function expandLigatures(str) {
+            const chars = Array.from(str);
+            const expanded = [];
+            chars.forEach(char => {
+                if (LIGATURES[char]) {
+                    expanded.push(...LIGATURES[char]);
+                } else {
+                    expanded.push(char);
+                }
+            });
+            return expanded;
+        }
+
+        // Check if input matches expected, considering ligature equivalence
+        function matchesWithLigatures(inputChars, expectedChars, index) {
+            // Get the expanded forms for comparison
+            const expectedExpanded = expandLigatures(expectedChars.join(''));
+            const inputExpanded = expandLigatures(inputChars.join(''));
+
+            // Check if input (up to index) matches expected
+            for (let i = 0; i <= index && i < inputExpanded.length; i++) {
+                if (i >= expectedExpanded.length) return false;
+                if (inputExpanded[i] !== expectedExpanded[i]) return false;
+            }
+            return true;
+        }
+
+        // Check if the current input could be a partial ligature match
+        function isPartialLigatureMatch(inputChars, expectedChars, inputIndex) {
+            const inputExpanded = expandLigatures(inputChars.join(''));
+            const expectedExpanded = expandLigatures(expectedChars.join(''));
+
+            // If we're in the middle of potentially typing a ligature, don't mark as error yet
+            if (inputIndex < inputExpanded.length && inputIndex < expectedExpanded.length) {
+                return inputExpanded[inputIndex] === expectedExpanded[inputIndex];
+            }
+            return true;
+        }
+
         // Mode management
         let currentMode = 'play'; // 'learn', 'play', or 'practice'
         let practiceLength = '3'; // Default practice length
@@ -1048,19 +1105,49 @@
             const wordChars = Array.from(currentWord);
             const inputChars = Array.from(userInput);
 
+            // Expand both to component characters for comparison
+            const wordExpanded = expandLigatures(currentWord);
+            const inputExpanded = expandLigatures(userInput);
+
+            // Track position in expanded form
+            let expandedPos = 0;
+
             for (let i = 0; i < wordChars.length; i++) {
                 const char = wordChars[i];
                 let className = '';
 
-                if (i < inputChars.length) {
-                    if (inputChars[i] === char) {
-                        className = 'correct';
+                // Determine how many expanded characters this display character represents
+                const isLigature = LIGATURES[char];
+                const expandedLen = isLigature ? 2 : 1;
+
+                // Check if all the expanded characters for this display char have been typed correctly
+                let allCorrect = true;
+                let anyTyped = false;
+                let anyIncorrect = false;
+
+                for (let j = 0; j < expandedLen; j++) {
+                    const expIdx = expandedPos + j;
+                    if (expIdx < inputExpanded.length) {
+                        anyTyped = true;
+                        if (inputExpanded[expIdx] !== wordExpanded[expIdx]) {
+                            anyIncorrect = true;
+                            allCorrect = false;
+                        }
                     } else {
-                        className = 'incorrect';
+                        allCorrect = false;
                     }
                 }
 
+                // Set class based on match status
+                if (anyIncorrect) {
+                    className = 'incorrect';
+                } else if (anyTyped && allCorrect) {
+                    className = 'correct';
+                }
+                // If partially typed but not incorrect, show no class (pending)
+
                 html += `<span class="char ${className}">${char}</span>`;
+                expandedPos += expandedLen;
             }
 
             wordDisplay.innerHTML = html;
@@ -1075,8 +1162,13 @@
         function checkCompletion() {
             const userInput = typingInput.value;
 
-            // Direct string comparison works fine for equality
-            if (userInput === currentWord) {
+            // Compare expanded forms to handle ligature equivalence
+            const inputExpanded = expandLigatures(userInput);
+            const wordExpanded = expandLigatures(currentWord);
+
+            // Check if expanded forms match
+            if (inputExpanded.length === wordExpanded.length &&
+                inputExpanded.every((char, i) => char === wordExpanded[i])) {
                 // Word completed correctly
                 wordsCompleted++;
                 updateStats();
@@ -1161,23 +1253,28 @@
         typingInput.addEventListener('input', (e) => {
             const userInput = e.target.value;
 
-            // Convert to arrays of actual Unicode characters
-            const wordChars = Array.from(currentWord);
-            const inputChars = Array.from(userInput);
-            const prevInputChars = Array.from(previousInput);
+            // Expand to component characters for accurate tracking
+            const inputExpanded = expandLigatures(userInput);
+            const prevInputExpanded = expandLigatures(previousInput);
+            const wordExpanded = expandLigatures(currentWord);
 
-            // Track letter-level accuracy
-            // Only count new characters typed (not backspaces)
-            if (inputChars.length > prevInputChars.length) {
-                // User typed a new character
-                const newCharIndex = prevInputChars.length;
-                totalLettersTyped++;
-                currentLevelLettersTyped++;
+            // Track letter-level accuracy at the expanded character level
+            // Only count new expanded characters typed (not backspaces)
+            if (inputExpanded.length > prevInputExpanded.length) {
+                // User typed new character(s) - could be multiple if they typed a ligature
+                const newCharsCount = inputExpanded.length - prevInputExpanded.length;
 
-                // Check if the new character is correct
-                if (newCharIndex < wordChars.length && inputChars[newCharIndex] === wordChars[newCharIndex]) {
-                    correctLetters++;
-                    currentLevelCorrectLetters++;
+                for (let i = 0; i < newCharsCount; i++) {
+                    const expandedIndex = prevInputExpanded.length + i;
+                    totalLettersTyped++;
+                    currentLevelLettersTyped++;
+
+                    // Check if the new expanded character is correct
+                    if (expandedIndex < wordExpanded.length &&
+                        inputExpanded[expandedIndex] === wordExpanded[expandedIndex]) {
+                        correctLetters++;
+                        currentLevelCorrectLetters++;
+                    }
                 }
             }
 
@@ -1194,19 +1291,20 @@
                 const userInput = typingInput.value.trim();
 
                 if (userInput.length > 0) {
-                    // Count any remaining untyped characters as errors
-                    const wordChars = Array.from(currentWord);
-                    const inputChars = Array.from(userInput);
+                    // Count any remaining untyped characters as errors (using expanded forms)
+                    const inputExpanded = expandLigatures(userInput);
+                    const wordExpanded = expandLigatures(currentWord);
 
-                    if (inputChars.length < wordChars.length) {
+                    if (inputExpanded.length < wordExpanded.length) {
                         // User skipped without completing - count remaining letters as typed incorrectly
-                        const remainingLetters = wordChars.length - inputChars.length;
+                        const remainingLetters = wordExpanded.length - inputExpanded.length;
                         totalLettersTyped += remainingLetters;
                         currentLevelLettersTyped += remainingLetters;
                     }
 
-                    // If word matches exactly, count as completed
-                    if (userInput === currentWord) {
+                    // If word matches exactly (using expanded forms), count as completed
+                    if (inputExpanded.length === wordExpanded.length &&
+                        inputExpanded.every((char, i) => char === wordExpanded[i])) {
                         wordsCompleted++;
                     }
 
