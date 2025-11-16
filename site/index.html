@@ -1611,6 +1611,8 @@
             const completionCount = currentMode === 'learn' ? 10 : 30;
             const isLastWord = (wordsCompleted === completionCount - 1);
 
+            console.log(`[loadNewWord] wordsCompleted=${wordsCompleted}, completionCount=${completionCount}, isLastWord=${isLastWord}`);
+
             // BEFORE advancing: update the slot that will become "next" after rotation
             // The slot at prev-prev position will rotate to next position
             const prevPrevSlot = (carouselOffset - 2 + 4) % 4;
@@ -1619,6 +1621,8 @@
             // For the last word, put an empty string in the next slot
             const newWord = isLastWord ? '' : pickRandomWord();
             words[prevPrevSlot] = newWord;
+
+            console.log(`[loadNewWord] newWord="${newWord}", slot=${prevPrevSlot}`);
 
             if (newWord) {
                 // Load a new word normally
