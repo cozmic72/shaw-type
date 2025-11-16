@@ -1709,6 +1709,8 @@
 
         function closeWelcomeModal() {
             document.getElementById('welcomeModal').classList.remove('show');
+            // Ensure Play mode is active when starting fresh
+            setMode('play');
             loadNewWord();
             typingInput.focus();
         }
