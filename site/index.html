@@ -156,13 +156,15 @@
         }
 
         .word-slot.animating-out {
-            transform: translateX(-150%) !important;
+            transform: translateX(-100%) !important;
             opacity: 0 !important;
+            transition: transform 0.3s ease, opacity 0.3s ease !important;
         }
 
         .word-slot.animating-in {
             transform: translateX(0) !important;
             opacity: 1 !important;
+            transition: transform 0.3s ease, opacity 0.3s ease !important;
         }
 
         .word-display .word {
@@ -173,6 +175,7 @@
         .word-display .char {
             display: inline-block;
             transition: all 0.2s ease;
+            white-space: pre; /* Preserve spaces */
         }
 
         .word-display .char.correct {
@@ -1627,14 +1630,16 @@
         }
 
         function advanceToNextWord() {
-            // Animate current word out
+            // Animate current word out and next word in
             currentWordSlot.classList.add('animating-out');
+            nextWordSlot.classList.add('animating-in');
 
             // Wait for animation, then update
             setTimeout(() => {
                 currentWordSlot.classList.remove('animating-out');
+                nextWordSlot.classList.remove('animating-in');
                 loadNewWord();
-            }, 400); // Match CSS transition duration
+            }, 300); // Match CSS transition duration
         }
 
         function updateLevel() {
@@ -1723,14 +1728,15 @@
                 expandedPos += expandedLen;
             }
 
-            // Append next word (faded) - no extra space needed as it's in currentWord
+            currentWordSlot.innerHTML = html;
+
+            // Display next word in separate slot (faded)
+            let nextHtml = '';
             const nextWordChars = Array.from(nextWord);
             for (let i = 0; i < nextWordChars.length; i++) {
-                html += `<span class="char" style="opacity: 0.3">${nextWordChars[i]}</span>`;
+                nextHtml += `<span class="char">${nextWordChars[i]}</span>`;
             }
-
-            currentWordSlot.innerHTML = html;
-            nextWordSlot.textContent = ''; // Don't need separate next slot anymore
+            nextWordSlot.innerHTML = nextHtml;
         }
 
         function updateStats() {
