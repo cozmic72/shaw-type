@@ -120,7 +120,12 @@ LEARN_LEVELS_IMPERIAL = {
     6: {
         'name': 'All Keys',
         'chars': '𐑪𐑨𐑦𐑩𐑧𐑐𐑯𐑑𐑮𐑕𐑛𐑓𐑒𐑝𐑚𐑱𐑳𐑞𐑤𐑥𐑾𐑲𐑴𐑰𐑭𐑷𐑵𐑢𐑣𐑟𐑶𐑬𐑫𐑜𐑖𐑗𐑙𐑘𐑡𐑔𐑠',  # All
-        'description': 'Complete keyboard including number row'
+        'description': 'Complete keyboard'
+    },
+    7: {
+        'name': 'Number Row Focus',
+        'chars': '𐑶𐑬𐑫𐑜𐑖𐑗𐑙𐑘𐑡𐑔𐑠𐑪𐑨𐑦𐑩𐑧𐑐𐑯𐑑𐑮𐑕𐑛𐑓𐑒𐑝𐑚𐑱𐑳𐑞𐑤𐑥𐑾𐑲𐑴𐑰𐑭𐑷𐑵𐑢𐑣𐑟',  # Number row + common chars
+        'description': 'Master the number row characters'
     }
 }
 
@@ -250,18 +255,52 @@ def can_type_with_chars(word, available_chars, use_ligatures=True):
     return all(char in available_chars for char in expanded)
 
 
-def generate_learn_word_lists(word_freq_file, learn_levels, output_file, layout_name, use_ligatures=True, dialect='gb'):
+def count_target_chars(word, new_chars, use_ligatures=True):
+    """
+    Count how many times the newly introduced characters appear in the word.
+    This helps prioritize words that practice the new skills.
+    """
+    if use_ligatures:
+        expanded = expand_ligatures(word)
+    else:
+        expanded = word
+    return sum(1 for char in expanded if char in new_chars)
+
+
+def get_new_chars_for_level(level_num, learn_levels):
+    """
+    Get characters introduced in this level (not in previous levels).
+    """
+    current_chars = set(learn_levels[level_num]['chars'])
+    if level_num == 1:
+        return current_chars
+    prev_chars = set(learn_levels[level_num - 1]['chars'])
+    return current_chars - prev_chars
+
+
+def generate_learn_word_lists(word_freq_file, learn_levels, output_file, layout_name, use_ligatures=True, dialect='gb', all_chars=''):
     """
     Generate word lists for each learning level for a specific layout.
+    Words are selected to:
+    - Include multiple instances of newly-introduced characters
+    - Progress in length as levels advance
+    - Remain high-frequency and useful
+
+    A compound letter lesson is automatically inserted at third-from-last position.
     """
-    # Load all words
+    # Load all words with frequency info
     all_words = []
     with open(word_freq_file, 'r', encoding='utf-8') as f:
-        for line in f:
+        for line_num, line in enumerate(f, 1):
             parts = line.strip().split()
             if len(parts) >= 2:
                 word = parts[0]
-                all_words.append(word)
+                try:
+                    freq = int(parts[1])
+                    all_words.append((word, freq))
+                except ValueError:
+                    print(f"  Warning: Skipping line {line_num}: {line.strip()}")
+                    continue
 
     print(f"\n{layout_name} Layout ({dialect.upper()}):")
     print(f"Loaded {len(all_words)} words from frequency file")
@@ -275,20 +314,84 @@ def generate_learn_word_lists(word_freq_file, learn_levels, output_file, layout_
 
     for level_num, level_info in learn_levels.items():
         available_chars = level_info['chars']
-        level_words = []
+        new_chars = get_new_chars_for_level(level_num, learn_levels)
 
-        for word in all_words:
+        # Collect candidate words
+        candidates = []
+        for word, freq in all_words:
             if can_type_with_chars(word, available_chars, use_ligatures):
-                level_words.append(word)
+                target_count = count_target_chars(word, new_chars, use_ligatures)
+                word_len = len(word)
+                # Score combines: target char count (high priority), frequency (medium), length (grows with level)
+                score = (target_count * 1000) + (freq / 100) + (word_len * level_num)
+                candidates.append((word, score, target_count, word_len))
+
+        # Sort by score (descending)
+        candidates.sort(key=lambda x: x[1], reverse=True)
+
+        # Take top 100, but ensure variety in length
+        level_words = [word for word, score, tc, wl in candidates[:100]]
+
+        # Skip levels with fewer than 5 words
+        if len(level_words) < 5:
+            print(f"  Level {level_num} ({level_info['name']}): SKIPPED - only {len(level_words)} words available")
+            continue
 
         learn_words[str(level_num)] = {
             'name': level_info['name'],
             'description': level_info['description'],
             'chars': level_info['chars'],
-            'words': level_words[:100]  # Limit to top 100 by frequency
+            'words': level_words
         }
 
-        print(f"  Level {level_num} ({level_info['name']}): {len(level_words[:100])} words")
+        avg_len = sum(len(w) for w in level_words) / len(level_words) if level_words else 0
+        print(f"  Level {level_num} ({level_info['name']}): {len(level_words)} words (avg length: {avg_len:.1f})")
+
+    # Generate compound letter lesson
+    if all_chars:
+        ligature_candidates = []
+        for word, freq in all_words:
+            ligature_count = sum(1 for ligature in LIGATURES.keys() if ligature in word)
+            if ligature_count > 0 and can_type_with_chars(word, all_chars, use_ligatures=True):
+                score = (ligature_count * 1000) + (freq / 100) + len(word)
+                ligature_candidates.append((word, score))
+
+        ligature_candidates.sort(key=lambda x: x[1], reverse=True)
+        ligature_words = [word for word, score in ligature_candidates[:100]]
+
+        if len(ligature_words) >= 5:
+            compound_lesson = {
+                'name': 'Compound Letters',
+                'description': 'Practice typing ligatures: 𐑼 𐑸 𐑹 𐑿 𐑽',
+                'chars': all_chars,
+                'words': ligature_words
+            }
+            avg_len = sum(len(w) for w in ligature_words) / len(ligature_words) if ligature_words else 0
+            print(f"  Compound Letters: {len(ligature_words)} words (avg length: {avg_len:.1f})")
+        else:
+            compound_lesson = None
+            print(f"  Compound Letters: SKIPPED - only {len(ligature_words)} words available")
+    else:
+        compound_lesson = None
+
+    # Insert compound letter lesson at third-from-last position and renumber
+    if compound_lesson:
+        total_levels = len(learn_words)
+        if total_levels >= 2:
+            # Position for third from last
+            insert_pos = total_levels - 1
+
+            # Create new dictionary with renumbered levels
+            final_words = {}
+            for i in range(1, total_levels + 1):
+                if i < insert_pos:
+                    final_words[str(i)] = learn_words[str(i)]
+                elif i == insert_pos:
+                    final_words[str(i)] = compound_lesson
+                else:
+                    final_words[str(i + 1)] = learn_words[str(i)]
+
+            learn_words = final_words
 
     # Save to JSON
     with open(output_file, 'w', encoding='utf-8') as f:
@@ -297,51 +400,31 @@ def generate_learn_word_lists(word_freq_file, learn_levels, output_file, layout_
     print(f"  Saved to {output_file}")
 
 
-def generate_compound_letters_lesson(word_freq_file, available_chars, output_file, dialect='gb'):
-    """
-    Generate a special lesson focusing on words containing ligatures.
-    """
-    # Load all words
-    all_words = []
-    with open(word_freq_file, 'r', encoding='utf-8') as f:
-        for line in f:
-            parts = line.strip().split()
-            if len(parts) >= 2:
-                word = parts[0]
-                all_words.append(word)
-
-    print(f"\nCompound Letters Lesson ({dialect.upper()}):")
-
-    # Find words that contain ligatures
-    ligature_words = []
-    for word in all_words:
-        for ligature in LIGATURES.keys():
-            if ligature in word and can_type_with_chars(word, available_chars, use_ligatures=True):
-                ligature_words.append(word)
-                break
-
-    lesson_data = {
-        'name': 'Compound Letters',
-        'description': 'Practice typing ligatures: 𐑼 𐑸 𐑹 𐑿 𐑽',
-        'chars': available_chars,
-        'words': ligature_words[:100]  # Top 100
-    }
-
-    print(f"  Found {len(ligature_words[:100])} words with ligatures")
-
-    with open(output_file, 'w', encoding='utf-8') as f:
-        json.dump({'1': lesson_data}, f, ensure_ascii=False, indent=2)
-
-    print(f"  Saved to {output_file}")
-
-
 if __name__ == '__main__':
-    # All imperial chars for compound letters lesson
+    # All chars for each layout (for compound letters lessons)
     all_imperial_chars = ''.join([
         LAYOUT_IMPERIAL['number'],
         LAYOUT_IMPERIAL['qwerty'],
         LAYOUT_IMPERIAL['home'],
         LAYOUT_IMPERIAL['bottom']
+    ])
+
+    all_qwerty_chars = ''.join([
+        LAYOUT_QWERTY['qwerty'],
+        LAYOUT_QWERTY['home'],
+        LAYOUT_QWERTY['bottom']
+    ])
+
+    all_2layer_chars = ''.join([
+        LAYOUT_2LAYER['qwerty'],
+        LAYOUT_2LAYER['home'],
+        LAYOUT_2LAYER['bottom']
+    ])
+
+    all_jafl_chars = ''.join([
+        LAYOUT_JAFL['qwerty'],
+        LAYOUT_JAFL['home'],
+        LAYOUT_JAFL['bottom']
     ])
 
     # Generate for both GB and US dialects
@@ -359,7 +442,8 @@ if __name__ == '__main__':
             f'learn_words_imperial_{dialect}.json',
             'Shaw Imperial',
             use_ligatures=True,
-            dialect=dialect
+            dialect=dialect,
+            all_chars=all_imperial_chars
         )
 
         # Generate for Shaw Imperial (without ligatures)
@@ -369,7 +453,8 @@ if __name__ == '__main__':
             f'learn_words_imperial_{dialect}_no_lig.json',
             'Shaw Imperial (No Ligatures)',
             use_ligatures=False,
-            dialect=dialect
+            dialect=dialect,
+            all_chars=all_imperial_chars
         )
 
         # Generate for Shaw QWERTY (no ligatures)
@@ -379,15 +464,8 @@ if __name__ == '__main__':
             f'learn_words_qwerty_{dialect}.json',
             'Shaw QWERTY',
             use_ligatures=False,
-            dialect=dialect
-        )
-
-        # Generate compound letters lesson (all Imperial keys)
-        generate_compound_letters_lesson(
-            word_freq_file,
-            all_imperial_chars,
-            f'learn_words_compound_{dialect}.json',
-            dialect=dialect
+            dialect=dialect,
+            all_chars=all_qwerty_chars
         )
 
         # Generate for Shaw 2-layer (no ligature support - ligatures are direct keys)
@@ -397,7 +475,8 @@ if __name__ == '__main__':
             f'learn_words_2layer_{dialect}.json',
             'Shaw 2-layer (shift)',
             use_ligatures=False,
-            dialect=dialect
+            dialect=dialect,
+            all_chars=all_2layer_chars
         )
 
         # Generate for Shaw-JAFL (with ligatures)
@@ -407,7 +486,8 @@ if __name__ == '__main__':
             f'learn_words_jafl_{dialect}.json',
             'Shaw-JAFL',
             use_ligatures=True,
-            dialect=dialect
+            dialect=dialect,
+            all_chars=all_jafl_chars
         )
 
         # Generate for Shaw-JAFL (without ligatures)
@@ -417,5 +497,6 @@ if __name__ == '__main__':
             f'learn_words_jafl_{dialect}_no_lig.json',
             'Shaw-JAFL (No Ligatures)',
             use_ligatures=False,
-            dialect=dialect
+            dialect=dialect,
+            all_chars=all_jafl_chars
         )
