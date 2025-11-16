@@ -836,11 +836,16 @@
         let learnWordsJaflNoLig = {};
         let wordsLoaded = false;
 
+        // Game constants
+        const WORDS_PER_LEVEL_PLAY = 5; // Words per level in play mode
+        const WORDS_PER_LEVEL_LEARN = 10; // Words per lesson in learn mode
+
         // Carousel: 4 slots, we track which slot index maps to which position
         let carouselOffset = 0; // Current slot index for "current" word
         let words = ['', '', '', '']; // Words in slots [0, 1, 2, 3]
         let currentWord = ''; // The actual current word being typed
         let wordsCompleted = 0;
+        let wordsInCurrentLevel = 0; // Words completed in current level
         let currentLevel = 1;
         let totalLettersTyped = 0;
         let correctLetters = 0;
@@ -1608,18 +1613,18 @@
         }
 
         function loadNewWord() {
-            const completionCount = currentMode === 'learn' ? 10 : 30;
-            const isLastWord = (wordsCompleted === completionCount - 1);
+            const wordsPerLevel = currentMode === 'learn' ? WORDS_PER_LEVEL_LEARN : WORDS_PER_LEVEL_PLAY;
+            const isLastWordOfLevel = (wordsInCurrentLevel === wordsPerLevel - 1);
 
-            console.log(`[loadNewWord] wordsCompleted=${wordsCompleted}, completionCount=${completionCount}, isLastWord=${isLastWord}`);
+            console.log(`[loadNewWord] wordsInCurrentLevel=${wordsInCurrentLevel}, wordsPerLevel=${wordsPerLevel}, isLastWord=${isLastWordOfLevel}`);
 
             // BEFORE advancing: update the slot that will become "next" after rotation
             // The slot at prev-prev position will rotate to next position
             const prevPrevSlot = (carouselOffset - 2 + 4) % 4;
             const slot = wordSlots[prevPrevSlot];
 
-            // For the last word, put an empty string in the next slot
-            const newWord = isLastWord ? '' : pickRandomWord();
+            // For the last word of a level, put an empty string in the next slot
+            const newWord = isLastWordOfLevel ? '' : pickRandomWord();
             words[prevPrevSlot] = newWord;
 
             console.log(`[loadNewWord] newWord="${newWord}", slot=${prevPrevSlot}`);
@@ -1670,8 +1675,8 @@
             // Get current word from carousel
             currentWord = words[carouselOffset];
 
-            // Append space to currentWord if it's not the last one (reuse isLastWord from above)
-            if (!isLastWord) {
+            // Append space to currentWord if it's not the last word of the level
+            if (!isLastWordOfLevel) {
                 currentWord = currentWord + ' ';
                 // Store it back in the array so prev word will have the space
                 words[carouselOffset] = currentWord;
@@ -1868,21 +1873,16 @@
                 inputExpanded.every((char, i) => char === wordExpanded[i])) {
                 // Word completed correctly
                 wordsCompleted++;
-                console.log(`[checkCompletion] Word ${wordsCompleted} completed`);
+                wordsInCurrentLevel++;
+                console.log(`[checkCompletion] Word ${wordsInCurrentLevel} of level completed (total: ${wordsCompleted})`);
                 updateStats();
 
-                // Check completion based on mode
-                const completionCount = currentMode === 'learn' ? 10 : 30;
-                if (wordsCompleted === completionCount) {
-                    // Level completed
-                    console.log(`[checkCompletion] LEVEL COMPLETED (mode: ${currentMode})`);
-                    if (currentMode === 'learn') {
-                        // In learn mode, animate to next level
-                        transitionToNextLevel();
-                    } else {
-                        // In play mode, show completion modal
-                        showCompletionModal();
-                    }
+                // Check if level is complete
+                const wordsPerLevel = currentMode === 'learn' ? WORDS_PER_LEVEL_LEARN : WORDS_PER_LEVEL_PLAY;
+                if (wordsInCurrentLevel === wordsPerLevel) {
+                    // Level completed - transition to next level
+                    console.log(`[checkCompletion] LEVEL COMPLETED`);
+                    transitionToNextLevel();
                 } else {
                     // Advance to next word
                     advanceToNextWord();
@@ -1891,55 +1891,51 @@
         }
 
         function transitionToNextLevel() {
-            console.log('[transitionToNextLevel] Animating carousel out');
-            // Animate carousel sliding left and fading out
-            const carousel = document.querySelector('.word-carousel');
-            carousel.style.transition = 'transform 0.5s ease, opacity 0.5s ease';
-            carousel.style.transform = 'translateX(-100px)';
-            carousel.style.opacity = '0';
+            console.log('[transitionToNextLevel] Starting transition');
 
-            setTimeout(() => {
-                // Save stats for completed level
-                const finalLevelAccuracy = currentLevelLettersTyped === 0 ? 100.0 :
-                    ((currentLevelCorrectLetters / currentLevelLettersTyped) * 100);
-                levelStats.push({
-                    level: parseInt(selectedLevel),
-                    accuracy: finalLevelAccuracy,
-                    lettersTyped: currentLevelLettersTyped,
-                    correctLetters: currentLevelCorrectLetters
-                });
+            // Save stats for completed level
+            const finalLevelAccuracy = currentLevelLettersTyped === 0 ? 100.0 :
+                ((currentLevelCorrectLetters / currentLevelLettersTyped) * 100);
+            levelStats.push({
+                level: currentLevel,
+                accuracy: finalLevelAccuracy,
+                lettersTyped: currentLevelLettersTyped,
+                correctLetters: currentLevelCorrectLetters
+            });
 
-                // Check if there's a next lesson
-                const learnWords = getLearnWords();
-                const nextLessonIndex = parseInt(selectedLevel) + 1;
+            // Check if we should continue or show completion
+            const shouldContinue = currentMode === 'learn' ?
+                checkForNextLesson() :
+                checkForNextPlayLevel();
 
-                if (learnWords && learnWords[nextLessonIndex]) {
-                    // Move to next lesson
-                    selectedLevel = nextLessonIndex.toString();
+            if (shouldContinue) {
+                // Advance to next level
+                currentLevel++;
+                wordsInCurrentLevel = 0;
+                currentLevelLettersTyped = 0;
+                currentLevelCorrectLetters = 0;
+                recentWords = [];
 
-                    // Reset stats for new level
-                    currentLevelLettersTyped = 0;
-                    currentLevelCorrectLetters = 0;
-                    wordsCompleted = 0;
-                    recentWords = [];
+                // Animate carousel out and in
+                const carousel = document.querySelector('.word-carousel');
+                carousel.style.transition = 'transform 0.5s ease, opacity 0.5s ease';
+                carousel.style.transform = 'translateX(-100px)';
+                carousel.style.opacity = '0';
 
-                    // Reset carousel with new words
+                setTimeout(() => {
+                    // Load new words for next level
                     initializeGame();
 
-                    // Animate carousel sliding in from right
+                    // Animate in from right
                     carousel.style.transition = 'none';
                     carousel.style.transform = 'translateX(100px)';
                     carousel.style.opacity = '0';
+                    carousel.offsetHeight; // Force reflow
 
-                    // Force reflow
-                    carousel.offsetHeight;
-
-                    // Animate in
                     carousel.style.transition = 'transform 0.5s ease, opacity 0.5s ease';
                     carousel.style.transform = 'translateX(0)';
                     carousel.style.opacity = '1';
 
-                    // Clean up inline styles after animation
                     setTimeout(() => {
                         carousel.style.transition = '';
                         carousel.style.transform = '';
@@ -1947,14 +1943,28 @@
                     }, 500);
 
                     typingInput.focus();
-                } else {
-                    // No more lessons - show completion modal
-                    carousel.style.transition = '';
-                    carousel.style.transform = '';
-                    carousel.style.opacity = '';
-                    showCompletionModal();
-                }
-            }, 500);
+                }, 500);
+            } else {
+                // Show completion modal
+                showCompletionModal();
+            }
+        }
+
+        function checkForNextLesson() {
+            // In learn mode, check if there's a next lesson
+            const learnWords = getLearnWords();
+            const nextLessonIndex = parseInt(selectedLevel) + 1;
+            if (learnWords && learnWords[nextLessonIndex]) {
+                selectedLevel = nextLessonIndex.toString();
+                return true;
+            }
+            return false;
+        }
+
+        function checkForNextPlayLevel() {
+            // In play mode, check if we've completed all 6 levels (30 words total)
+            const totalLevels = 6;
+            return currentLevel < totalLevels;
         }
 
         function showCompletionModal() {
@@ -2058,6 +2068,7 @@
         function resetPractice() {
             // Reset all stats
             wordsCompleted = 0;
+            wordsInCurrentLevel = 0;
             totalLettersTyped = 0;
             correctLetters = 0;
             currentLevel = 1;
@@ -2081,6 +2092,7 @@
         function continueLesson() {
             // Reset session stats but keep same lesson
             wordsCompleted = 0;
+            wordsInCurrentLevel = 0;
             totalLettersTyped = 0;
             correctLetters = 0;
             recentWords = [];
