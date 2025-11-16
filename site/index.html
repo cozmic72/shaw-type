@@ -1608,22 +1608,20 @@
         }
 
         function loadNewWord() {
-            // Check if we need to load a new next-next word
             const completionCount = currentMode === 'learn' ? 10 : 30;
-            const willBeSecondToLast = (wordsCompleted + 1 === completionCount - 1);
-
-            console.log(`[loadNewWord] wordsCompleted: ${wordsCompleted}, willBeSecondToLast: ${willBeSecondToLast}`);
+            const isLastWord = (wordsCompleted === completionCount - 1);
 
             // BEFORE advancing: update the slot that will become "next" after rotation
             // The slot at prev-prev position will rotate to next position
             const prevPrevSlot = (carouselOffset - 2 + 4) % 4;
             const slot = wordSlots[prevPrevSlot];
 
-            if (!willBeSecondToLast) {
-                // Load a new word normally
-                const newWord = pickRandomWord();
-                words[prevPrevSlot] = newWord;
+            // For the last word, put an empty string in the next slot
+            const newWord = isLastWord ? '' : pickRandomWord();
+            words[prevPrevSlot] = newWord;
 
+            if (newWord) {
+                // Load a new word normally
                 // Disable transitions for the new slot so it appears instantly
                 slot.style.transition = 'none';
 
@@ -1657,9 +1655,8 @@
                 // Re-enable transitions so it can animate when repositioned
                 slot.style.transition = '';
             } else {
-                // This will be the second-to-last word, so don't load a next-next word
-                console.log('Second-to-last word - leaving next slot empty');
-                words[prevPrevSlot] = '';
+                // Empty slot for after last word
+                console.log('[loadNewWord] Last word - empty next slot');
                 slot.innerHTML = '';
             }
 
