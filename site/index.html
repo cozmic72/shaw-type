@@ -128,41 +128,38 @@
         .word-carousel {
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
             position: relative;
             height: 60px;
+            overflow: hidden;
         }
 
         .word-slot {
-            position: absolute;
             font-size: 48px;
             letter-spacing: 4px;
-            transition: transform 0.4s ease, opacity 0.4s ease;
+            white-space: nowrap;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            flex-shrink: 0;
         }
 
-        /* Position classes for the carousel */
+        /* Position classes for the carousel - transform will be set dynamically */
         .word-slot.pos-prev-prev {
-            transform: translateX(-200%);
             opacity: 0;
         }
 
         .word-slot.pos-prev {
-            transform: translateX(-100%);
             opacity: 0.2;
         }
 
         .word-slot.pos-current {
-            transform: translateX(0);
             opacity: 1;
         }
 
         .word-slot.pos-next {
-            transform: translateX(100%);
             opacity: 0.3;
         }
 
         .word-slot.pos-next-next {
-            transform: translateX(200%);
             opacity: 0;
         }
 
@@ -1778,6 +1775,38 @@
                     slot.innerHTML = '';
                 }
             }
+
+            // Calculate positions based on actual widths
+            // Wait for next frame to ensure content is rendered
+            requestAnimationFrame(() => {
+                const carouselWidth = wordSlots[0].parentElement.clientWidth;
+                const widths = wordSlots.map(slot => slot.offsetWidth);
+
+                // Calculate cumulative positions
+                let offset = 0;
+                for (let i = 0; i < 4; i++) {
+                    const posOffset = (i - carouselOffset + 4) % 4;
+
+                    if (posOffset === 0) {
+                        // Current word - center it in the viewport
+                        const currentWordOffset = (carouselWidth / 2) - (widths[i] / 2);
+                        offset = currentWordOffset - offset;
+                        wordSlots[i].style.transform = `translateX(${offset}px)`;
+                        offset += widths[i];
+                    } else if (posOffset === 3) {
+                        // Previous word - to the left of current
+                        offset -= widths[i];
+                        wordSlots[i].style.transform = `translateX(${offset}px)`;
+                    } else if (posOffset === 1) {
+                        // Next word - right after current
+                        wordSlots[i].style.transform = `translateX(${offset}px)`;
+                        offset += widths[i];
+                    } else if (posOffset === 2) {
+                        // Next-next word - further right
+                        wordSlots[i].style.transform = `translateX(${offset}px)`;
+                    }
+                }
+            });
         }
 
         function updateStats() {
