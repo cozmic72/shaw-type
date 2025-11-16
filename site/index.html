@@ -1615,6 +1615,8 @@
             const completionCount = currentMode === 'learn' ? 10 : 30;
             const willBeSecondToLast = (wordsCompleted + 1 === completionCount - 1);
 
+            console.log(`wordsCompleted: ${wordsCompleted}, completionCount: ${completionCount}, willBeSecondToLast: ${willBeSecondToLast}`);
+
             // BEFORE advancing: update the slot that will become "next" after rotation
             // The slot at prev-prev position will rotate to next position
             const prevPrevSlot = (carouselOffset - 2 + 4) % 4;
@@ -1890,14 +1892,17 @@
                 inputExpanded.every((char, i) => char === wordExpanded[i])) {
                 // Word completed correctly
                 wordsCompleted++;
+                console.log(`Word completed! wordsCompleted: ${wordsCompleted}`);
                 updateStats();
 
                 // Check completion based on mode
                 const completionCount = currentMode === 'learn' ? 10 : 30;
                 if (wordsCompleted === completionCount) {
                     // Level completed
+                    console.log(`LEVEL COMPLETED! Mode: ${currentMode}`);
                     if (currentMode === 'learn') {
                         // In learn mode, animate to next level
+                        console.log('Calling transitionToNextLevel');
                         transitionToNextLevel();
                     } else {
                         // In play mode, show completion modal
@@ -1911,6 +1916,7 @@
         }
 
         function transitionToNextLevel() {
+            console.log('=== TRANSITIONING TO NEXT LEVEL ===');
             // Animate carousel sliding left and fading out
             const carousel = document.querySelector('.word-carousel');
             carousel.style.transition = 'transform 0.5s ease, opacity 0.5s ease';
@@ -1918,6 +1924,7 @@
             carousel.style.opacity = '0';
 
             setTimeout(() => {
+                console.log('Animation timeout - checking for next lesson');
                 // Save stats for completed level
                 const finalLevelAccuracy = currentLevelLettersTyped === 0 ? 100.0 :
                     ((currentLevelCorrectLetters / currentLevelLettersTyped) * 100);
