@@ -1610,10 +1610,16 @@
         }
 
         function loadNewWord() {
+            console.log('=== LOADING NEW WORD ===');
+            console.log('Current carouselOffset:', carouselOffset);
+
             // BEFORE advancing: update the slot that will become "next" after rotation
             // The slot at prev-prev position will rotate to next position
             const prevPrevSlot = (carouselOffset - 2 + 4) % 4;
-            words[prevPrevSlot] = pickRandomWord();
+            const newWord = pickRandomWord();
+            words[prevPrevSlot] = newWord;
+
+            console.log(`Moving prev-prev slot ${prevPrevSlot} to the right with new word: "${newWord}"`);
 
             // Disable transitions for the new slot so it appears instantly
             const slot = wordSlots[prevPrevSlot];
@@ -1621,6 +1627,7 @@
 
             // NOW advance carousel
             carouselOffset = (carouselOffset + 1) % 4;
+            console.log('New carouselOffset:', carouselOffset);
 
             // Get current word from carousel
             currentWord = words[carouselOffset];
@@ -1803,6 +1810,22 @@
                 const prevX = currentX - prevWidth;
                 const nextX = currentX + currentWidth;
                 const nextNextX = nextX + nextWidth;
+
+                // Log all slot states before applying transforms
+                console.log('--- ANIMATION STATE ---');
+                console.log(`Carousel offset: ${carouselOffset}`);
+                for (let i = 0; i < 4; i++) {
+                    const posOffset = (i - carouselOffset + 4) % 4;
+                    let role = '';
+                    let xPos = 0;
+                    if (posOffset === 0) { role = 'CURRENT'; xPos = currentX; }
+                    else if (posOffset === 1) { role = 'NEXT'; xPos = nextX; }
+                    else if (posOffset === 2) { role = 'NEXT-NEXT'; xPos = nextNextX; }
+                    else if (posOffset === 3) { role = 'PREV'; xPos = prevX; }
+                    const width = wordSlots[i].offsetWidth;
+                    const word = words[i];
+                    console.log(`Slot ${i} [${role}]: word="${word}", width=${width}px, x=${xPos}px`);
+                }
 
                 // Apply transforms
                 wordSlots[currentSlot].style.transform = `translateX(${currentX}px)`;
