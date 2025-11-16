@@ -1780,32 +1780,33 @@
             // Wait for next frame to ensure content is rendered
             requestAnimationFrame(() => {
                 const carouselWidth = wordSlots[0].parentElement.clientWidth;
-                const widths = wordSlots.map(slot => slot.offsetWidth);
 
-                // Calculate cumulative positions
-                let offset = 0;
+                // Find which slot is at each position
+                let currentSlot = -1, prevSlot = -1, nextSlot = -1, nextNextSlot = -1;
                 for (let i = 0; i < 4; i++) {
                     const posOffset = (i - carouselOffset + 4) % 4;
-
-                    if (posOffset === 0) {
-                        // Current word - center it in the viewport
-                        const currentWordOffset = (carouselWidth / 2) - (widths[i] / 2);
-                        offset = currentWordOffset - offset;
-                        wordSlots[i].style.transform = `translateX(${offset}px)`;
-                        offset += widths[i];
-                    } else if (posOffset === 3) {
-                        // Previous word - to the left of current
-                        offset -= widths[i];
-                        wordSlots[i].style.transform = `translateX(${offset}px)`;
-                    } else if (posOffset === 1) {
-                        // Next word - right after current
-                        wordSlots[i].style.transform = `translateX(${offset}px)`;
-                        offset += widths[i];
-                    } else if (posOffset === 2) {
-                        // Next-next word - further right
-                        wordSlots[i].style.transform = `translateX(${offset}px)`;
-                    }
+                    if (posOffset === 0) currentSlot = i;
+                    else if (posOffset === 1) nextSlot = i;
+                    else if (posOffset === 2) nextNextSlot = i;
+                    else if (posOffset === 3) prevSlot = i;
                 }
+
+                // Get widths
+                const currentWidth = wordSlots[currentSlot].offsetWidth;
+                const prevWidth = prevSlot >= 0 ? wordSlots[prevSlot].offsetWidth : 0;
+                const nextWidth = nextSlot >= 0 ? wordSlots[nextSlot].offsetWidth : 0;
+
+                // Calculate positions - center current word, position others relative to it
+                const currentX = (carouselWidth / 2) - (currentWidth / 2);
+                const prevX = currentX - prevWidth;
+                const nextX = currentX + currentWidth;
+                const nextNextX = nextX + nextWidth;
+
+                // Apply transforms
+                wordSlots[currentSlot].style.transform = `translateX(${currentX}px)`;
+                if (prevSlot >= 0) wordSlots[prevSlot].style.transform = `translateX(${prevX}px)`;
+                if (nextSlot >= 0) wordSlots[nextSlot].style.transform = `translateX(${nextX}px)`;
+                if (nextNextSlot >= 0) wordSlots[nextNextSlot].style.transform = `translateX(${nextNextX}px)`;
             });
         }
 
