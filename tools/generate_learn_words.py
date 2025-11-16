@@ -113,19 +113,19 @@ LEARN_LEVELS_IMPERIAL = {
         'description': 'Extend to more keys above and below'
     },
     5: {
+        'name': 'Number Row Focus',
+        'chars': '𐑶𐑬𐑫𐑜𐑖𐑗𐑙𐑘𐑡𐑔𐑠𐑪𐑨𐑦𐑩𐑧𐑐𐑯𐑑𐑮𐑕𐑛𐑓𐑒𐑝𐑚𐑱𐑳𐑞𐑤𐑥𐑾𐑲𐑴𐑰𐑭𐑷𐑵𐑢𐑣𐑟',  # Number row + common chars
+        'description': 'Master the number row characters'
+    },
+    6: {
         'name': 'Almost Complete',
         'chars': '𐑪𐑨𐑦𐑩𐑧𐑐𐑯𐑑𐑮𐑕𐑛𐑓𐑒𐑝𐑚𐑱𐑳𐑞𐑤𐑥𐑾𐑲𐑴𐑰𐑭𐑷𐑵𐑢𐑣𐑟',  # Most keys
         'description': 'Add outer columns'
     },
-    6: {
+    7: {
         'name': 'All Keys',
         'chars': '𐑪𐑨𐑦𐑩𐑧𐑐𐑯𐑑𐑮𐑕𐑛𐑓𐑒𐑝𐑚𐑱𐑳𐑞𐑤𐑥𐑾𐑲𐑴𐑰𐑭𐑷𐑵𐑢𐑣𐑟𐑶𐑬𐑫𐑜𐑖𐑗𐑙𐑘𐑡𐑔𐑠',  # All
         'description': 'Complete keyboard'
-    },
-    7: {
-        'name': 'Number Row Focus',
-        'chars': '𐑶𐑬𐑫𐑜𐑖𐑗𐑙𐑘𐑡𐑔𐑠𐑪𐑨𐑦𐑩𐑧𐑐𐑯𐑑𐑮𐑕𐑛𐑓𐑒𐑝𐑚𐑱𐑳𐑞𐑤𐑥𐑾𐑲𐑴𐑰𐑭𐑷𐑵𐑢𐑣𐑟',  # Number row + common chars
-        'description': 'Master the number row characters'
     }
 }
 
@@ -321,10 +321,12 @@ def generate_learn_word_lists(word_freq_file, learn_levels, output_file, layout_
         for word, freq in all_words:
             if can_type_with_chars(word, available_chars, use_ligatures):
                 target_count = count_target_chars(word, new_chars, use_ligatures)
-                word_len = len(word)
-                # Score combines: target char count (high priority), frequency (medium), length (grows with level)
-                score = (target_count * 1000) + (freq / 100) + (word_len * level_num)
-                candidates.append((word, score, target_count, word_len))
+                # Only include words with at least one character from the focus group
+                if target_count > 0:
+                    word_len = len(word)
+                    # Score combines: target char count (high priority), frequency (medium), length (grows with level)
+                    score = (target_count * 1000) + (freq / 100) + (word_len * level_num)
+                    candidates.append((word, score, target_count, word_len))
 
         # Sort by score (descending)
         candidates.sort(key=lambda x: x[1], reverse=True)
@@ -369,9 +371,9 @@ def generate_learn_word_lists(word_freq_file, learn_levels, output_file, layout_
             avg_len = sum(len(w) for w in ligature_words) / len(ligature_words)
             print(f"  Compound Letters: {len(ligature_words)} words (avg length: {avg_len:.1f})")
 
-            # Insert compound lesson at fourth from last position
+            # Insert compound lesson at third from last position
             lesson_nums = sorted([int(k) for k in learn_words.keys()])
-            insert_index = len(lesson_nums) - 3
+            insert_index = len(lesson_nums) - 2
 
             final_words = {}
             new_num = 1
