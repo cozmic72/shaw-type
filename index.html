@@ -442,12 +442,6 @@
             <button id="learnBtn" class="mode-btn" onclick="setMode('learn')">Practice</button>
         </div>
 
-        <div id="learnLevelInfo" style="display: none; text-align: center; margin-bottom: 15px;">
-            <button onclick="openLessonSelector()" style="padding: 10px 20px; font-size: 14px; background: white; color: #667eea; border: 2px solid #667eea; border-radius: 8px; cursor: pointer; transition: all 0.3s;">
-                Choose Lesson
-            </button>
-        </div>
-
         <div class="word-display">
             <div class="word" id="wordDisplay"></div>
         </div>
@@ -507,7 +501,7 @@
 
             <div class="settings-option">
                 <label style="display: block; margin-bottom: 10px; color: #666; font-weight: normal;">
-                    English Dialect
+                    Choose spelling
                 </label>
                 <div style="display: flex; gap: 20px;">
                     <label style="cursor: pointer;">
@@ -548,10 +542,11 @@
                 <div class="settings-option-desc">Show labels and text in Shavian alphabet instead of Latin</div>
             </div>
 
-            <div style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #e0e0e0;">
-                <button onclick="resetWelcomeScreen()" style="width: 100%; padding: 12px; font-size: 14px; background: white; color: #667eea; border: 2px solid #667eea; border-radius: 8px; cursor: pointer; margin-bottom: 15px;">
-                    Show Welcome Screen Again
-                </button>
+            <div class="settings-option" style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #e0e0e0;">
+                <label>
+                    <input type="checkbox" id="hideWelcomeToggle" onchange="toggleHideWelcome()">
+                    <span>Hide welcome screen when page opens</span>
+                </label>
             </div>
 
             <button class="settings-close-btn" onclick="closeSettings()">Close</button>
@@ -572,27 +567,27 @@
     <!-- Welcome Modal -->
     <div class="settings-modal" id="welcomeModal">
         <div class="settings-content" style="max-width: 600px;">
-            <h2>Welcome to Shaw Type!</h2>
-            <p style="margin: 15px 0; color: #666;">Choose your preferences to get started:</p>
+            <h2 id="welcomeTitle">Welcome to Shaw Type!</h2>
+            <p id="welcomeSubtitle" style="margin: 15px 0; color: #666;">Choose your preferences to get started:</p>
 
             <div class="settings-option">
-                <label style="display: block; margin-bottom: 10px; color: #666; font-weight: normal;">
-                    English Dialect
+                <label id="welcomeDialectLabel" style="display: block; margin-bottom: 10px; color: #666; font-weight: normal;">
+                    Choose spelling
                 </label>
                 <div style="display: flex; gap: 20px;">
                     <label style="cursor: pointer;">
                         <input type="radio" name="dialectWelcome" value="gb" checked onchange="onDialectChangeWelcome()" style="margin-right: 8px;">
-                        British
+                        <span id="welcomeDialectBritish">British</span>
                     </label>
                     <label style="cursor: pointer;">
                         <input type="radio" name="dialectWelcome" value="us" onchange="onDialectChangeWelcome()" style="margin-right: 8px;">
-                        American
+                        <span id="welcomeDialectAmerican">American</span>
                     </label>
                 </div>
             </div>
 
             <div class="settings-option">
-                <label style="display: block; margin-bottom: 10px; color: #666; font-weight: normal;">
+                <label id="welcomeLayoutLabel" style="display: block; margin-bottom: 10px; color: #666; font-weight: normal;">
                     Keyboard Layout
                 </label>
                 <select id="layoutSelectWelcome" onchange="onLayoutChangeWelcome()" style="width: 100%; padding: 8px; font-size: 16px; border: 2px solid #e0e0e0; border-radius: 8px;">
@@ -605,19 +600,19 @@
 
             <div class="settings-option" id="ligatureWelcomeOption">
                 <label>
-                    <input type="checkbox" id="ligatureToggleWelcome" checked onchange="onLigatureToggleWelcome()">
-                    <span>Automatic ligatures (𐑩+𐑮→𐑼, 𐑘+𐑵→𐑿)</span>
+                    <input type="checkbox" id="ligatureToggleWelcome" onchange="onLigatureToggleWelcome()">
+                    <span id="welcomeLigatureLabel">Automatic ligatures (𐑩+𐑮→𐑼, 𐑘+𐑵→𐑿)</span>
                 </label>
             </div>
 
             <div class="settings-option">
                 <label>
                     <input type="checkbox" id="shavianUIToggleWelcome" onchange="toggleShavianUIWelcome()">
-                    <span>Display UI in Shavian</span>
+                    <span id="welcomeShavianUILabel">Display UI in Shavian</span>
                 </label>
             </div>
 
-            <button class="settings-close-btn" onclick="closeWelcomeModal()" style="margin-top: 25px; width: 100%;">Start</button>
+            <button id="welcomeStartButton" class="settings-close-btn" onclick="closeWelcomeModal()" style="margin-top: 25px; width: 100%;">Start</button>
         </div>
     </div>
 
@@ -718,7 +713,7 @@
         // Mode management
         let currentMode = 'play'; // 'learn' or 'play'
         let currentLayout = 'imperial'; // 'imperial' or 'qwerty'
-        let useLigatures = true; // Toggle for ligatures
+        let useLigatures = false; // Toggle for ligatures - OFF by default
         let selectedLevel = 'auto'; // Level selection: 'auto' or 1-7
         let useShavianUI = false; // Toggle for Shavian UI
         let currentDialect = 'gb'; // 'gb' or 'us' - English dialect for word lists
@@ -892,9 +887,7 @@
             document.getElementById('learnBtn').classList.toggle('active', mode === 'learn');
             document.getElementById('playBtn').classList.toggle('active', mode === 'play');
 
-            // Show/hide selectors
-            document.getElementById('learnLevelInfo').style.display =
-                mode === 'learn' ? 'block' : 'none';
+            // Show/hide lesson info
             document.getElementById('currentLessonInfo').style.display =
                 mode === 'learn' ? 'block' : 'none';
 
@@ -903,6 +896,11 @@
                 const lang = useShavianUI ? 'shavian' : 'latin';
                 const t = translations[lang];
                 document.querySelector('.subtitle').textContent = t.subtitle;
+            }
+
+            // Open lesson selector when switching to practice mode
+            if (mode === 'learn') {
+                openLessonSelector();
             }
 
             // Update stat label based on mode
@@ -1190,15 +1188,13 @@
         async function init() {
             await loadWords();
             if (wordsLoaded) {
-                updateLevelSelector(); // Populate lesson dropdown
-
                 // Check if we should show welcome screen
-                const welcomeShown = localStorage.getItem('welcomeShown');
-                if (!welcomeShown) {
-                    showWelcomeIfNeeded();
-                } else {
+                const hideWelcome = localStorage.getItem('hideWelcome');
+                if (hideWelcome === 'true') {
                     loadNewWord();
                     typingInput.focus();
+                } else {
+                    showWelcomeIfNeeded();
                 }
             }
         }
@@ -1682,20 +1678,44 @@
         function toggleShavianUIWelcome() {
             useShavianUI = document.getElementById('shavianUIToggleWelcome').checked;
             localStorage.setItem('useShavianUI', useShavianUI);
-            updateUILanguage();
+            updateWelcomeLanguage();
+        }
+
+        function updateWelcomeLanguage() {
+            const lang = useShavianUI ? 'shavian' : 'latin';
+            // TODO: Add Shavian translations for welcome screen
+            if (useShavianUI) {
+                document.getElementById('welcomeTitle').textContent = '𐑢𐑧𐑤𐑒𐑳𐑥 𐑑 ·𐑖𐑷 𐑑𐑲𐑐!';
+                document.getElementById('welcomeSubtitle').textContent = '𐑗𐑵𐑟 𐑘𐑹 𐑐𐑮𐑧𐑓𐑼𐑩𐑯𐑕𐑩𐑟 𐑑 𐑜𐑧𐑑 𐑕𐑑𐑸𐑑𐑩𐑛:';
+                document.getElementById('welcomeDialectLabel').textContent = '𐑗𐑵𐑟 𐑕𐑐𐑧𐑤𐑦𐑙';
+                document.getElementById('welcomeDialectBritish').textContent = '𐑚𐑮𐑦𐑑𐑦𐑖';
+                document.getElementById('welcomeDialectAmerican').textContent = '𐑩𐑥𐑧𐑮𐑦𐑒𐑩𐑯';
+                document.getElementById('welcomeLayoutLabel').textContent = '𐑒𐑰𐑚𐑪𐑮𐑛 𐑤𐑱𐑬𐑑';
+                document.getElementById('welcomeLigatureLabel').textContent = '𐑷𐑑𐑩𐑥𐑧𐑑𐑦𐑒 𐑤𐑦𐑜𐑩𐑗𐑼𐑟 (𐑩+𐑮→𐑼, 𐑘+𐑵→𐑿)';
+                document.getElementById('welcomeShavianUILabel').textContent = '𐑛𐑦𐑕𐑐𐑤𐑱 UI 𐑦𐑯 ·𐑖𐑱𐑝𐑾𐑯';
+                document.getElementById('welcomeStartButton').textContent = '𐑕𐑑𐑸𐑑';
+            } else {
+                document.getElementById('welcomeTitle').textContent = 'Welcome to Shaw Type!';
+                document.getElementById('welcomeSubtitle').textContent = 'Choose your preferences to get started:';
+                document.getElementById('welcomeDialectLabel').textContent = 'Choose spelling';
+                document.getElementById('welcomeDialectBritish').textContent = 'British';
+                document.getElementById('welcomeDialectAmerican').textContent = 'American';
+                document.getElementById('welcomeLayoutLabel').textContent = 'Keyboard Layout';
+                document.getElementById('welcomeLigatureLabel').textContent = 'Automatic ligatures (𐑩+𐑮→𐑼, 𐑘+𐑵→𐑿)';
+                document.getElementById('welcomeShavianUILabel').textContent = 'Display UI in Shavian';
+                document.getElementById('welcomeStartButton').textContent = 'Start';
+            }
         }
 
         function closeWelcomeModal() {
-            localStorage.setItem('welcomeShown', 'true');
             document.getElementById('welcomeModal').classList.remove('show');
-            updateLevelSelector();
             loadNewWord();
             typingInput.focus();
         }
 
         function showWelcomeIfNeeded() {
-            const welcomeShown = localStorage.getItem('welcomeShown');
-            if (!welcomeShown) {
+            const hideWelcome = localStorage.getItem('hideWelcome');
+            if (hideWelcome !== 'true') {
                 // Sync welcome modal with current settings
                 const dialectRadio = document.querySelector(`input[name="dialectWelcome"][value="${currentDialect}"]`);
                 if (dialectRadio) dialectRadio.checked = true;
@@ -1708,14 +1728,16 @@
                 const supportsLigatures = currentLayout === 'imperial' || currentLayout === 'qwerty' || currentLayout === 'jafl';
                 document.getElementById('ligatureWelcomeOption').style.display = supportsLigatures ? 'block' : 'none';
 
+                // Update welcome language
+                updateWelcomeLanguage();
+
                 document.getElementById('welcomeModal').classList.add('show');
             }
         }
 
-        function resetWelcomeScreen() {
-            localStorage.removeItem('welcomeShown');
-            closeSettings();
-            showWelcomeIfNeeded();
+        function toggleHideWelcome() {
+            const hideWelcome = document.getElementById('hideWelcomeToggle').checked;
+            localStorage.setItem('hideWelcome', hideWelcome.toString());
         }
 
         // Settings functions
@@ -1726,6 +1748,10 @@
 
             document.getElementById('layoutSelectSettings').value = currentLayout;
             document.getElementById('ligatureToggleSettings').checked = useLigatures;
+
+            // Sync hide welcome checkbox
+            const hideWelcome = localStorage.getItem('hideWelcome');
+            document.getElementById('hideWelcomeToggle').checked = (hideWelcome === 'true');
 
             // Show/hide ligature option based on current layout
             const supportsLigatures = currentLayout === 'imperial' ||
@@ -1910,10 +1936,14 @@
                 document.getElementById('playBtn').classList.remove('active');
                 if (currentMode === 'learn') {
                     document.getElementById('learnBtn').classList.add('active');
-                    document.getElementById('learnLevelInfo').style.display = 'block';
+                    document.getElementById('currentLessonInfo').style.display = 'block';
                 } else if (currentMode === 'play') {
                     document.getElementById('playBtn').classList.add('active');
                 }
+            } else {
+                // No saved mode, ensure Play is active by default
+                document.getElementById('playBtn').classList.add('active');
+                document.getElementById('learnBtn').classList.remove('active');
             }
 
             // Load high score
