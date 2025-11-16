@@ -1774,9 +1774,13 @@
         // Content modal functions
         async function openContentModal(page) {
             closeBurgerMenu();
-            // Blur input and set readonly to prevent mobile keyboard
-            typingInput.blur();
+            // Dismiss mobile keyboard - set readonly first, then blur
             typingInput.setAttribute('readonly', 'readonly');
+            typingInput.blur();
+            // Force blur of any focused element
+            if (document.activeElement) {
+                document.activeElement.blur();
+            }
 
             const modal = document.getElementById('contentModal');
             const titleEl = document.getElementById('contentModalTitle');
@@ -1912,9 +1916,13 @@
 
         // Settings functions
         function openSettings() {
-            // Blur input and set readonly to prevent mobile keyboard
-            typingInput.blur();
+            // Dismiss mobile keyboard - set readonly first, then blur
             typingInput.setAttribute('readonly', 'readonly');
+            typingInput.blur();
+            // Force blur of any focused element
+            if (document.activeElement) {
+                document.activeElement.blur();
+            }
 
             // Sync settings with current state
             const dialectRadio = document.querySelector(`input[name="dialectSettings"][value="${currentDialect}"]`);
@@ -1945,9 +1953,13 @@
 
         // Lesson selector functions
         function openLessonSelector() {
-            // Blur input and set readonly to prevent mobile keyboard
-            typingInput.blur();
+            // Dismiss mobile keyboard - set readonly first, then blur
             typingInput.setAttribute('readonly', 'readonly');
+            typingInput.blur();
+            // Force blur of any focused element
+            if (document.activeElement) {
+                document.activeElement.blur();
+            }
 
             // Get current translations
             const lang = useShavianUI ? 'shavian' : 'latin';
