@@ -836,9 +836,12 @@
         let learnWordsJaflNoLig = {};
         let wordsLoaded = false;
 
-        // Game constants
-        const WORDS_PER_LEVEL_PLAY = 5; // Words per level in play mode
-        const WORDS_PER_LEVEL_LEARN = 10; // Words per lesson in learn mode
+        // Current level/lesson state
+        let currentLevelWordPool = []; // Source pool of words for current level/lesson
+        let currentLevelWordCount = 5; // Number of words to complete this level/lesson
+        let currentLevelTitle = ''; // Display title for current level/lesson
+        let currentLevelType = 'level'; // 'level' or 'lesson' for UI labels
+        let currentLevelNumber = 1;
 
         // Carousel: 4 slots, we track which slot index maps to which position
         let carouselOffset = 0; // Current slot index for "current" word
@@ -846,7 +849,6 @@
         let currentWord = ''; // The actual current word being typed
         let wordsCompleted = 0;
         let wordsInCurrentLevel = 0; // Words completed in current level
-        let currentLevel = 1;
         let totalLettersTyped = 0;
         let correctLetters = 0;
         let recentWords = []; // Track recent words to avoid repeats
@@ -1435,64 +1437,65 @@
             levelSelect.value = selectedLevel;
         }
 
-        // Get available words for current mode
-        function getWordPool() {
+        // Get word pool and metadata for a play level
+        function getPlayLevelData(levelNum) {
             let pool = [];
+            let title = '';
 
-            if (currentMode === 'learn') {
-                // Learn mode: use keyboard-based progressive levels
-                const currentLvl = parseInt(selectedLevel);
-                let learnWords;
-                let level = currentLvl;
-
-                if (currentLayout === 'imperial') {
-                    learnWords = useLigatures ? learnWordsImperial : learnWordsImperialNoLig;
-                } else if (currentLayout === 'new-imperial') {
-                    learnWords = useLigatures ? learnWordsNewImperial : learnWordsNewImperialNoLig;
-                } else if (currentLayout === 'qwerty') {
-                    learnWords = learnWordsQwerty;
-                } else if (currentLayout === '2layer') {
-                    learnWords = learnWords2layer;
-                } else if (currentLayout === 'jafl') {
-                    learnWords = useLigatures ? learnWordsJafl : learnWordsJaflNoLig;
-                }
-
-                const levelData = learnWords[level];
-                if (levelData && levelData.words) {
-                    pool = levelData.words;
-                    // Update lesson info display
-                    const translatedName = translateLessonName(levelData.name);
-                    const lang = useShavianUI ? 'shavian' : 'latin';
-                    const t = translations[lang];
-                    document.getElementById('currentLessonName').textContent =
-                        `${t.lessonPrefix} ${currentLvl}: ${translatedName}`;
-                    // Update subtitle with lesson name
-                    document.getElementById('mainSubtitle').textContent =
-                        `${t.lessonPrefix} ${currentLvl}: ${translatedName}`;
-                }
-            } else {
-                // Play mode: use level-based selection
-                const level = getCurrentLevel();
-
-                if (level === 1) {
-                    // Level 1: 1-2 character words
-                    pool = [...wordsByLength[1], ...wordsByLength[2]];
-                } else if (level === 2) {
-                    // Level 2: 2-3 character words
-                    pool = [...wordsByLength[2], ...wordsByLength[3]];
-                } else if (level === 3) {
-                    // Level 3: 3-4 character words
-                    pool = [...wordsByLength[3], ...wordsByLength[4]];
-                } else if (level === 4) {
-                    // Level 4: 4-6 character words
-                    pool = [...wordsByLength[4], ...wordsByLength[5], ...wordsByLength[6]];
-                } else {
-                    // Level 5: 5+ character words
-                    pool = [...wordsByLength[5], ...wordsByLength[6], ...wordsByLength[7]];
-                }
+            if (levelNum === 1) {
+                pool = [...wordsByLength[1], ...wordsByLength[2]];
+                title = '1-2 Letters';
+            } else if (levelNum === 2) {
+                pool = [...wordsByLength[2], ...wordsByLength[3]];
+                title = '2-3 Letters';
+            } else if (levelNum === 3) {
+                pool = [...wordsByLength[3], ...wordsByLength[4]];
+                title = '3-4 Letters';
+            } else if (levelNum === 4) {
+                pool = [...wordsByLength[4], ...wordsByLength[5], ...wordsByLength[6]];
+                title = '4-6 Letters';
+            } else if (levelNum === 5) {
+                pool = [...wordsByLength[5], ...wordsByLength[6], ...wordsByLength[7]];
+                title = '5+ Letters';
+            } else if (levelNum === 6) {
+                pool = [...wordsByLength[6], ...wordsByLength[7]];
+                title = '6+ Letters';
             }
 
-            return pool;
+            return {
+                wordPool: pool,
+                wordCount: 5,
+                title: title
+            };
+        }
+
+        // Get word pool and metadata for a learn lesson
+        function getLearnLessonData(lessonIndex) {
+            let learnWords;
+
+            if (currentLayout === 'imperial') {
+                learnWords = useLigatures ? learnWordsImperial : learnWordsImperialNoLig;
+            } else if (currentLayout === 'new-imperial') {
+                learnWords = useLigatures ? learnWordsNewImperial : learnWordsNewImperialNoLig;
+            } else if (currentLayout === 'qwerty') {
+                learnWords = learnWordsQwerty;
+            } else if (currentLayout === '2layer') {
+                learnWords = learnWords2layer;
+            } else if (currentLayout === 'jafl') {
+                learnWords = useLigatures ? learnWordsJafl : learnWordsJaflNoLig;
+            }
+
+            const levelData = learnWords[lessonIndex];
+            if (levelData && levelData.words) {
+                const translatedName = translateLessonName(levelData.name);
+                return {
+                    wordPool: levelData.words,
+                    wordCount: 10,
+                    title: translatedName
+                };
+            }
+
+            return null;
         }
 
         // Load words from JSON
@@ -1593,8 +1596,37 @@
             }
         }
 
+        // Start a new level/lesson with given word pool, count, and metadata
+        function startLevel(wordPool, wordCount, type, title) {
+            console.log(`[startLevel] Starting ${type}: "${title}" (${wordCount} words from pool of ${wordPool.length})`);
+
+            // Set level state
+            currentLevelWordPool = wordPool;
+            currentLevelWordCount = wordCount;
+            currentLevelType = type;
+            currentLevelTitle = title;
+            wordsInCurrentLevel = 0;
+            currentLevelLettersTyped = 0;
+            currentLevelCorrectLetters = 0;
+            recentWords = [];
+
+            // Update UI
+            const lang = useShavianUI ? 'shavian' : 'latin';
+            const t = translations[lang];
+            const label = type === 'lesson' ? t.lesson_label : t.level_label;
+            document.getElementById('mainSubtitle').textContent = `${label} ${currentLevelNumber}: ${title}`;
+
+            // Initialize game with new words
+            initializeGame();
+        }
+
         function pickRandomWord() {
-            const pool = getWordPool();
+            const pool = currentLevelWordPool;
+            if (!pool || pool.length === 0) {
+                console.error('No word pool available!');
+                return '';
+            }
+
             const historySize = Math.min(10, Math.floor(pool.length / 2));
             let newWord;
             let attempts = 0;
@@ -1615,10 +1647,10 @@
         }
 
         function loadNewWord() {
-            const wordsPerLevel = currentMode === 'learn' ? WORDS_PER_LEVEL_LEARN : WORDS_PER_LEVEL_PLAY;
-            const isLastWordOfLevel = (wordsInCurrentLevel === wordsPerLevel - 1);
+            // Check if this is the last word of the level
+            const isLastWordOfLevel = (wordsInCurrentLevel === currentLevelWordCount - 1);
 
-            console.log(`[loadNewWord] wordsInCurrentLevel=${wordsInCurrentLevel}, wordsPerLevel=${wordsPerLevel}, isLastWord=${isLastWordOfLevel}`);
+            console.log(`[loadNewWord] wordsInCurrentLevel=${wordsInCurrentLevel}, wordCount=${currentLevelWordCount}, isLastWord=${isLastWordOfLevel}`);
 
             // BEFORE advancing: update the slot that will become "next" after rotation
             // The slot at prev-prev position will rotate to next position
@@ -1880,10 +1912,9 @@
                 updateStats();
 
                 // Check if level is complete
-                const wordsPerLevel = currentMode === 'learn' ? WORDS_PER_LEVEL_LEARN : WORDS_PER_LEVEL_PLAY;
-                if (wordsInCurrentLevel === wordsPerLevel) {
+                if (wordsInCurrentLevel === currentLevelWordCount) {
                     // Level completed - transition to next level
-                    console.log(`[checkCompletion] LEVEL COMPLETED`);
+                    console.log(`[checkCompletion] ${currentLevelType.toUpperCase()} COMPLETED`);
                     transitionToNextLevel();
                 } else {
                     // Advance to next word
@@ -1899,34 +1930,40 @@
             const finalLevelAccuracy = currentLevelLettersTyped === 0 ? 100.0 :
                 ((currentLevelCorrectLetters / currentLevelLettersTyped) * 100);
             levelStats.push({
-                level: currentLevel,
+                level: currentLevelNumber,
                 accuracy: finalLevelAccuracy,
                 lettersTyped: currentLevelLettersTyped,
                 correctLetters: currentLevelCorrectLetters
             });
 
-            // Check if we should continue or show completion
-            const shouldContinue = currentMode === 'learn' ?
-                checkForNextLesson() :
-                checkForNextPlayLevel();
+            // Get next level/lesson data
+            let nextLevelData = null;
+            if (currentMode === 'learn') {
+                const nextLessonIndex = parseInt(selectedLevel) + 1;
+                nextLevelData = getLearnLessonData(nextLessonIndex);
+                if (nextLevelData) {
+                    selectedLevel = nextLessonIndex.toString();
+                    currentLevelNumber = nextLessonIndex;
+                }
+            } else {
+                const nextLevelNum = currentLevelNumber + 1;
+                if (nextLevelNum <= 6) {
+                    nextLevelData = getPlayLevelData(nextLevelNum);
+                    currentLevelNumber = nextLevelNum;
+                }
+            }
 
-            if (shouldContinue) {
-                // Advance to next level
-                currentLevel++;
-                wordsInCurrentLevel = 0;
-                currentLevelLettersTyped = 0;
-                currentLevelCorrectLetters = 0;
-                recentWords = [];
-
-                // Animate carousel out and in
+            if (nextLevelData) {
+                // Animate carousel out
                 const carousel = document.querySelector('.word-carousel');
                 carousel.style.transition = 'transform 0.5s ease, opacity 0.5s ease';
                 carousel.style.transform = 'translateX(-100px)';
                 carousel.style.opacity = '0';
 
                 setTimeout(() => {
-                    // Load new words for next level
-                    initializeGame();
+                    // Start new level with new words
+                    const type = currentMode === 'learn' ? 'lesson' : 'level';
+                    startLevel(nextLevelData.wordPool, nextLevelData.wordCount, type, nextLevelData.title);
 
                     // Animate in from right
                     carousel.style.transition = 'none';
@@ -1947,26 +1984,9 @@
                     typingInput.focus();
                 }, 500);
             } else {
-                // Show completion modal
+                // No more levels/lessons - show completion modal
                 showCompletionModal();
             }
-        }
-
-        function checkForNextLesson() {
-            // In learn mode, check if there's a next lesson
-            const learnWords = getLearnWords();
-            const nextLessonIndex = parseInt(selectedLevel) + 1;
-            if (learnWords && learnWords[nextLessonIndex]) {
-                selectedLevel = nextLessonIndex.toString();
-                return true;
-            }
-            return false;
-        }
-
-        function checkForNextPlayLevel() {
-            // In play mode, check if we've completed all 6 levels (30 words total)
-            const totalLevels = 6;
-            return currentLevel < totalLevels;
         }
 
         function showCompletionModal() {
@@ -2070,14 +2090,11 @@
         function resetPractice() {
             // Reset all stats
             wordsCompleted = 0;
-            wordsInCurrentLevel = 0;
             totalLettersTyped = 0;
             correctLetters = 0;
-            currentLevel = 1;
+            currentLevelNumber = 1;
             recentWords = [];
             levelStats = [];
-            currentLevelLettersTyped = 0;
-            currentLevelCorrectLetters = 0;
             hasPendingLigature = false;
             startTime = Date.now(); // Start the timer
 
@@ -2087,19 +2104,28 @@
             // Update display
             updateStats();
             updateLevel();
-            initializeGame();
+
+            // Start first level
+            if (currentMode === 'play') {
+                const levelData = getPlayLevelData(1);
+                startLevel(levelData.wordPool, levelData.wordCount, 'level', levelData.title);
+            } else {
+                // In learn mode, use the selected lesson
+                const levelData = getLearnLessonData(parseInt(selectedLevel));
+                if (levelData) {
+                    currentLevelNumber = parseInt(selectedLevel);
+                    startLevel(levelData.wordPool, levelData.wordCount, 'lesson', levelData.title);
+                }
+            }
+
             typingInput.focus();
         }
 
         function continueLesson() {
             // Reset session stats but keep same lesson
             wordsCompleted = 0;
-            wordsInCurrentLevel = 0;
             totalLettersTyped = 0;
             correctLetters = 0;
-            recentWords = [];
-            currentLevelLettersTyped = 0;
-            currentLevelCorrectLetters = 0;
             hasPendingLigature = false;
 
             // Hide modal
@@ -2107,7 +2133,9 @@
 
             // Update display
             updateStats();
-            initializeGame();
+
+            // Restart current level/lesson with same word pool
+            startLevel(currentLevelWordPool, currentLevelWordCount, currentLevelType, currentLevelTitle);
             typingInput.focus();
         }
 
@@ -2449,27 +2477,24 @@
             // Show game content
             showGameContent();
 
-            // Get the appropriate word list for current settings
-            const learnWords = getLearnWords();
-
-            // Update subtitle with lesson name
-            const lang = useShavianUI ? 'shavian' : 'latin';
-            const lessonData = learnWords[level];
-            if (lessonData) {
-                const lessonKey = 'lesson' + lessonData.name.replace(/\s+/g, '');
-                const lessonName = translations[lang][lessonKey] || lessonData.name;
-                document.getElementById('mainSubtitle').textContent = lessonName;
-            }
-
-            // Reset session for new lesson
+            // Reset session stats
             wordsCompleted = 0;
             totalLettersTyped = 0;
             correctLetters = 0;
-            recentWords = [];
-            currentLevelLettersTyped = 0;
-            currentLevelCorrectLetters = 0;
+            levelStats = [];
+            hasPendingLigature = false;
+            startTime = Date.now();
+
             updateStats();
-            loadNewWord();
+
+            // Start the selected lesson
+            const levelData = getLearnLessonData(parseInt(level));
+            if (levelData) {
+                currentLevelNumber = parseInt(level);
+                startLevel(levelData.wordPool, levelData.wordCount, 'lesson', levelData.title);
+            }
+
+            typingInput.focus();
         }
 
         function closeLessonModal() {
