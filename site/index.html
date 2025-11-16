@@ -1647,8 +1647,11 @@
             slot.classList.add('pos-next-next');
             slot.style.transform = `translateX(${nextNextX}px) translateY(-50%)`;
 
-            // Force reflow
+            // Force reflow to apply the next-next position
             slot.offsetHeight;
+
+            // Re-enable transitions so it can animate when repositioned
+            slot.style.transition = '';
 
             // NOW advance carousel
             carouselOffset = (carouselOffset + 1) % 4;
@@ -1672,11 +1675,6 @@
             previousInput = '';
             hasPendingLigature = false;
             updateWordDisplay();
-
-            // Re-enable transitions after positioning
-            requestAnimationFrame(() => {
-                slot.style.transition = '';
-            });
 
             updateLevel();
         }
