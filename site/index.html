@@ -1276,7 +1276,7 @@
                 // Reload words with new dialect
                 loadWords().then(() => {
                     updateLevelSelector();
-                    loadNewWord();
+                    initializeGame();
                 });
             }
         }
@@ -1293,19 +1293,19 @@
             document.getElementById('ligatureSettingOption').style.display =
                 supportsLigatures ? 'block' : 'none';
             updateLevelSelector();
-            loadNewWord();
+            initializeGame();
         }
 
         function onLigatureToggleSettings() {
             useLigatures = document.getElementById('ligatureToggleSettings').checked;
             localStorage.setItem('useLigatures', useLigatures);
             updateLevelSelector();
-            loadNewWord();
+            initializeGame();
         }
 
         function onLevelChange() {
             selectedLevel = document.getElementById('levelSelect').value;
-            loadNewWord();
+            initializeGame();
         }
 
         function getLearnWords() {
@@ -1608,22 +1608,13 @@
         }
 
         function loadNewWord() {
-            // Initialize carousel on first load
-            if (!words[0] && !words[1] && !words[2] && !words[3]) {
-                words[0] = pickRandomWord();  // current
-                words[1] = pickRandomWord();  // next
-                words[2] = '';  // (empty)
-                words[3] = '';  // (empty)
-                carouselOffset = 0; // current word is in slot 0
-            } else {
-                // BEFORE advancing: update the slot that will become "next" after rotation
-                // The slot at prev-prev position will rotate to next position
-                const prevPrevSlot = (carouselOffset - 2 + 4) % 4;
-                words[prevPrevSlot] = pickRandomWord();
+            // BEFORE advancing: update the slot that will become "next" after rotation
+            // The slot at prev-prev position will rotate to next position
+            const prevPrevSlot = (carouselOffset - 2 + 4) % 4;
+            words[prevPrevSlot] = pickRandomWord();
 
-                // NOW advance carousel
-                carouselOffset = (carouselOffset + 1) % 4;
-            }
+            // NOW advance carousel
+            carouselOffset = (carouselOffset + 1) % 4;
 
             // Get current word from carousel
             currentWord = words[carouselOffset];
@@ -1642,6 +1633,15 @@
             hasPendingLigature = false;
             updateWordDisplay();
             updateLevel();
+        }
+
+        function initializeGame() {
+            // Reset carousel completely
+            words = ['', '', '', ''];
+            carouselOffset = 2; // Will advance to 3, then 0
+            // Run the cycle twice to load first two words
+            loadNewWord(); // Loads first word, advances to offset 3
+            loadNewWord(); // Loads second word, advances to offset 0 (current)
         }
 
         function advanceToNextWord() {
@@ -1915,7 +1915,7 @@
             // Update display
             updateStats();
             updateLevel();
-            loadNewWord();
+            initializeGame();
             typingInput.focus();
         }
 
@@ -1934,7 +1934,7 @@
 
             // Update display
             updateStats();
-            loadNewWord();
+            initializeGame();
             typingInput.focus();
         }
 
@@ -2116,7 +2116,7 @@
                 // Reload words with new dialect
                 loadWords().then(() => {
                     updateLevelSelector();
-                    loadNewWord();
+                    initializeGame();
                 });
             }
         }
@@ -2171,7 +2171,7 @@
             document.getElementById('welcomeModal').classList.remove('show');
             // Ensure Play mode is active when starting fresh
             setMode('play');
-            loadNewWord();
+            initializeGame();
             // Don't auto-focus on mobile - let user tap when ready
         }
 
