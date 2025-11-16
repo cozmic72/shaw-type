@@ -1673,8 +1673,7 @@
             // Get current word from carousel
             currentWord = words[carouselOffset];
 
-            // Check if this is the last word
-            const completionCount = currentMode === 'learn' ? 10 : 30;
+            // Check if this is the last word (reuse completionCount from above)
             const isLastWord = (wordsCompleted === completionCount - 1);
 
             // Append space to currentWord if it's not the last one
