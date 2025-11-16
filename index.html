@@ -1310,7 +1310,7 @@
                 const hideWelcome = localStorage.getItem('hideWelcome');
                 if (hideWelcome === 'true') {
                     loadNewWord();
-                    typingInput.focus();
+                    // Don't auto-focus on mobile - let user tap when ready
                 } else {
                     showWelcomeIfNeeded();
                 }
@@ -1832,7 +1832,7 @@
             // Ensure Play mode is active when starting fresh
             setMode('play');
             loadNewWord();
-            typingInput.focus();
+            // Don't auto-focus on mobile - let user tap when ready
         }
 
         function showWelcomeIfNeeded() {
