@@ -669,7 +669,7 @@
             <h2 id="lessonModalTitle">Choose a Lesson</h2>
             <p id="lessonModalSubtitle" style="margin: 15px 0; color: #666;">Select a lesson to practice:</p>
 
-            <div id="lessonList" style="margin: 20px 0;">
+            <div id="lessonList" style="margin: 20px 0; max-height: 400px; overflow-y: auto;">
                 <!-- Lessons will be populated dynamically -->
             </div>
 
@@ -686,7 +686,6 @@
         let learnWords2layer = {};
         let learnWordsJafl = {};
         let learnWordsJaflNoLig = {};
-        let learnWordsCompound = {};
         let wordsLoaded = false;
 
         let currentWord = '';
@@ -1170,27 +1169,16 @@
 
             // Add lesson options with names
             if (learnWords) {
-                const maxLevel = (currentLayout === 'imperial' && useLigatures) ? 7 : 6;
+                const maxLevel = Object.keys(learnWords).length;
 
                 for (let i = 1; i <= maxLevel; i++) {
-                    // For Imperial with ligatures, insert compound letters at position 5
-                    if (currentLayout === 'imperial' && useLigatures && i === 5 && learnWordsCompound[1]) {
+                    const levelData = learnWords[i];
+                    if (levelData) {
                         const option = document.createElement('option');
-                        option.value = 5;
-                        const translatedName = translateLessonName(learnWordsCompound[1].name);
-                        option.textContent = `5. ${translatedName}`;
+                        option.value = i;
+                        const translatedName = translateLessonName(levelData.name);
+                        option.textContent = `${i}. ${translatedName}`;
                         levelSelect.appendChild(option);
-                    } else {
-                        // Map levels for Imperial with ligatures: 6→5, 7→6
-                        const actualLevel = (currentLayout === 'imperial' && useLigatures && i > 5) ? i - 1 : i;
-                        const levelData = learnWords[actualLevel];
-                        if (levelData) {
-                            const option = document.createElement('option');
-                            option.value = i;
-                            const translatedName = translateLessonName(levelData.name);
-                            option.textContent = `${i}. ${translatedName}`;
-                            levelSelect.appendChild(option);
-                        }
                     }
                 }
             }
@@ -1215,27 +1203,14 @@
                 let learnWords;
                 let level = currentLvl;
 
-                // Check if we're in compound letters lesson
-                if (currentLayout === 'imperial' && useLigatures && currentLvl === 5) {
-                    learnWords = learnWordsCompound;
-                    level = 1; // Compound lesson only has level 1
-                } else {
-                    if (currentLayout === 'imperial') {
-                        learnWords = useLigatures ? learnWordsImperial : learnWordsImperialNoLig;
-                    } else if (currentLayout === 'qwerty') {
-                        learnWords = learnWordsQwerty;
-                    } else if (currentLayout === '2layer') {
-                        learnWords = learnWords2layer;
-                    } else if (currentLayout === 'jafl') {
-                        learnWords = useLigatures ? learnWordsJafl : learnWordsJaflNoLig;
-                    }
-
-                    // For Imperial with ligatures, adjust level mapping after compound letters
-                    if (currentLayout === 'imperial' && useLigatures && currentLvl > 5) {
-                        level = currentLvl - 1; // Map level 6 → 5 (Almost Complete), level 7 → 6 (All Keys)
-                    } else {
-                        level = Math.min(currentLvl, 6);
-                    }
+                if (currentLayout === 'imperial') {
+                    learnWords = useLigatures ? learnWordsImperial : learnWordsImperialNoLig;
+                } else if (currentLayout === 'qwerty') {
+                    learnWords = learnWordsQwerty;
+                } else if (currentLayout === '2layer') {
+                    learnWords = learnWords2layer;
+                } else if (currentLayout === 'jafl') {
+                    learnWords = useLigatures ? learnWordsJafl : learnWordsJaflNoLig;
                 }
 
                 const levelData = learnWords[level];
@@ -1309,14 +1284,6 @@
                 // Convert string keys to numbers
                 Object.keys(learnImperialNoLigData).forEach(key => {
                     learnWordsImperialNoLig[parseInt(key)] = learnImperialNoLigData[key];
-                });
-
-                // Load compound letters lesson
-                const learnCompoundResponse = await fetch(`learn_words_compound_${currentDialect}.json`);
-                const learnCompoundData = await learnCompoundResponse.json();
-                // Convert string keys to numbers
-                Object.keys(learnCompoundData).forEach(key => {
-                    learnWordsCompound[parseInt(key)] = learnCompoundData[key];
                 });
 
                 // Load learn mode words for Shaw 2-layer
@@ -1960,19 +1927,12 @@
             const lessonList = document.getElementById('lessonList');
             lessonList.innerHTML = '';
 
-            // Determine max level for current layout
-            const maxLevel = (currentLayout === 'imperial' && useLigatures) ? 7 : 6;
+            // Dynamically determine max level from actual data
+            const maxLevel = learnWords ? Object.keys(learnWords).length : 6;
 
             // Add lesson options
             for (let i = 1; i <= maxLevel; i++) {
-                let levelData;
-                // For Imperial with ligatures, insert compound letters at position 5
-                if (currentLayout === 'imperial' && useLigatures && i === 5) {
-                    levelData = learnWordsCompound[1];
-                } else {
-                    const actualLevel = (currentLayout === 'imperial' && useLigatures && i > 5) ? i - 1 : i;
-                    levelData = learnWords[actualLevel];
-                }
+                const levelData = learnWords[i];
 
                 if (levelData) {
                     const lessonBtn = document.createElement('div');
