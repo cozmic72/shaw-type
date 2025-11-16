@@ -841,7 +841,9 @@
         let currentLevelWordCount = 5; // Number of words to complete this level/lesson
         let currentLevelTitle = ''; // Display title for current level/lesson
         let currentLevelType = 'level'; // 'level' or 'lesson' for UI labels
+        let currentLevelTypeLabel = 'Level'; // Display label for UI
         let currentLevelNumber = 1;
+        let currentLevelCompletionCallback = null; // Function to call when level completes
 
         // Carousel: 4 slots, we track which slot index maps to which position
         let carouselOffset = 0; // Current slot index for "current" word
@@ -1597,7 +1599,7 @@
         }
 
         // Start a new level/lesson with given word pool, count, and metadata
-        function startLevel(wordPool, wordCount, type, title) {
+        function startLevel(wordPool, wordCount, type, title, typeLabel, completionCallback) {
             console.log(`[startLevel] Starting ${type}: "${title}" (${wordCount} words from pool of ${wordPool.length})`);
 
             // Set level state
@@ -1605,16 +1607,15 @@
             currentLevelWordCount = wordCount;
             currentLevelType = type;
             currentLevelTitle = title;
+            currentLevelTypeLabel = typeLabel;
+            currentLevelCompletionCallback = completionCallback;
             wordsInCurrentLevel = 0;
             currentLevelLettersTyped = 0;
             currentLevelCorrectLetters = 0;
             recentWords = [];
 
-            // Update UI
-            const lang = useShavianUI ? 'shavian' : 'latin';
-            const t = translations[lang];
-            const label = type === 'lesson' ? t.lesson_label : t.level_label;
-            document.getElementById('mainSubtitle').textContent = `${label} ${currentLevelNumber}: ${title}`;
+            // Update UI - use provided type label
+            document.getElementById('mainSubtitle').textContent = `${typeLabel} ${currentLevelNumber}: ${title}`;
 
             // Initialize game with new words
             initializeGame();
@@ -1909,7 +1910,14 @@
                 correctLetters: currentLevelCorrectLetters
             });
 
-            // Get next level/lesson data
+            // If there's a completion callback, use it
+            if (currentLevelCompletionCallback) {
+                console.log('[transitionToNextLevel] Calling completion callback');
+                currentLevelCompletionCallback();
+                return;
+            }
+
+            // Default behavior: try to advance to next level
             let nextLevelData = null;
             if (currentMode === 'learn') {
                 const nextLessonIndex = parseInt(selectedLevel) + 1;
@@ -1935,8 +1943,11 @@
 
                 setTimeout(() => {
                     // Start new level with new words
+                    const lang = useShavianUI ? 'shavian' : 'latin';
+                    const t = translations[lang];
                     const type = currentMode === 'learn' ? 'lesson' : 'level';
-                    startLevel(nextLevelData.wordPool, nextLevelData.wordCount, type, nextLevelData.title);
+                    const typeLabel = type === 'lesson' ? t.lesson_label : t.level_label;
+                    startLevel(nextLevelData.wordPool, nextLevelData.wordCount, type, nextLevelData.title, typeLabel, currentLevelCompletionCallback);
 
                     // Animate in from right
                     carousel.style.transition = 'none';
@@ -1960,6 +1971,35 @@
                 // No more levels/lessons - show completion modal
                 showCompletionModal();
             }
+        }
+
+        function showLessonCompletionDialog() {
+            console.log('[showLessonCompletionDialog] Lesson completed');
+
+            // Calculate stats for this lesson
+            const accuracy = totalLettersTyped === 0 ? 100.0 : ((correctLetters / totalLettersTyped) * 100);
+            const accuracyFormatted = accuracy.toFixed(1) + '%';
+
+            // Set modal content for lesson completion
+            document.getElementById('completionTitle').textContent = 'Lesson Complete!';
+            document.getElementById('completionMessage').textContent = `You completed ${wordsCompleted} words!`;
+
+            // Hide game-specific stats
+            document.getElementById('highScoreRow').style.display = 'none';
+            document.getElementById('levelReachedRow').style.display = 'none';
+            document.getElementById('levelStatsContainer').style.display = 'none';
+
+            // Show accuracy
+            document.getElementById('accuracyRow').innerHTML = `Accuracy: ${accuracyFormatted}`;
+            document.getElementById('accuracyRow').style.display = 'block';
+
+            // Show "Continue" and "Choose Different Lesson" buttons
+            document.getElementById('completionButtons').innerHTML = `
+                <button onclick="continueLesson()">Continue</button>
+                <button onclick="chooseDifferentLesson()" style="margin-left: 10px; background: white; color: #667eea; border: 2px solid #667eea;">Choose Different Lesson</button>
+            `;
+
+            document.getElementById('completionModal').classList.add('show');
         }
 
         function showCompletionModal() {
@@ -2070,15 +2110,18 @@
             updateLevel();
 
             // Start first level
+            const lang = useShavianUI ? 'shavian' : 'latin';
+            const t = translations[lang];
+
             if (currentMode === 'play') {
                 const levelData = getPlayLevelData(1);
-                startLevel(levelData.wordPool, levelData.wordCount, 'level', levelData.title);
+                startLevel(levelData.wordPool, levelData.wordCount, 'level', levelData.title, t.level_label, null);
             } else {
                 // In learn mode, use the selected lesson
                 const levelData = getLearnLessonData(parseInt(selectedLevel));
                 if (levelData) {
                     currentLevelNumber = parseInt(selectedLevel);
-                    startLevel(levelData.wordPool, levelData.wordCount, 'lesson', levelData.title);
+                    startLevel(levelData.wordPool, levelData.wordCount, 'lesson', levelData.title, t.lesson_label, showLessonCompletionDialog);
                 }
             }
 
@@ -2099,7 +2142,7 @@
             updateStats();
 
             // Restart current level/lesson with same word pool
-            startLevel(currentLevelWordPool, currentLevelWordCount, currentLevelType, currentLevelTitle);
+            startLevel(currentLevelWordPool, currentLevelWordCount, currentLevelType, currentLevelTitle, currentLevelTypeLabel, currentLevelCompletionCallback);
             typingInput.focus();
         }
 
@@ -2452,10 +2495,12 @@
             updateStats();
 
             // Start the selected lesson
+            const lang = useShavianUI ? 'shavian' : 'latin';
+            const t = translations[lang];
             const levelData = getLearnLessonData(parseInt(level));
             if (levelData) {
                 currentLevelNumber = parseInt(level);
-                startLevel(levelData.wordPool, levelData.wordCount, 'lesson', levelData.title);
+                startLevel(levelData.wordPool, levelData.wordCount, 'lesson', levelData.title, t.lesson_label, showLessonCompletionDialog);
             }
 
             typingInput.focus();
