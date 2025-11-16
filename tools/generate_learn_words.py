@@ -324,8 +324,13 @@ def generate_learn_word_lists(word_freq_file, learn_levels, output_file, layout_
                 # Only include words with at least one character from the focus group
                 if target_count > 0:
                     word_len = len(word)
-                    # Score combines: target char count (high priority), frequency (medium), length (grows with level)
-                    score = (target_count * 1000) + (freq / 100) + (word_len * level_num)
+                    # For Number Row Focus (level 5), use simpler scoring that doesn't favor multiple new chars
+                    # This keeps words simpler and more approachable
+                    if level_num == 5 and level_info['name'] == 'Number Row Focus':
+                        score = 1000 + (freq / 100) + (word_len * level_num)
+                    else:
+                        # Score combines: target char count (high priority), frequency (medium), length (grows with level)
+                        score = (target_count * 1000) + (freq / 100) + (word_len * level_num)
                     candidates.append((word, score, target_count, word_len))
 
         # Sort by score (descending)
