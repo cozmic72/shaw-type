@@ -1447,6 +1447,8 @@
 
                 if (currentLayout === 'imperial') {
                     learnWords = useLigatures ? learnWordsImperial : learnWordsImperialNoLig;
+                } else if (currentLayout === 'new-imperial') {
+                    learnWords = useLigatures ? learnWordsNewImperial : learnWordsNewImperialNoLig;
                 } else if (currentLayout === 'qwerty') {
                     learnWords = learnWordsQwerty;
                 } else if (currentLayout === '2layer') {
