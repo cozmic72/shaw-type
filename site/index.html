@@ -1722,7 +1722,7 @@
             }
 
             // Append space and next word (faded)
-            html += `<span class="char"> </span>`;
+            html += `<span class="char">&nbsp;</span>`;
             const nextWordChars = Array.from(nextWord);
             for (let i = 0; i < nextWordChars.length; i++) {
                 html += `<span class="char" style="opacity: 0.3">${nextWordChars[i]}</span>`;
@@ -1739,29 +1739,10 @@
         }
 
         function checkCompletion() {
-            const userInput = typingInput.value;
-
-            // Compare expanded forms to handle ligature equivalence
-            const inputExpanded = expandLigatures(userInput);
-            const wordExpanded = expandLigatures(currentWord);
-
-            // Check if expanded forms match
-            if (inputExpanded.length === wordExpanded.length &&
-                inputExpanded.every((char, i) => char === wordExpanded[i])) {
-                // Word completed correctly
-                wordsCompleted++;
-                updateStats();
-
-                // Check completion based on mode
-                const completionCount = currentMode === 'learn' ? 10 : 30;
-                if (wordsCompleted === completionCount) {
-                    showCompletionModal();
-                } else {
-                    // Load new word after a short delay
-                    setTimeout(() => {
-                        loadNewWord();
-                    }, 200);
-                }
+            // Check if we've completed all words in the session
+            const completionCount = currentMode === 'learn' ? 10 : 30;
+            if (wordsCompleted === completionCount) {
+                showCompletionModal();
             }
         }
 
