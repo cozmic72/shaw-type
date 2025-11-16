@@ -619,14 +619,14 @@
     <!-- Lesson Selector Modal -->
     <div class="settings-modal" id="lessonModal">
         <div class="settings-content" style="max-width: 500px;">
-            <h2>Choose a Lesson</h2>
-            <p style="margin: 15px 0; color: #666;">Select a lesson to practice:</p>
+            <h2 id="lessonModalTitle">Choose a Lesson</h2>
+            <p id="lessonModalSubtitle" style="margin: 15px 0; color: #666;">Select a lesson to practice:</p>
 
             <div id="lessonList" style="margin: 20px 0;">
                 <!-- Lessons will be populated dynamically -->
             </div>
 
-            <button class="settings-close-btn" onclick="closeLessonModal()">Cancel</button>
+            <button id="lessonModalCancel" class="settings-close-btn" onclick="closeLessonModal()">Cancel</button>
         </div>
     </div>
 
@@ -714,7 +714,7 @@
         let currentMode = 'play'; // 'learn' or 'play'
         let currentLayout = 'imperial'; // 'imperial' or 'qwerty'
         let useLigatures = false; // Toggle for ligatures - OFF by default
-        let selectedLevel = 'auto'; // Level selection: 'auto' or 1-7
+        let selectedLevel = 1; // Level selection: 1-7
         let useShavianUI = false; // Toggle for Shavian UI
         let currentDialect = 'gb'; // 'gb' or 'us' - English dialect for word lists
 
@@ -729,7 +729,6 @@
                 keyboardLayout: 'Keyboard Layout',
                 ligatures: 'Automatic ligatures (𐑩+𐑮→𐑼, 𐑘+𐑵→𐑿)',
                 lesson: 'Lesson:',
-                auto: 'Auto (progress based)',
                 wordLength: 'Word Length:',
                 characters: 'characters',
                 // Word length options
@@ -782,7 +781,36 @@
                 settingsTitle: 'Settings',
                 displayShavian: 'Display UI in Shavian',
                 displayShavianDesc: 'Show labels and text in Shavian alphabet instead of Latin',
-                close: 'Close'
+                close: 'Close',
+                lessonModalTitle: 'Choose a Lesson',
+                lessonModalSubtitle: 'Select a lesson to practice:',
+                lessonModalCancel: 'Cancel',
+                lessonPrefix: 'Lesson',
+                // Lesson descriptions
+                desc1: 'Middle fingers only, home row',
+                desc2: 'All fingers, home row',
+                desc3: 'Add index finger upper/lower reaches',
+                desc4: 'Extend to more keys above and below',
+                desc5: 'Add outer columns',
+                desc6: 'Complete keyboard (all layers)',
+                desc7: 'Practice typing ligatures: 𐑼 𐑸 𐑹 𐑿 𐑽',
+                desc8: 'Home row with shift layer',
+                desc9: 'Add upper row (both layers)',
+                desc10: 'Add lower row (both layers)',
+                desc11: 'Master the 9 most common sounds in English',
+                desc12: 'Navigate through English vowel sounds',
+                desc13: 'Build confidence with base layer consonants',
+                desc14: 'Harness the efficiency of compound letters',
+                desc15: 'Unlock the full potential of the shift layer',
+                desc16: 'Command every key with confidence',
+                desc17: 'Build your foundation with essential sounds',
+                desc18: 'Master the comfort of the home row',
+                desc19: 'Journey to the upper reaches of your keyboard',
+                desc20: 'Explore the depths below home position',
+                desc21: 'Discover new dimensions with the shift key',
+                desc22: 'Achieve mastery over the complete keyboard',
+                desc23: 'All fingers, home row (unshifted)',
+                desc24: 'Complete keyboard including number row'
             },
             shavian: {
                 title: '·𐑖𐑷 𐑑𐑲𐑐',
@@ -793,7 +821,6 @@
                 keyboardLayout: '𐑒𐑰𐑚𐑪𐑮𐑛 𐑤𐑱𐑬𐑑',
                 ligatures: '𐑷𐑑𐑩𐑥𐑧𐑑𐑦𐑒 𐑤𐑦𐑜𐑩𐑗𐑼𐑟 (𐑩+𐑮→𐑼, 𐑘+𐑵→𐑿)',
                 lesson: '𐑤𐑧𐑕𐑩𐑯:',
-                auto: '𐑷𐑑𐑴 (𐑐𐑮𐑴𐑜𐑮𐑧𐑕 𐑚𐑱𐑕𐑑)',
                 wordLength: '𐑢𐑻𐑛 𐑤𐑧𐑙𐑔:',
                 characters: '𐑒𐑨𐑮𐑩𐑒𐑑𐑼𐑟',
                 // Word length options
@@ -846,7 +873,36 @@
                 settingsTitle: '𐑕𐑧𐑑𐑦𐑙𐑟',
                 displayShavian: '𐑛𐑦𐑕𐑐𐑤𐑱 UI 𐑦𐑯 ·𐑖𐑱𐑝𐑾𐑯',
                 displayShavianDesc: '𐑖𐑴 𐑤𐑱𐑚𐑩𐑤𐑟 𐑯 𐑑𐑧𐑒𐑕𐑑 𐑦𐑯 ·𐑖𐑱𐑝𐑾𐑯 𐑨𐑤𐑓𐑩𐑚𐑧𐑑 𐑦𐑯𐑕𐑑𐑧𐑛 𐑝 ·𐑤𐑨𐑑𐑦𐑯',
-                close: '𐑒𐑤𐑴𐑟'
+                close: '𐑒𐑤𐑴𐑟',
+                lessonModalTitle: '𐑗𐑵𐑟 𐑩 𐑤𐑧𐑕𐑩𐑯',
+                lessonModalSubtitle: '𐑕𐑩𐑤𐑧𐑒𐑑 𐑩 𐑤𐑧𐑕𐑩𐑯 𐑑 𐑐𐑮𐑨𐑒𐑑𐑦𐑕:',
+                lessonModalCancel: '𐑒𐑨𐑯𐑕𐑩𐑤',
+                lessonPrefix: '𐑤𐑧𐑕𐑩𐑯',
+                // Lesson descriptions
+                desc1: '𐑥𐑦𐑛𐑩𐑤 𐑓𐑦𐑙𐑜𐑼𐑟 𐑴𐑯𐑤𐑦, 𐑣𐑴𐑥 𐑮𐑴',
+                desc2: '𐑷𐑤 𐑓𐑦𐑙𐑜𐑼𐑟, 𐑣𐑴𐑥 𐑮𐑴',
+                desc3: '𐑨𐑛 𐑦𐑯𐑛𐑧𐑒𐑕 𐑓𐑦𐑙𐑜𐑼 𐑳𐑐𐑼/𐑤𐑴𐑼 𐑮𐑰𐑗𐑩𐑟',
+                desc4: '𐑦𐑒𐑕𐑑𐑧𐑯𐑛 𐑑 𐑥𐑹 𐑒𐑰𐑟 𐑩𐑚𐑳𐑝 𐑯 𐑚𐑦𐑤𐑴',
+                desc5: '𐑨𐑛 𐑬𐑑𐑼 𐑒𐑪𐑤𐑩𐑥𐑟',
+                desc6: '𐑒𐑩𐑥𐑐𐑤𐑰𐑑 𐑒𐑰𐑚𐑪𐑮𐑛 (𐑷𐑤 𐑤𐑱𐑼𐑟)',
+                desc7: '𐑐𐑮𐑨𐑒𐑑𐑦𐑕 𐑑𐑲𐑐𐑦𐑙 𐑤𐑦𐑜𐑩𐑗𐑼𐑟: 𐑼 𐑸 𐑹 𐑿 𐑽',
+                desc8: '𐑣𐑴𐑥 𐑮𐑴 𐑢𐑦𐑞 𐑖𐑦𐑓𐑑 𐑤𐑱𐑼',
+                desc9: '𐑨𐑛 𐑳𐑐𐑼 𐑮𐑴 (𐑚𐑴𐑔 𐑤𐑱𐑼𐑟)',
+                desc10: '𐑨𐑛 𐑤𐑴𐑼 𐑮𐑴 (𐑚𐑴𐑔 𐑤𐑱𐑼𐑟)',
+                desc11: '𐑥𐑭𐑕𐑑𐑼 𐑞 9 𐑥𐑴𐑕𐑑 𐑒𐑪𐑥𐑩𐑯 𐑕𐑬𐑯𐑛𐑟 𐑦𐑯 ·𐑦𐑙𐑜𐑤𐑦𐑖',
+                desc12: '𐑯𐑨𐑝𐑦𐑜𐑱𐑑 𐑔𐑮𐑵 ·𐑦𐑙𐑜𐑤𐑦𐑖 𐑝𐑬𐑩𐑤 𐑕𐑬𐑯𐑛𐑟',
+                desc13: '𐑚𐑦𐑤𐑛 𐑒𐑪𐑯𐑓𐑦𐑛𐑩𐑯𐑕 𐑢𐑦𐑞 𐑚𐑱𐑕 𐑤𐑱𐑼 𐑒𐑪𐑯𐑕𐑩𐑯𐑩𐑯𐑑𐑕',
+                desc14: '𐑣𐑸𐑯𐑩𐑕 𐑞 𐑦𐑓𐑦𐑖𐑩𐑯𐑕𐑦 𐑝 𐑒𐑪𐑥𐑐𐑬𐑯𐑛 𐑤𐑧𐑑𐑼𐑟',
+                desc15: '𐑳𐑯𐑤𐑪𐑒 𐑞 𐑓𐑫𐑤 𐑐𐑩𐑑𐑧𐑯𐑖𐑩𐑤 𐑝 𐑞 𐑖𐑦𐑓𐑑 𐑤𐑱𐑼',
+                desc16: '𐑒𐑩𐑥𐑭𐑯𐑛 𐑧𐑝𐑮𐑦 𐑒𐑰 𐑢𐑦𐑞 𐑒𐑪𐑯𐑓𐑦𐑛𐑩𐑯𐑕',
+                desc17: '𐑚𐑦𐑤𐑛 𐑘𐑹 𐑓𐑬𐑯𐑛𐑱𐑖𐑩𐑯 𐑢𐑦𐑞 𐑦𐑕𐑧𐑯𐑖𐑩𐑤 𐑕𐑬𐑯𐑛𐑟',
+                desc18: '𐑥𐑭𐑕𐑑𐑼 𐑞 𐑒𐑳𐑥𐑓𐑼𐑑 𐑝 𐑞 𐑣𐑴𐑥 𐑮𐑴',
+                desc19: '𐑡𐑻𐑯𐑦 𐑑 𐑞 𐑳𐑐𐑼 𐑮𐑰𐑗𐑩𐑟 𐑝 𐑘𐑹 𐑒𐑰𐑚𐑪𐑮𐑛',
+                desc20: '𐑦𐑒𐑕𐑐𐑤𐑹 𐑞 𐑛𐑧𐑔𐑕 𐑚𐑦𐑤𐑴 𐑣𐑴𐑥 𐑐𐑩𐑟𐑦𐑖𐑩𐑯',
+                desc21: '𐑛𐑦𐑕𐑒𐑳𐑝𐑼 𐑯𐑿 𐑛𐑦𐑥𐑧𐑯𐑖𐑩𐑯𐑟 𐑢𐑦𐑞 𐑞 𐑖𐑦𐑓𐑑 𐑒𐑰',
+                desc22: '𐑩𐑗𐑰𐑝 𐑥𐑭𐑕𐑑𐑼𐑦 𐑴𐑝𐑼 𐑞 𐑒𐑩𐑥𐑐𐑤𐑰𐑑 𐑒𐑰𐑚𐑪𐑮𐑛',
+                desc23: '𐑷𐑤 𐑓𐑦𐑙𐑜𐑼𐑟, 𐑣𐑴𐑥 𐑮𐑴 (𐑳𐑯𐑖𐑦𐑓𐑑𐑩𐑛)',
+                desc24: '𐑒𐑩𐑥𐑐𐑤𐑰𐑑 𐑒𐑰𐑚𐑪𐑮𐑛 𐑦𐑯𐑒𐑤𐑵𐑛𐑦𐑙 𐑯𐑳𐑥𐑚𐑼 𐑮𐑴'
             }
         };
 
@@ -982,6 +1038,41 @@
             return nameMap[name] || name;
         }
 
+        function translateLessonDescription(description) {
+            const lang = useShavianUI ? 'shavian' : 'latin';
+            const t = translations[lang];
+
+            // Map English descriptions to translation keys
+            const descMap = {
+                'Middle fingers only, home row': t.desc1,
+                'All fingers, home row': t.desc2,
+                'Add index finger upper/lower reaches': t.desc3,
+                'Extend to more keys above and below': t.desc4,
+                'Add outer columns': t.desc5,
+                'Complete keyboard (all layers)': t.desc6,
+                'Practice typing ligatures: 𐑼 𐑸 𐑹 𐑿 𐑽': t.desc7,
+                'Home row with shift layer': t.desc8,
+                'Add upper row (both layers)': t.desc9,
+                'Add lower row (both layers)': t.desc10,
+                'Master the 9 most common sounds in English': t.desc11,
+                'Navigate through English vowel sounds': t.desc12,
+                'Build confidence with base layer consonants': t.desc13,
+                'Harness the efficiency of compound letters': t.desc14,
+                'Unlock the full potential of the shift layer': t.desc15,
+                'Command every key with confidence': t.desc16,
+                'Build your foundation with essential sounds': t.desc17,
+                'Master the comfort of the home row': t.desc18,
+                'Journey to the upper reaches of your keyboard': t.desc19,
+                'Explore the depths below home position': t.desc20,
+                'Discover new dimensions with the shift key': t.desc21,
+                'Achieve mastery over the complete keyboard': t.desc22,
+                'All fingers, home row (unshifted)': t.desc23,
+                'Complete keyboard including number row': t.desc24
+            };
+
+            return descMap[description] || description;
+        }
+
         function updateLevelSelector() {
             const levelSelect = document.getElementById('levelSelect');
 
@@ -997,10 +1088,10 @@
                 learnWords = useLigatures ? learnWordsJafl : learnWordsJaflNoLig;
             }
 
-            // Clear existing options except "Auto"
+            // Clear existing options
             const lang = useShavianUI ? 'shavian' : 'latin';
             const t = translations[lang];
-            levelSelect.innerHTML = `<option value="auto">${t.auto}</option>`;
+            levelSelect.innerHTML = ``;
 
             // Add lesson options with names
             if (learnWords) {
@@ -1029,10 +1120,10 @@
                 }
             }
 
-            // Reset to auto if selected level is now unavailable
+            // Reset to level 1 if selected level is now unavailable
             const maxLevel = (currentLayout === 'imperial' && useLigatures) ? 7 : 6;
-            if (selectedLevel !== 'auto' && parseInt(selectedLevel) > maxLevel) {
-                selectedLevel = 'auto';
+            if (parseInt(selectedLevel) > maxLevel) {
+                selectedLevel = 1;
             }
 
             // Restore selected value
@@ -1045,8 +1136,7 @@
 
             if (currentMode === 'learn') {
                 // Learn mode: use keyboard-based progressive levels
-                // Use selected level if not auto, otherwise calculate from progress
-                const currentLvl = selectedLevel === 'auto' ? getCurrentLevel() : parseInt(selectedLevel);
+                const currentLvl = parseInt(selectedLevel);
                 let learnWords;
                 let level = currentLvl;
 
@@ -1771,6 +1861,10 @@
 
         // Lesson selector functions
         function openLessonSelector() {
+            // Get current translations
+            const lang = useShavianUI ? 'shavian' : 'latin';
+            const t = translations[lang];
+
             // Get the appropriate word list for current settings
             let learnWords;
             if (currentLayout === 'imperial') {
@@ -1785,19 +1879,6 @@
 
             const lessonList = document.getElementById('lessonList');
             lessonList.innerHTML = '';
-
-            // Add Auto option
-            const autoBtn = document.createElement('div');
-            autoBtn.className = 'lesson-option';
-            autoBtn.innerHTML = `
-                <strong>Auto (progress based)</strong>
-                <p style="margin: 5px 0 0 0; font-size: 12px; color: #888;">Automatically advance through lessons</p>
-            `;
-            autoBtn.onclick = () => selectLesson('auto');
-            if (selectedLevel === 'auto') {
-                autoBtn.style.background = '#f0f0ff';
-            }
-            lessonList.appendChild(autoBtn);
 
             // Determine max level for current layout
             const maxLevel = (currentLayout === 'imperial' && useLigatures) ? 7 : 6;
@@ -1817,9 +1898,10 @@
                     const lessonBtn = document.createElement('div');
                     lessonBtn.className = 'lesson-option';
                     const translatedName = translateLessonName(levelData.name);
+                    const translatedDescription = translateLessonDescription(levelData.description);
                     lessonBtn.innerHTML = `
-                        <strong>Lesson ${i}: ${translatedName}</strong>
-                        <p style="margin: 5px 0 0 0; font-size: 12px; color: #888;">${levelData.description}</p>
+                        <strong>${t.lessonPrefix} ${i}: ${translatedName}</strong>
+                        <p style="margin: 5px 0 0 0; font-size: 12px; color: #888;">${translatedDescription}</p>
                     `;
                     lessonBtn.onclick = () => selectLesson(i);
                     if (selectedLevel == i) {
@@ -1895,11 +1977,10 @@
             document.querySelector('.settings-option label').textContent = t.keyboardLayout;
             document.querySelector('#ligatureToggleSettings + span').textContent = t.ligatures;
 
-            // Update lesson dropdown Auto option
-            const autoOption = document.querySelector('#levelSelect option[value="auto"]');
-            if (autoOption) {
-                autoOption.textContent = t.auto;
-            }
+            // Update lesson modal
+            document.getElementById('lessonModalTitle').textContent = t.lessonModalTitle;
+            document.getElementById('lessonModalSubtitle').textContent = t.lessonModalSubtitle;
+            document.getElementById('lessonModalCancel').textContent = t.lessonModalCancel;
         }
 
         // Load saved preferences
