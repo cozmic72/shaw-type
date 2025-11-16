@@ -161,6 +161,11 @@
             opacity: 0.3;
         }
 
+        .word-slot.pos-next-next {
+            transform: translateX(200%);
+            opacity: 0;
+        }
+
         .word-display .word {
             font-size: 48px;
             letter-spacing: 4px;
@@ -1612,6 +1617,14 @@
             // The slot at prev-prev position will rotate to next position
             const prevPrevSlot = (carouselOffset - 2 + 4) % 4;
             words[prevPrevSlot] = pickRandomWord();
+
+            // Position this slot off-screen right so it can slide in smoothly
+            const slot = wordSlots[prevPrevSlot];
+            slot.classList.remove('pos-prev-prev', 'pos-prev', 'pos-current', 'pos-next', 'pos-next-next');
+            slot.classList.add('pos-next-next');
+
+            // Force reflow to apply position before advancing
+            slot.offsetHeight;
 
             // NOW advance carousel
             carouselOffset = (carouselOffset + 1) % 4;
