@@ -1774,6 +1774,8 @@
         // Content modal functions
         async function openContentModal(page) {
             closeBurgerMenu();
+            // Blur input to dismiss mobile keyboard
+            typingInput.blur();
 
             const modal = document.getElementById('contentModal');
             const titleEl = document.getElementById('contentModalTitle');
@@ -1907,6 +1909,9 @@
 
         // Settings functions
         function openSettings() {
+            // Blur input to dismiss mobile keyboard
+            typingInput.blur();
+
             // Sync settings with current state
             const dialectRadio = document.querySelector(`input[name="dialectSettings"][value="${currentDialect}"]`);
             if (dialectRadio) dialectRadio.checked = true;
@@ -1934,6 +1939,9 @@
 
         // Lesson selector functions
         function openLessonSelector() {
+            // Blur input to dismiss mobile keyboard
+            typingInput.blur();
+
             // Get current translations
             const lang = useShavianUI ? 'shavian' : 'latin';
             const t = translations[lang];
