@@ -126,20 +126,18 @@
         }
 
         .word-carousel {
-            display: flex;
-            align-items: center;
-            justify-content: flex-start;
             position: relative;
             height: 60px;
             overflow: hidden;
         }
 
         .word-slot {
+            position: absolute;
+            top: 50%;
             font-size: 48px;
             letter-spacing: 4px;
             white-space: nowrap;
             transition: transform 0.3s ease, opacity 0.3s ease;
-            flex-shrink: 0;
         }
 
         /* Position classes for the carousel - transform will be set dynamically */
@@ -1827,11 +1825,11 @@
                     console.log(`Slot ${i} [${role}]: word="${word}", width=${width}px, x=${xPos}px`);
                 }
 
-                // Apply transforms
-                wordSlots[currentSlot].style.transform = `translateX(${currentX}px)`;
-                if (prevSlot >= 0) wordSlots[prevSlot].style.transform = `translateX(${prevX}px)`;
-                if (nextSlot >= 0) wordSlots[nextSlot].style.transform = `translateX(${nextX}px)`;
-                if (nextNextSlot >= 0) wordSlots[nextNextSlot].style.transform = `translateX(${nextNextX}px)`;
+                // Apply transforms (include translateY for vertical centering)
+                wordSlots[currentSlot].style.transform = `translateX(${currentX}px) translateY(-50%)`;
+                if (prevSlot >= 0) wordSlots[prevSlot].style.transform = `translateX(${prevX}px) translateY(-50%)`;
+                if (nextSlot >= 0) wordSlots[nextSlot].style.transform = `translateX(${nextX}px) translateY(-50%)`;
+                if (nextNextSlot >= 0) wordSlots[nextNextSlot].style.transform = `translateX(${nextNextX}px) translateY(-50%)`;
             });
         }
 
