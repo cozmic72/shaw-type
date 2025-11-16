@@ -432,10 +432,10 @@
             <div class="burger-menu">
                 <button class="burger-btn" onclick="toggleBurgerMenu()">☰</button>
                 <div class="burger-dropdown" id="burgerDropdown">
-                    <a href="#" onclick="openContentModal('about'); return false;">About</a>
-                    <a href="#" onclick="openContentModal('keyboards'); return false;">Keyboards</a>
-                    <a href="#" onclick="openContentModal('resources'); return false;">Resources</a>
-                    <a href="#" onclick="openSettings(); closeBurgerMenu(); return false;">Settings</a>
+                    <a id="menuAbout" href="#" onclick="openContentModal('about'); return false;">About</a>
+                    <a id="menuKeyboards" href="#" onclick="openContentModal('keyboards'); return false;">Keyboards</a>
+                    <a id="menuResources" href="#" onclick="openContentModal('resources'); return false;">Resources</a>
+                    <a id="menuSettings" href="#" onclick="openSettings(); closeBurgerMenu(); return false;">Settings</a>
                 </div>
             </div>
             <button id="playBtn" class="mode-btn active" onclick="setMode('play')">Play</button>
@@ -500,17 +500,17 @@
             <h2>Settings</h2>
 
             <div class="settings-option">
-                <label style="display: block; margin-bottom: 10px; color: #666; font-weight: normal;">
+                <label id="settingsDialectLabel" style="display: block; margin-bottom: 10px; color: #666; font-weight: normal;">
                     Choose spelling
                 </label>
                 <div style="display: flex; gap: 20px;">
                     <label style="cursor: pointer;">
                         <input type="radio" name="dialectSettings" value="gb" checked onchange="onDialectChangeSettings()" style="margin-right: 8px;">
-                        British
+                        <span id="settingsDialectBritish">British</span>
                     </label>
                     <label style="cursor: pointer;">
                         <input type="radio" name="dialectSettings" value="us" onchange="onDialectChangeSettings()" style="margin-right: 8px;">
-                        American
+                        <span id="settingsDialectAmerican">American</span>
                     </label>
                 </div>
             </div>
@@ -545,7 +545,7 @@
             <div class="settings-option" style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #e0e0e0;">
                 <label>
                     <input type="checkbox" id="hideWelcomeToggle" onchange="toggleHideWelcome()">
-                    <span>Hide welcome screen when page opens</span>
+                    <span id="settingsHideWelcome">Hide welcome screen when page opens</span>
                 </label>
             </div>
 
@@ -560,7 +560,7 @@
             <div id="contentModalBody" style="margin-top: 20px;">
                 Loading...
             </div>
-            <button class="settings-close-btn" onclick="closeContentModal()">Close</button>
+            <button id="contentModalClose" class="settings-close-btn" onclick="closeContentModal()">Close</button>
         </div>
     </div>
 
@@ -810,7 +810,21 @@
                 desc21: 'Discover new dimensions with the shift key',
                 desc22: 'Achieve mastery over the complete keyboard',
                 desc23: 'All fingers, home row (unshifted)',
-                desc24: 'Complete keyboard including number row'
+                desc24: 'Complete keyboard including number row',
+                // Burger menu items
+                menuAbout: 'About',
+                menuKeyboards: 'Keyboards',
+                menuResources: 'Resources',
+                menuSettings: 'Settings',
+                // Content modal titles
+                titleAbout: 'About',
+                titleKeyboards: 'Keyboards',
+                titleResources: 'Resources',
+                // Settings dialog labels
+                dialectLabel: 'Choose spelling',
+                dialectBritish: 'British',
+                dialectAmerican: 'American',
+                hideWelcome: 'Hide welcome screen when page opens'
             },
             shavian: {
                 title: '·𐑖𐑷 𐑑𐑲𐑐',
@@ -902,7 +916,21 @@
                 desc21: '𐑛𐑦𐑕𐑒𐑳𐑝𐑼 𐑯𐑿 𐑛𐑦𐑥𐑧𐑯𐑖𐑩𐑯𐑟 𐑢𐑦𐑞 𐑞 𐑖𐑦𐑓𐑑 𐑒𐑰',
                 desc22: '𐑩𐑗𐑰𐑝 𐑥𐑭𐑕𐑑𐑼𐑦 𐑴𐑝𐑼 𐑞 𐑒𐑩𐑥𐑐𐑤𐑰𐑑 𐑒𐑰𐑚𐑪𐑮𐑛',
                 desc23: '𐑷𐑤 𐑓𐑦𐑙𐑜𐑼𐑟, 𐑣𐑴𐑥 𐑮𐑴 (𐑳𐑯𐑖𐑦𐑓𐑑𐑩𐑛)',
-                desc24: '𐑒𐑩𐑥𐑐𐑤𐑰𐑑 𐑒𐑰𐑚𐑪𐑮𐑛 𐑦𐑯𐑒𐑤𐑵𐑛𐑦𐑙 𐑯𐑳𐑥𐑚𐑼 𐑮𐑴'
+                desc24: '𐑒𐑩𐑥𐑐𐑤𐑰𐑑 𐑒𐑰𐑚𐑪𐑮𐑛 𐑦𐑯𐑒𐑤𐑵𐑛𐑦𐑙 𐑯𐑳𐑥𐑚𐑼 𐑮𐑴',
+                // Burger menu items
+                menuAbout: '𐑩𐑚𐑬𐑑',
+                menuKeyboards: '𐑒𐑰𐑚𐑪𐑮𐑛𐑟',
+                menuResources: '𐑮𐑦𐑕𐑹𐑕𐑩𐑟',
+                menuSettings: '𐑕𐑧𐑑𐑦𐑙𐑟',
+                // Content modal titles
+                titleAbout: '𐑩𐑚𐑬𐑑',
+                titleKeyboards: '𐑒𐑰𐑚𐑪𐑮𐑛𐑟',
+                titleResources: '𐑮𐑦𐑕𐑹𐑕𐑩𐑟',
+                // Settings dialog labels
+                dialectLabel: '𐑗𐑵𐑟 𐑕𐑐𐑧𐑤𐑦𐑙',
+                dialectBritish: '𐑚𐑮𐑦𐑑𐑦𐑖',
+                dialectAmerican: '𐑩𐑥𐑧𐑮𐑦𐑒𐑩𐑯',
+                hideWelcome: '𐑣𐑲𐑛 𐑢𐑧𐑤𐑒𐑳𐑥 𐑕𐑒𐑮𐑰𐑯 𐑢𐑧𐑯 𐑐𐑱𐑡 𐑴𐑐𐑩𐑯𐑟'
             }
         };
 
@@ -1708,15 +1736,17 @@
             const titleEl = document.getElementById('contentModalTitle');
             const bodyEl = document.getElementById('contentModalBody');
 
-            // Set title
-            titleEl.textContent = page.charAt(0).toUpperCase() + page.slice(1);
+            // Set title using translations
+            const lang = useShavianUI ? 'shavian' : 'latin';
+            const t = translations[lang];
+            const titleKey = 'title' + page.charAt(0).toUpperCase() + page.slice(1);
+            titleEl.textContent = t[titleKey] || page.charAt(0).toUpperCase() + page.slice(1);
             bodyEl.innerHTML = 'Loading...';
 
             // Show modal
             modal.classList.add('show');
 
             // Load content based on current language
-            const lang = useShavianUI ? 'shavian' : 'latin';
             const filename = `${page}_${lang}.html`;
 
             try {
@@ -1981,6 +2011,21 @@
             document.getElementById('lessonModalTitle').textContent = t.lessonModalTitle;
             document.getElementById('lessonModalSubtitle').textContent = t.lessonModalSubtitle;
             document.getElementById('lessonModalCancel').textContent = t.lessonModalCancel;
+
+            // Update burger menu items
+            document.getElementById('menuAbout').textContent = t.menuAbout;
+            document.getElementById('menuKeyboards').textContent = t.menuKeyboards;
+            document.getElementById('menuResources').textContent = t.menuResources;
+            document.getElementById('menuSettings').textContent = t.menuSettings;
+
+            // Update content modal close button
+            document.getElementById('contentModalClose').textContent = t.close;
+
+            // Update settings dialog labels
+            document.getElementById('settingsDialectLabel').textContent = t.dialectLabel;
+            document.getElementById('settingsDialectBritish').textContent = t.dialectBritish;
+            document.getElementById('settingsDialectAmerican').textContent = t.dialectAmerican;
+            document.getElementById('settingsHideWelcome').textContent = t.hideWelcome;
         }
 
         // Load saved preferences
