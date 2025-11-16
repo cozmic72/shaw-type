@@ -1611,47 +1611,60 @@
             console.log('=== LOADING NEW WORD ===');
             console.log('Current carouselOffset:', carouselOffset);
 
+            // Check if we need to load a new next-next word
+            const completionCount = currentMode === 'learn' ? 10 : 30;
+            const willBeSecondToLast = (wordsCompleted + 1 === completionCount - 1);
+
             // BEFORE advancing: update the slot that will become "next" after rotation
             // The slot at prev-prev position will rotate to next position
             const prevPrevSlot = (carouselOffset - 2 + 4) % 4;
-            const newWord = pickRandomWord();
-            words[prevPrevSlot] = newWord;
-
-            console.log(`Moving prev-prev slot ${prevPrevSlot} to the right with new word: "${newWord}"`);
-
-            // Disable transitions for the new slot so it appears instantly
             const slot = wordSlots[prevPrevSlot];
-            slot.style.transition = 'none';
 
-            // Update the slot's HTML content so offsetWidth is accurate
-            let html = '';
-            const wordChars = Array.from(newWord);
-            for (let j = 0; j < wordChars.length; j++) {
-                html += `<span class="char">${wordChars[j]}</span>`;
+            if (!willBeSecondToLast) {
+                // Load a new word normally
+                const newWord = pickRandomWord();
+                words[prevPrevSlot] = newWord;
+
+                console.log(`Moving prev-prev slot ${prevPrevSlot} to the right with new word: "${newWord}"`);
+
+                // Disable transitions for the new slot so it appears instantly
+                slot.style.transition = 'none';
+
+                // Update the slot's HTML content so offsetWidth is accurate
+                let html = '';
+                const wordChars = Array.from(newWord);
+                for (let j = 0; j < wordChars.length; j++) {
+                    html += `<span class="char">${wordChars[j]}</span>`;
+                }
+                slot.innerHTML = html;
+
+                // Position it at next-next location (after current next word) BEFORE advancing
+                // Calculate where next-next should be
+                const currentSlotIndex = carouselOffset;
+                const nextSlotIndex = (carouselOffset + 1) % 4;
+                const carouselWidth = wordSlots[0].parentElement.clientWidth;
+                const currentWidth = wordSlots[currentSlotIndex].offsetWidth;
+                const nextWidth = wordSlots[nextSlotIndex].offsetWidth;
+                const currentX = (carouselWidth / 2) - (currentWidth / 2);
+                const nextX = currentX + currentWidth;
+                const nextNextX = nextX + nextWidth;
+
+                // Position the new slot at next-next location and make it visible
+                slot.classList.remove('pos-prev-prev', 'pos-prev', 'pos-current', 'pos-next');
+                slot.classList.add('pos-next-next');
+                slot.style.transform = `translateX(${nextNextX}px) translateY(-50%)`;
+
+                // Force reflow to apply the next-next position
+                slot.offsetHeight;
+
+                // Re-enable transitions so it can animate when repositioned
+                slot.style.transition = '';
+            } else {
+                // This will be the second-to-last word, so don't load a next-next word
+                console.log('Second-to-last word - leaving next slot empty');
+                words[prevPrevSlot] = '';
+                slot.innerHTML = '';
             }
-            slot.innerHTML = html;
-
-            // Position it at next-next location (after current next word) BEFORE advancing
-            // Calculate where next-next should be
-            const currentSlotIndex = carouselOffset;
-            const nextSlotIndex = (carouselOffset + 1) % 4;
-            const carouselWidth = wordSlots[0].parentElement.clientWidth;
-            const currentWidth = wordSlots[currentSlotIndex].offsetWidth;
-            const nextWidth = wordSlots[nextSlotIndex].offsetWidth;
-            const currentX = (carouselWidth / 2) - (currentWidth / 2);
-            const nextX = currentX + currentWidth;
-            const nextNextX = nextX + nextWidth;
-
-            // Position the new slot at next-next location and make it visible
-            slot.classList.remove('pos-prev-prev', 'pos-prev', 'pos-current', 'pos-next');
-            slot.classList.add('pos-next-next');
-            slot.style.transform = `translateX(${nextNextX}px) translateY(-50%)`;
-
-            // Force reflow to apply the next-next position
-            slot.offsetHeight;
-
-            // Re-enable transitions so it can animate when repositioned
-            slot.style.transition = '';
 
             // NOW advance carousel
             carouselOffset = (carouselOffset + 1) % 4;
@@ -1883,12 +1896,85 @@
                 // Check completion based on mode
                 const completionCount = currentMode === 'learn' ? 10 : 30;
                 if (wordsCompleted === completionCount) {
-                    showCompletionModal();
+                    // Level completed
+                    if (currentMode === 'learn') {
+                        // In learn mode, animate to next level
+                        transitionToNextLevel();
+                    } else {
+                        // In play mode, show completion modal
+                        showCompletionModal();
+                    }
                 } else {
                     // Advance to next word
                     advanceToNextWord();
                 }
             }
+        }
+
+        function transitionToNextLevel() {
+            // Animate carousel sliding left and fading out
+            const carousel = document.querySelector('.word-carousel');
+            carousel.style.transition = 'transform 0.5s ease, opacity 0.5s ease';
+            carousel.style.transform = 'translateX(-100px)';
+            carousel.style.opacity = '0';
+
+            setTimeout(() => {
+                // Save stats for completed level
+                const finalLevelAccuracy = currentLevelLettersTyped === 0 ? 100.0 :
+                    ((currentLevelCorrectLetters / currentLevelLettersTyped) * 100);
+                levelStats.push({
+                    level: parseInt(selectedLevel),
+                    accuracy: finalLevelAccuracy,
+                    lettersTyped: currentLevelLettersTyped,
+                    correctLetters: currentLevelCorrectLetters
+                });
+
+                // Check if there's a next lesson
+                const learnWords = getLearnWords();
+                const nextLessonIndex = parseInt(selectedLevel) + 1;
+
+                if (learnWords && learnWords[nextLessonIndex]) {
+                    // Move to next lesson
+                    selectedLevel = nextLessonIndex.toString();
+
+                    // Reset stats for new level
+                    currentLevelLettersTyped = 0;
+                    currentLevelCorrectLetters = 0;
+                    wordsCompleted = 0;
+                    recentWords = [];
+
+                    // Reset carousel with new words
+                    initializeGame();
+
+                    // Animate carousel sliding in from right
+                    carousel.style.transition = 'none';
+                    carousel.style.transform = 'translateX(100px)';
+                    carousel.style.opacity = '0';
+
+                    // Force reflow
+                    carousel.offsetHeight;
+
+                    // Animate in
+                    carousel.style.transition = 'transform 0.5s ease, opacity 0.5s ease';
+                    carousel.style.transform = 'translateX(0)';
+                    carousel.style.opacity = '1';
+
+                    // Clean up inline styles after animation
+                    setTimeout(() => {
+                        carousel.style.transition = '';
+                        carousel.style.transform = '';
+                        carousel.style.opacity = '';
+                    }, 500);
+
+                    typingInput.focus();
+                } else {
+                    // No more lessons - show completion modal
+                    carousel.style.transition = '';
+                    carousel.style.transform = '';
+                    carousel.style.opacity = '';
+                    showCompletionModal();
+                }
+            }, 500);
         }
 
         function showCompletionModal() {
