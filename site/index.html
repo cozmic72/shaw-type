@@ -1615,13 +1615,9 @@
             const prevPrevSlot = (carouselOffset - 2 + 4) % 4;
             words[prevPrevSlot] = pickRandomWord();
 
-            // Position this slot off-screen right so it can slide in smoothly
+            // Disable transitions for the new slot so it appears instantly
             const slot = wordSlots[prevPrevSlot];
-            slot.classList.remove('pos-prev-prev', 'pos-prev', 'pos-current', 'pos-next', 'pos-next-next');
-            slot.classList.add('pos-next-next');
-
-            // Force reflow to apply position before advancing
-            slot.offsetHeight;
+            slot.style.transition = 'none';
 
             // NOW advance carousel
             carouselOffset = (carouselOffset + 1) % 4;
@@ -1642,6 +1638,12 @@
             previousInput = '';
             hasPendingLigature = false;
             updateWordDisplay();
+
+            // Re-enable transitions after positioning
+            requestAnimationFrame(() => {
+                slot.style.transition = '';
+            });
+
             updateLevel();
         }
 
