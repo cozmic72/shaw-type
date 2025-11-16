@@ -140,31 +140,25 @@
             transition: transform 0.4s ease, opacity 0.4s ease;
         }
 
-        .word-slot.previous {
-            transform: translateX(-100%);
+        /* Position classes for the carousel */
+        .word-slot.pos-prev-prev {
+            transform: translateX(-200%);
             opacity: 0;
         }
 
-        .word-slot.current {
+        .word-slot.pos-prev {
+            transform: translateX(-100%);
+            opacity: 0.2;
+        }
+
+        .word-slot.pos-current {
             transform: translateX(0);
             opacity: 1;
         }
 
-        .word-slot.next {
+        .word-slot.pos-next {
             transform: translateX(100%);
             opacity: 0.3;
-        }
-
-        .word-slot.animating-out {
-            transform: translateX(-100%) !important;
-            opacity: 0 !important;
-            transition: transform 0.3s ease, opacity 0.3s ease !important;
-        }
-
-        .word-slot.animating-in {
-            transform: translateX(0) !important;
-            opacity: 1 !important;
-            transition: transform 0.3s ease, opacity 0.3s ease !important;
         }
 
         .word-display .word {
@@ -633,9 +627,10 @@
 
         <div class="word-display">
             <div class="word-carousel">
-                <div class="word-slot previous" id="previousWord"></div>
-                <div class="word-slot current" id="currentWord"></div>
-                <div class="word-slot next" id="nextWord"></div>
+                <div class="word-slot slot-0" id="wordSlot0"></div>
+                <div class="word-slot slot-1" id="wordSlot1"></div>
+                <div class="word-slot slot-2" id="wordSlot2"></div>
+                <div class="word-slot slot-3" id="wordSlot3"></div>
             </div>
         </div>
 
@@ -841,9 +836,10 @@
         let learnWordsJaflNoLig = {};
         let wordsLoaded = false;
 
-        let previousWord = '';
-        let currentWord = '';
-        let nextWord = '';
+        // Carousel: 4 slots, we track which slot index maps to which position
+        let carouselOffset = 0; // Current slot index for "current" word
+        let words = ['', '', '', '']; // Words in slots [0, 1, 2, 3]
+        let currentWord = ''; // The actual current word being typed
         let wordsCompleted = 0;
         let currentLevel = 1;
         let totalLettersTyped = 0;
@@ -1152,9 +1148,12 @@
             }
         };
 
-        const previousWordSlot = document.getElementById('previousWord');
-        const currentWordSlot = document.getElementById('currentWord');
-        const nextWordSlot = document.getElementById('nextWord');
+        const wordSlots = [
+            document.getElementById('wordSlot0'),
+            document.getElementById('wordSlot1'),
+            document.getElementById('wordSlot2'),
+            document.getElementById('wordSlot3')
+        ];
         const typingInput = document.getElementById('typingInput');
         const wordCountEl = document.getElementById('wordCount');
         const accuracyEl = document.getElementById('accuracy');
@@ -1609,10 +1608,24 @@
         }
 
         function loadNewWord() {
-            // Shift words: current → previous, next → current, pick new next
-            previousWord = currentWord || '';
-            currentWord = nextWord ? nextWord : pickRandomWord();
-            nextWord = pickRandomWord();
+            // Initialize carousel on first load
+            if (!words[0] && !words[1] && !words[2] && !words[3]) {
+                words[0] = '';  // prev-prev (empty)
+                words[1] = '';  // prev (empty)
+                words[2] = pickRandomWord();  // current
+                words[3] = pickRandomWord();  // next
+                carouselOffset = 2; // current word is in slot 2
+            } else {
+                // Rotate carousel: advance offset
+                carouselOffset = (carouselOffset + 1) % 4;
+
+                // Pick new word for the "next" position (offset + 1)
+                const nextSlot = (carouselOffset + 1) % 4;
+                words[nextSlot] = pickRandomWord();
+            }
+
+            // Get current word from carousel
+            currentWord = words[carouselOffset];
 
             // Check if this is the last word
             const completionCount = currentMode === 'learn' ? 10 : 30;
@@ -1631,16 +1644,8 @@
         }
 
         function advanceToNextWord() {
-            // Animate current word out and next word in
-            currentWordSlot.classList.add('animating-out');
-            nextWordSlot.classList.add('animating-in');
-
-            // Wait for animation, then update
-            setTimeout(() => {
-                currentWordSlot.classList.remove('animating-out');
-                nextWordSlot.classList.remove('animating-in');
-                loadNewWord();
-            }, 300); // Match CSS transition duration
+            // Just call loadNewWord - carousel positions will update via CSS transitions
+            loadNewWord();
         }
 
         function updateLevel() {
@@ -1678,76 +1683,87 @@
 
         function updateWordDisplay() {
             const userInput = typingInput.value;
-            let html = '';
 
-            // Convert to arrays of actual Unicode characters (not code units)
-            const wordChars = Array.from(currentWord);
-            const inputChars = Array.from(userInput);
+            // Update each carousel slot
+            for (let i = 0; i < 4; i++) {
+                const slot = wordSlots[i];
+                const word = words[i];
 
-            // Expand both to component characters for comparison
-            const wordExpanded = expandLigatures(currentWord);
-            const inputExpanded = expandLigatures(userInput);
+                // Calculate position relative to current
+                const posOffset = (i - carouselOffset + 4) % 4;
 
-            // Track position in expanded form
-            let expandedPos = 0;
+                // Remove old position classes
+                slot.className = 'word-slot slot-' + i;
 
-            for (let i = 0; i < wordChars.length; i++) {
-                const char = wordChars[i];
-                let className = '';
+                // Add appropriate position class
+                if (posOffset === 0) {
+                    // Current word
+                    slot.classList.add('pos-current');
 
-                // Determine how many expanded characters this display character represents
-                const isLigature = LIGATURES[char];
-                const expandedLen = isLigature ? 2 : 1;
+                    // Build HTML with coloring for current word
+                    let html = '';
+                    const wordChars = Array.from(currentWord);
+                    const wordExpanded = expandLigatures(currentWord);
+                    const inputExpanded = expandLigatures(userInput);
+                    let expandedPos = 0;
 
-                // Check if all the expanded characters for this display char have been typed correctly
-                let allCorrect = true;
-                let anyTyped = false;
-                let anyIncorrect = false;
+                    for (let j = 0; j < wordChars.length; j++) {
+                        const char = wordChars[j];
+                        let className = '';
+                        const isLigature = LIGATURES[char];
+                        const expandedLen = isLigature ? 2 : 1;
 
-                for (let j = 0; j < expandedLen; j++) {
-                    const expIdx = expandedPos + j;
-                    if (expIdx < inputExpanded.length) {
-                        anyTyped = true;
-                        if (inputExpanded[expIdx] !== wordExpanded[expIdx]) {
-                            anyIncorrect = true;
-                            allCorrect = false;
+                        let allCorrect = true;
+                        let anyTyped = false;
+                        let anyIncorrect = false;
+
+                        for (let k = 0; k < expandedLen; k++) {
+                            const expIdx = expandedPos + k;
+                            if (expIdx < inputExpanded.length) {
+                                anyTyped = true;
+                                if (inputExpanded[expIdx] !== wordExpanded[expIdx]) {
+                                    anyIncorrect = true;
+                                    allCorrect = false;
+                                }
+                            } else {
+                                allCorrect = false;
+                            }
                         }
-                    } else {
-                        allCorrect = false;
+
+                        if (anyIncorrect) {
+                            className = 'incorrect';
+                        } else if (anyTyped && allCorrect) {
+                            className = 'correct';
+                        }
+
+                        html += `<span class="char ${className}">${char}</span>`;
+                        expandedPos += expandedLen;
                     }
+                    slot.innerHTML = html;
+                } else if (posOffset === 1) {
+                    // Next word
+                    slot.classList.add('pos-next');
+                    let html = '';
+                    const wordChars = Array.from(word || '');
+                    for (let j = 0; j < wordChars.length; j++) {
+                        html += `<span class="char">${wordChars[j]}</span>`;
+                    }
+                    slot.innerHTML = html;
+                } else if (posOffset === 3) {
+                    // Previous word
+                    slot.classList.add('pos-prev');
+                    let html = '';
+                    const wordChars = Array.from(word || '');
+                    for (let j = 0; j < wordChars.length; j++) {
+                        html += `<span class="char">${wordChars[j]}</span>`;
+                    }
+                    slot.innerHTML = html;
+                } else {
+                    // Previous-previous word (off screen)
+                    slot.classList.add('pos-prev-prev');
+                    slot.innerHTML = '';
                 }
-
-                // Set class based on match status
-                if (anyIncorrect) {
-                    className = 'incorrect';
-                } else if (anyTyped && allCorrect) {
-                    className = 'correct';
-                }
-                // If partially typed but not incorrect, show no class (pending)
-
-                html += `<span class="char ${className}">${char}</span>`;
-                expandedPos += expandedLen;
             }
-
-            currentWordSlot.innerHTML = html;
-
-            // Display previous word in separate slot (faded)
-            let prevHtml = '';
-            if (previousWord) {
-                const prevWordChars = Array.from(previousWord);
-                for (let i = 0; i < prevWordChars.length; i++) {
-                    prevHtml += `<span class="char">${prevWordChars[i]}</span>`;
-                }
-            }
-            previousWordSlot.innerHTML = prevHtml;
-
-            // Display next word in separate slot (faded)
-            let nextHtml = '';
-            const nextWordChars = Array.from(nextWord);
-            for (let i = 0; i < nextWordChars.length; i++) {
-                nextHtml += `<span class="char">${nextWordChars[i]}</span>`;
-            }
-            nextWordSlot.innerHTML = nextHtml;
         }
 
         function updateStats() {
