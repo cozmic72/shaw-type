@@ -121,9 +121,48 @@
             padding: 30px;
             margin-bottom: 30px;
             min-height: 100px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .word-carousel {
             display: flex;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
+            position: relative;
+            height: 60px;
+        }
+
+        .word-slot {
+            position: absolute;
+            font-size: 48px;
+            letter-spacing: 4px;
+            transition: transform 0.4s ease, opacity 0.4s ease;
+        }
+
+        .word-slot.previous {
+            transform: translateX(-100%);
+            opacity: 0;
+        }
+
+        .word-slot.current {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .word-slot.next {
+            transform: translateX(100%);
+            opacity: 0.3;
+        }
+
+        .word-slot.animating-out {
+            transform: translateX(-150%) !important;
+            opacity: 0 !important;
+        }
+
+        .word-slot.animating-in {
+            transform: translateX(0) !important;
+            opacity: 1 !important;
         }
 
         .word-display .word {
@@ -590,7 +629,11 @@
         <div class="game-content hidden" id="gameContent">
 
         <div class="word-display">
-            <div class="word" id="wordDisplay"></div>
+            <div class="word-carousel">
+                <div class="word-slot previous" id="previousWord"></div>
+                <div class="word-slot current" id="currentWord"></div>
+                <div class="word-slot next" id="nextWord"></div>
+            </div>
         </div>
 
         <div class="input-container">
@@ -796,6 +839,7 @@
         let wordsLoaded = false;
 
         let currentWord = '';
+        let nextWord = '';
         let wordsCompleted = 0;
         let currentLevel = 1;
         let totalLettersTyped = 0;
@@ -1104,7 +1148,8 @@
             }
         };
 
-        const wordDisplay = document.getElementById('wordDisplay');
+        const currentWordSlot = document.getElementById('currentWord');
+        const nextWordSlot = document.getElementById('nextWord');
         const typingInput = document.getElementById('typingInput');
         const wordCountEl = document.getElementById('wordCount');
         const accuracyEl = document.getElementById('accuracy');
@@ -1537,10 +1582,8 @@
             }
         }
 
-        function loadNewWord() {
+        function pickRandomWord() {
             const pool = getWordPool();
-
-            // Avoid recently used words (keep history of last 10 words)
             const historySize = Math.min(10, Math.floor(pool.length / 2));
             let newWord;
             let attempts = 0;
@@ -1551,19 +1594,48 @@
                 attempts++;
             } while (recentWords.includes(newWord) && attempts < maxAttempts);
 
-            currentWord = newWord;
-
             // Update recent words history
-            recentWords.push(currentWord);
+            recentWords.push(newWord);
             if (recentWords.length > historySize) {
-                recentWords.shift(); // Remove oldest word
+                recentWords.shift();
             }
 
+            return newWord;
+        }
+
+        function loadNewWord() {
+            currentWord = pickRandomWord();
+            nextWord = pickRandomWord();
+
             typingInput.value = '';
-            previousInput = ''; // Reset previous input for new word
-            hasPendingLigature = false; // Reset pending ligature for new word
+            previousInput = '';
+            hasPendingLigature = false;
             updateWordDisplay();
             updateLevel();
+        }
+
+        function advanceToNextWord() {
+            // Trigger animation
+            const currentSlot = document.getElementById('currentWord');
+            const nextSlot = document.getElementById('nextWord');
+
+            // Animate current word out
+            currentSlot.classList.add('animating-out');
+
+            // Wait for animation, then update
+            setTimeout(() => {
+                currentWord = nextWord;
+                nextWord = pickRandomWord();
+
+                typingInput.value = '';
+                previousInput = '';
+                hasPendingLigature = false;
+
+                // Remove animation class and update display
+                currentSlot.classList.remove('animating-out');
+                updateWordDisplay();
+                updateLevel();
+            }, 400); // Match CSS transition duration
         }
 
         function updateLevel() {
@@ -1652,7 +1724,10 @@
                 expandedPos += expandedLen;
             }
 
-            wordDisplay.innerHTML = html;
+            currentWordSlot.innerHTML = html;
+
+            // Update next word slot (no coloring, just plain text)
+            nextWordSlot.textContent = nextWord;
         }
 
         function updateStats() {
@@ -1959,7 +2034,7 @@
 
                         wordsCompleted++;
                         updateStats();
-                        loadNewWord();
+                        advanceToNextWord();
                     }
                     // If word doesn't match, do nothing - user must keep typing or fix it
                 }
