@@ -22,6 +22,10 @@
             padding: 20px;
         }
 
+        p {
+            margin-bottom: 1em;
+        }
+
         .container {
             background: white;
             border-radius: 20px;
@@ -1677,8 +1681,9 @@
 
                 // Check if we're resolving a pending ligature
                 if (hasPendingLigature) {
-                    totalLettersTyped++;
-                    currentLevelLettersTyped++;
+                    // A ligature represents 2 characters being typed
+                    totalLettersTyped += 2;
+                    currentLevelLettersTyped += 2;
 
                     // Check if this completes the ligature correctly
                     if (expandedIndex < wordExpanded.length &&
@@ -1688,8 +1693,7 @@
                         currentLevelCorrectLetters += 2;
                     } else {
                         // Wrong continuation - the pending character was wrong
-                        totalLettersTyped++;
-                        currentLevelLettersTyped++;
+                        // Already counted 2 letters above, no additional increment needed
                     }
                     hasPendingLigature = false;
                 } else {
