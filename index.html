@@ -1239,10 +1239,13 @@
                     pool = levelData.words;
                     // Update lesson info display
                     const translatedName = translateLessonName(levelData.name);
+                    const lang = useShavianUI ? 'shavian' : 'latin';
+                    const t = translations[lang];
                     document.getElementById('currentLessonName').textContent =
-                        `Lesson ${currentLvl}: ${translatedName}`;
-                    // Update subtitle with lesson description
-                    document.querySelector('.subtitle').textContent = levelData.description;
+                        `${t.lessonPrefix} ${currentLvl}: ${translatedName}`;
+                    // Update subtitle with lesson name
+                    document.querySelector('.subtitle').textContent =
+                        `${t.lessonPrefix} ${currentLvl}: ${translatedName}`;
                 }
             } else {
                 // Play mode: use level-based selection
