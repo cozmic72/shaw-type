@@ -1623,6 +1623,33 @@
             const slot = wordSlots[prevPrevSlot];
             slot.style.transition = 'none';
 
+            // Update the slot's HTML content so offsetWidth is accurate
+            let html = '';
+            const wordChars = Array.from(newWord);
+            for (let j = 0; j < wordChars.length; j++) {
+                html += `<span class="char">${wordChars[j]}</span>`;
+            }
+            slot.innerHTML = html;
+
+            // Position it at next-next location (after current next word) BEFORE advancing
+            // Calculate where next-next should be
+            const currentSlotIndex = carouselOffset;
+            const nextSlotIndex = (carouselOffset + 1) % 4;
+            const carouselWidth = wordSlots[0].parentElement.clientWidth;
+            const currentWidth = wordSlots[currentSlotIndex].offsetWidth;
+            const nextWidth = wordSlots[nextSlotIndex].offsetWidth;
+            const currentX = (carouselWidth / 2) - (currentWidth / 2);
+            const nextX = currentX + currentWidth;
+            const nextNextX = nextX + nextWidth;
+
+            // Position the new slot at next-next location and make it visible
+            slot.classList.remove('pos-prev-prev', 'pos-prev', 'pos-current', 'pos-next');
+            slot.classList.add('pos-next-next');
+            slot.style.transform = `translateX(${nextNextX}px) translateY(-50%)`;
+
+            // Force reflow
+            slot.offsetHeight;
+
             // NOW advance carousel
             carouselOffset = (carouselOffset + 1) % 4;
             console.log('New carouselOffset:', carouselOffset);
@@ -1637,6 +1664,8 @@
             // Append space to currentWord if it's not the last one
             if (!isLastWord) {
                 currentWord = currentWord + ' ';
+                // Store it back in the array so prev word will have the space
+                words[carouselOffset] = currentWord;
             }
 
             typingInput.value = '';
