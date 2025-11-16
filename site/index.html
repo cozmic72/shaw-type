@@ -1985,13 +1985,16 @@
             document.getElementById('completionMessage').textContent = `You completed ${wordsCompleted} words!`;
 
             // Hide game-specific stats
-            document.getElementById('highScoreRow').style.display = 'none';
+            document.getElementById('finalScore').style.display = 'none';
+            document.getElementById('finalWPM').parentElement.style.display = 'none';
+            document.getElementById('finalLPM').parentElement.style.display = 'none';
+            document.getElementById('bestTimeRow').style.display = 'none';
             document.getElementById('levelReachedRow').style.display = 'none';
             document.getElementById('levelStatsContainer').style.display = 'none';
 
             // Show accuracy
-            document.getElementById('accuracyRow').innerHTML = `Accuracy: ${accuracyFormatted}`;
-            document.getElementById('accuracyRow').style.display = 'block';
+            document.getElementById('finalAccuracy').textContent = accuracyFormatted;
+            document.getElementById('finalAccuracy').parentElement.style.display = 'block';
 
             // Show "Continue" and "Choose Different Lesson" buttons
             document.getElementById('completionButtons').innerHTML = `
