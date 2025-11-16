@@ -841,6 +841,7 @@
         let learnWordsJaflNoLig = {};
         let wordsLoaded = false;
 
+        let previousWord = '';
         let currentWord = '';
         let nextWord = '';
         let wordsCompleted = 0;
@@ -1151,6 +1152,7 @@
             }
         };
 
+        const previousWordSlot = document.getElementById('previousWord');
         const currentWordSlot = document.getElementById('currentWord');
         const nextWordSlot = document.getElementById('nextWord');
         const typingInput = document.getElementById('typingInput');
@@ -1607,10 +1609,9 @@
         }
 
         function loadNewWord() {
-            // On first load, pick current word; otherwise use the preview
+            // Shift words: current → previous, next → current, pick new next
+            previousWord = currentWord || '';
             currentWord = nextWord ? nextWord : pickRandomWord();
-
-            // Always pick a new next word
             nextWord = pickRandomWord();
 
             // Check if this is the last word
@@ -1729,6 +1730,16 @@
             }
 
             currentWordSlot.innerHTML = html;
+
+            // Display previous word in separate slot (faded)
+            let prevHtml = '';
+            if (previousWord) {
+                const prevWordChars = Array.from(previousWord);
+                for (let i = 0; i < prevWordChars.length; i++) {
+                    prevHtml += `<span class="char">${prevWordChars[i]}</span>`;
+                }
+            }
+            previousWordSlot.innerHTML = prevHtml;
 
             // Display next word in separate slot (faded)
             let nextHtml = '';
