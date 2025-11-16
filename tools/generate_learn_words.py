@@ -14,6 +14,14 @@ LAYOUT_IMPERIAL = {
     'bottom': '𐑾𐑲𐑴𐑰𐑚𐑝𐑟'  # z to / keys
 }
 
+# New Shaw Imperial keyboard layout (ANSI US) - includes compound chars in number row
+LAYOUT_NEW_IMPERIAL = {
+    'number': '𐑶𐑬𐑻𐑫𐑺𐑜𐑖𐑗𐑙𐑘𐑡𐑔',  # 1-0 plus - = keys (includes 𐑻 𐑺 compounds)
+    'qwerty': '𐑭𐑷𐑵𐑱𐑳𐑓𐑞𐑤𐑥𐑒𐑢𐑣𐑠',  # q to \ keys
+    'home': '𐑪𐑨𐑦𐑩𐑧𐑐𐑯𐑑𐑮𐑕𐑛',  # a to ; keys (home row)
+    'bottom': '𐑾𐑲𐑴𐑰𐑚𐑝𐑟'  # z to / keys
+}
+
 # Shaw QWERTY keyboard layout (no number row)
 # Base layer (unshifted)
 LAYOUT_QWERTY_BASE = {
@@ -123,15 +131,61 @@ LEARN_LEVELS_IMPERIAL = {
         'description': 'Master the number row characters'
     },
     6: {
-        'name': 'Almost Complete',
-        'chars': '𐑪𐑨𐑦𐑩𐑧𐑐𐑯𐑑𐑮𐑕𐑛𐑓𐑒𐑝𐑚𐑱𐑳𐑞𐑤𐑥𐑾𐑲𐑴𐑰𐑶𐑬𐑫𐑜𐑖𐑗𐑙𐑘𐑡𐑔𐑭𐑷𐑵𐑢𐑣𐑟',  # Level 5 + outer columns
-        'focus': '𐑭𐑷𐑵𐑢𐑣𐑟',  # New chars: outer column keys
-        'description': 'Add outer columns'
+        'name': 'Hard to Reach',
+        'chars': '𐑪𐑨𐑦𐑩𐑧𐑐𐑯𐑑𐑮𐑕𐑛𐑓𐑒𐑝𐑚𐑱𐑳𐑞𐑤𐑥𐑾𐑲𐑴𐑰𐑶𐑬𐑫𐑜𐑖𐑗𐑙𐑘𐑡𐑔𐑢𐑣𐑠',  # Level 5 + hard to reach chars
+        'focus': '𐑢𐑣𐑠',  # New chars: hard to reach right side keys
+        'description': 'Master the hard to reach characters'
     },
     7: {
         'name': 'All Keys',
         'chars': '𐑪𐑨𐑦𐑩𐑧𐑐𐑯𐑑𐑮𐑕𐑛𐑓𐑒𐑝𐑚𐑱𐑳𐑞𐑤𐑥𐑾𐑲𐑴𐑰𐑶𐑬𐑫𐑜𐑖𐑗𐑙𐑘𐑡𐑔𐑭𐑷𐑵𐑢𐑣𐑟𐑠',  # All
-        'focus': '𐑠',  # New char: final key
+        'focus': '𐑪𐑨𐑦𐑩𐑧𐑐𐑯𐑑𐑮𐑕𐑛𐑓𐑒𐑝𐑚𐑱𐑳𐑞𐑤𐑥𐑾𐑲𐑴𐑰𐑶𐑬𐑫𐑜𐑖𐑗𐑙𐑘𐑡𐑔𐑭𐑷𐑵𐑢𐑣𐑟𐑠',  # Practice all keys
+        'description': 'Complete keyboard'
+    }
+}
+
+# Define progressive levels for New Shaw Imperial (with compounds in number row)
+LEARN_LEVELS_NEW_IMPERIAL = {
+    1: {
+        'name': 'Home Row Center',
+        'chars': '𐑦𐑩𐑧𐑐𐑯𐑑',  # Middle 6 keys of home row
+        'focus': '𐑦𐑩𐑧𐑐𐑯𐑑',  # All chars are new
+        'description': 'Middle fingers only, home row'
+    },
+    2: {
+        'name': 'Full Home Row',
+        'chars': '𐑪𐑨𐑦𐑩𐑧𐑐𐑯𐑑𐑮𐑕𐑛',  # All home row
+        'focus': '𐑪𐑨𐑮𐑕𐑛',  # New chars: outer home row keys
+        'description': 'All fingers, home row'
+    },
+    3: {
+        'name': 'Index Finger Reach',
+        'chars': '𐑪𐑨𐑦𐑩𐑧𐑐𐑯𐑑𐑮𐑕𐑛𐑓𐑒𐑝𐑚',  # Home + index reaches
+        'focus': '𐑓𐑒𐑝𐑚',  # New chars: index finger upper/lower
+        'description': 'Add index finger upper/lower reaches'
+    },
+    4: {
+        'name': 'Upper & Lower Rows',
+        'chars': '𐑪𐑨𐑦𐑩𐑧𐑐𐑯𐑑𐑮𐑕𐑛𐑓𐑒𐑝𐑚𐑱𐑳𐑞𐑤𐑥𐑾𐑲𐑴𐑰',  # Add more upper/lower
+        'focus': '𐑱𐑳𐑞𐑤𐑥𐑾𐑲𐑴𐑰',  # New chars: more upper/lower row keys
+        'description': 'Extend to more keys above and below'
+    },
+    5: {
+        'name': 'Number Row Focus',
+        'chars': '𐑪𐑨𐑦𐑩𐑧𐑐𐑯𐑑𐑮𐑕𐑛𐑓𐑒𐑝𐑚𐑱𐑳𐑞𐑤𐑥𐑾𐑲𐑴𐑰𐑶𐑬𐑻𐑫𐑺𐑜𐑖𐑗𐑙𐑘𐑡𐑔',  # Level 4 + number row (including compounds)
+        'focus': '𐑶𐑬𐑻𐑫𐑺𐑜𐑖𐑗𐑙𐑘𐑡𐑔',  # New chars: number row with compounds
+        'description': 'Master the number row characters'
+    },
+    6: {
+        'name': 'Hard to Reach',
+        'chars': '𐑪𐑨𐑦𐑩𐑧𐑐𐑯𐑑𐑮𐑕𐑛𐑓𐑒𐑝𐑚𐑱𐑳𐑞𐑤𐑥𐑾𐑲𐑴𐑰𐑶𐑬𐑻𐑫𐑺𐑜𐑖𐑗𐑙𐑘𐑡𐑔𐑢𐑣𐑠',  # Level 5 + hard to reach chars
+        'focus': '𐑢𐑣𐑠',  # New chars: hard to reach right side keys
+        'description': 'Master the hard to reach characters'
+    },
+    7: {
+        'name': 'All Keys',
+        'chars': '𐑪𐑨𐑦𐑩𐑧𐑐𐑯𐑑𐑮𐑕𐑛𐑓𐑒𐑝𐑚𐑱𐑳𐑞𐑤𐑥𐑾𐑲𐑴𐑰𐑶𐑬𐑻𐑫𐑺𐑜𐑖𐑗𐑙𐑘𐑡𐑔𐑭𐑷𐑵𐑢𐑣𐑟𐑠',  # All
+        'focus': '𐑪𐑨𐑦𐑩𐑧𐑐𐑯𐑑𐑮𐑕𐑛𐑓𐑒𐑝𐑚𐑱𐑳𐑞𐑤𐑥𐑾𐑲𐑴𐑰𐑶𐑬𐑻𐑫𐑺𐑜𐑖𐑗𐑙𐑘𐑡𐑔𐑭𐑷𐑵𐑢𐑣𐑟𐑠',  # Practice all keys
         'description': 'Complete keyboard'
     }
 }
@@ -440,6 +494,13 @@ if __name__ == '__main__':
         LAYOUT_IMPERIAL['bottom']
     ])
 
+    all_new_imperial_chars = ''.join([
+        LAYOUT_NEW_IMPERIAL['number'],
+        LAYOUT_NEW_IMPERIAL['qwerty'],
+        LAYOUT_NEW_IMPERIAL['home'],
+        LAYOUT_NEW_IMPERIAL['bottom']
+    ])
+
     all_qwerty_chars = ''.join([
         LAYOUT_QWERTY['qwerty'],
         LAYOUT_QWERTY['home'],
@@ -486,6 +547,28 @@ if __name__ == '__main__':
             use_ligatures=False,
             dialect=dialect,
             all_chars=all_imperial_chars
+        )
+
+        # Generate for New Shaw Imperial (with ligatures)
+        generate_learn_word_lists(
+            word_freq_file,
+            LEARN_LEVELS_NEW_IMPERIAL,
+            f'../site/learn_words_new-imperial_{dialect}.json',
+            'New Shaw Imperial',
+            use_ligatures=True,
+            dialect=dialect,
+            all_chars=all_new_imperial_chars
+        )
+
+        # Generate for New Shaw Imperial (without ligatures)
+        generate_learn_word_lists(
+            word_freq_file,
+            LEARN_LEVELS_NEW_IMPERIAL,
+            f'../site/learn_words_new-imperial_{dialect}_no_lig.json',
+            'New Shaw Imperial (No Ligatures)',
+            use_ligatures=False,
+            dialect=dialect,
+            all_chars=all_new_imperial_chars
         )
 
         # Generate for Shaw QWERTY (no ligatures)
