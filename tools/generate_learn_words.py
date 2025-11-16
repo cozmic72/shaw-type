@@ -434,7 +434,7 @@ if __name__ == '__main__':
         generate_learn_word_lists(
             word_freq_file,
             LEARN_LEVELS_IMPERIAL,
-            f'learn_words_imperial_{dialect}.json',
+            f'../site/learn_words_imperial_{dialect}.json',
             'Shaw Imperial',
             use_ligatures=True,
             dialect=dialect,
@@ -445,7 +445,7 @@ if __name__ == '__main__':
         generate_learn_word_lists(
             word_freq_file,
             LEARN_LEVELS_IMPERIAL,
-            f'learn_words_imperial_{dialect}_no_lig.json',
+            f'../site/learn_words_imperial_{dialect}_no_lig.json',
             'Shaw Imperial (No Ligatures)',
             use_ligatures=False,
             dialect=dialect,
@@ -456,7 +456,7 @@ if __name__ == '__main__':
         generate_learn_word_lists(
             word_freq_file,
             LEARN_LEVELS_QWERTY,
-            f'learn_words_qwerty_{dialect}.json',
+            f'../site/learn_words_qwerty_{dialect}.json',
             'Shaw QWERTY',
             use_ligatures=False,
             dialect=dialect,
@@ -467,7 +467,7 @@ if __name__ == '__main__':
         generate_learn_word_lists(
             word_freq_file,
             LEARN_LEVELS_2LAYER,
-            f'learn_words_2layer_{dialect}.json',
+            f'../site/learn_words_2layer_{dialect}.json',
             'Shaw 2-layer (shift)',
             use_ligatures=False,
             dialect=dialect,
@@ -478,7 +478,7 @@ if __name__ == '__main__':
         generate_learn_word_lists(
             word_freq_file,
             LEARN_LEVELS_JAFL,
-            f'learn_words_jafl_{dialect}.json',
+            f'../site/learn_words_jafl_{dialect}.json',
             'Shaw-JAFL',
             use_ligatures=True,
             dialect=dialect,
@@ -489,7 +489,7 @@ if __name__ == '__main__':
         generate_learn_word_lists(
             word_freq_file,
             LEARN_LEVELS_JAFL,
-            f'learn_words_jafl_{dialect}_no_lig.json',
+            f'../site/learn_words_jafl_{dialect}_no_lig.json',
             'Shaw-JAFL (No Ligatures)',
             use_ligatures=False,
             dialect=dialect,

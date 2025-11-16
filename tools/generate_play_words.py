@@ -52,7 +52,7 @@ if __name__ == '__main__':
     # Generate for both GB and US dialects
     for dialect in ['gb', 'us']:
         word_freq_file = f'shavian-{dialect}-word-frequencies.txt'
-        output_file = f'words_{dialect}.json'
+        output_file = f'../site/words_{dialect}.json'
 
         print(f"\n{'='*60}")
         print(f"Generating play mode words for {dialect.upper()} English")
