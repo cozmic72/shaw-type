@@ -1774,13 +1774,6 @@
         // Content modal functions
         async function openContentModal(page) {
             closeBurgerMenu();
-            // Dismiss mobile keyboard - set readonly first, then blur
-            typingInput.setAttribute('readonly', 'readonly');
-            typingInput.blur();
-            // Force blur of any focused element
-            if (document.activeElement) {
-                document.activeElement.blur();
-            }
 
             const modal = document.getElementById('contentModal');
             const titleEl = document.getElementById('contentModalTitle');
@@ -1815,8 +1808,6 @@
 
         function closeContentModal() {
             document.getElementById('contentModal').classList.remove('show');
-            // Re-enable input
-            typingInput.removeAttribute('readonly');
         }
 
         // Welcome modal functions
@@ -1916,14 +1907,6 @@
 
         // Settings functions
         function openSettings() {
-            // Dismiss mobile keyboard - set readonly first, then blur
-            typingInput.setAttribute('readonly', 'readonly');
-            typingInput.blur();
-            // Force blur of any focused element
-            if (document.activeElement) {
-                document.activeElement.blur();
-            }
-
             // Sync settings with current state
             const dialectRadio = document.querySelector(`input[name="dialectSettings"][value="${currentDialect}"]`);
             if (dialectRadio) dialectRadio.checked = true;
@@ -1947,20 +1930,10 @@
 
         function closeSettings() {
             document.getElementById('settingsModal').classList.remove('show');
-            // Re-enable input
-            typingInput.removeAttribute('readonly');
         }
 
         // Lesson selector functions
         function openLessonSelector() {
-            // Dismiss mobile keyboard - set readonly first, then blur
-            typingInput.setAttribute('readonly', 'readonly');
-            typingInput.blur();
-            // Force blur of any focused element
-            if (document.activeElement) {
-                document.activeElement.blur();
-            }
-
             // Get current translations
             const lang = useShavianUI ? 'shavian' : 'latin';
             const t = translations[lang];
@@ -2030,8 +2003,6 @@
 
         function closeLessonModal() {
             document.getElementById('lessonModal').classList.remove('show');
-            // Re-enable input
-            typingInput.removeAttribute('readonly');
         }
 
         function toggleShavianUI() {
