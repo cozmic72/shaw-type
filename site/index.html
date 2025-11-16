@@ -607,8 +607,10 @@
             <h2 id="completionTitle">Congratulations!</h2>
             <p id="completionMessage">You completed 30 words!</p>
             <div class="final-score" id="finalScore">--</div>
+            <div class="stat-row">WPM: <span id="finalWPM">--</span></div>
+            <div class="stat-row">Letters/min: <span id="finalLPM">--</span></div>
             <div class="stat-row">Accuracy: <span id="finalAccuracy">--</span></div>
-            <div class="stat-row" id="highScoreRow">High Score: <span id="finalHighScore">--</span></div>
+            <div class="stat-row" id="bestTimeRow"></div>
             <div class="stat-row" id="levelReachedRow">Level Reached: <span id="finalLevel">--</span></div>
             <div id="levelStatsContainer" class="level-stats-container"></div>
             <div id="completionButtons">
@@ -770,7 +772,8 @@
         let totalLettersTyped = 0;
         let correctLetters = 0;
         let recentWords = []; // Track recent words to avoid repeats
-        let highScore = 0; // High score from localStorage
+        let startTime = null; // Session start time
+        let bestTime = null; // Best completion time from localStorage (in seconds)
         let levelStats = []; // Per-level statistics
         let currentLevelLettersTyped = 0; // Letters typed in current level
         let currentLevelCorrectLetters = 0; // Correct letters in current level
@@ -896,8 +899,9 @@
                 instructions: 'Type the word shown above. Press Enter or Space to move to the next word.',
                 congratulations: 'Congratulations!',
                 completed30: 'You completed 30 words!',
+                wpm: 'WPM:',
+                lettersPerMin: 'Letters/min:',
                 accuracy_final: 'Accuracy:',
-                highScore: 'High Score:',
                 levelReached: 'Level Reached:',
                 practiceAgain: 'Practice Again',
                 settingsTitle: 'Settings',
@@ -1002,8 +1006,9 @@
                 instructions: '𐑑𐑲𐑐 𐑞 𐑢𐑻𐑛 𐑖𐑴𐑯 𐑩𐑚𐑳𐑝. 𐑐𐑮𐑧𐑕 𐑧𐑯𐑑𐑼 𐑹 𐑕𐑐𐑱𐑕 𐑑 𐑥𐑵𐑝 𐑑 𐑞 𐑯𐑧𐑒𐑕𐑑 𐑢𐑻𐑛.',
                 congratulations: '𐑒𐑩𐑙𐑜𐑮𐑨𐑗𐑫𐑤𐑱𐑖𐑩𐑯𐑟!',
                 completed30: '𐑿 𐑒𐑩𐑥𐑐𐑤𐑰𐑑𐑩𐑛 30 𐑢𐑻𐑛𐑟!',
+                wpm: '𐑢𐑻𐑛𐑟 𐑐𐑻 𐑥𐑦𐑯𐑦𐑑:',
+                lettersPerMin: '𐑤𐑧𐑑𐑼𐑟/𐑥𐑦𐑯:',
                 accuracy_final: '𐑨𐑒𐑘𐑫𐑮𐑩𐑕𐑦:',
-                highScore: '𐑣𐑲 𐑕𐑒𐑹:',
                 levelReached: '𐑤𐑧𐑝𐑩𐑤 𐑮𐑰𐑗𐑑:',
                 practiceAgain: '𐑐𐑮𐑨𐑒𐑑𐑦𐑕 𐑩𐑜𐑱𐑯',
                 settingsTitle: '𐑕𐑧𐑑𐑦𐑙𐑟',
@@ -1629,10 +1634,23 @@
             const accuracy = totalLettersTyped === 0 ? 100.0 : ((correctLetters / totalLettersTyped) * 100);
             const accuracyFormatted = accuracy.toFixed(1) + '%';
 
-            // Update high score if current score is better
-            if (accuracy > highScore) {
-                highScore = accuracy;
-                localStorage.setItem('highScore', highScore.toString());
+            // Calculate time-based metrics
+            const endTime = Date.now();
+            const elapsedSeconds = (endTime - startTime) / 1000;
+            const elapsedMinutes = elapsedSeconds / 60;
+            const wpm = wordsCompleted / elapsedMinutes;
+            const lettersPerMinute = totalLettersTyped / elapsedMinutes;
+
+            // Format time as MM:SS
+            const minutes = Math.floor(elapsedSeconds / 60);
+            const seconds = Math.floor(elapsedSeconds % 60);
+            const timeFormatted = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+            // Update best time if current time is better (lower)
+            const isNewBest = bestTime === null || elapsedSeconds < bestTime;
+            if (isNewBest) {
+                bestTime = elapsedSeconds;
+                localStorage.setItem('bestTime', bestTime.toString());
             }
 
             // Customize modal based on mode
@@ -1677,8 +1695,25 @@
                 `;
             }
 
-            document.getElementById('finalScore').textContent = accuracyFormatted;
+            // Update main display (time is the primary score)
+            document.getElementById('finalScore').textContent = timeFormatted;
+
+            // Update all stat rows
             document.getElementById('finalAccuracy').textContent = accuracyFormatted;
+            document.getElementById('finalWPM').textContent = wpm.toFixed(1);
+            document.getElementById('finalLPM').textContent = lettersPerMinute.toFixed(0);
+
+            // Show/hide best time indicator and display best time
+            if (isNewBest && bestTime !== null) {
+                document.getElementById('bestTimeRow').innerHTML = `<span style="color: #28a745; font-weight: bold;">New Personal Best!</span>`;
+            } else if (bestTime !== null) {
+                const bestMinutes = Math.floor(bestTime / 60);
+                const bestSeconds = Math.floor(bestTime % 60);
+                const bestTimeFormatted = `${bestMinutes}:${bestSeconds.toString().padStart(2, '0')}`;
+                document.getElementById('bestTimeRow').innerHTML = `Personal Best: ${bestTimeFormatted}`;
+            } else {
+                document.getElementById('bestTimeRow').innerHTML = '';
+            }
 
             document.getElementById('completionModal').classList.add('show');
         }
@@ -1694,6 +1729,7 @@
             currentLevelLettersTyped = 0;
             currentLevelCorrectLetters = 0;
             hasPendingLigature = false;
+            startTime = Date.now(); // Start the timer
 
             // Hide modal
             document.getElementById('completionModal').classList.remove('show');
@@ -2173,9 +2209,10 @@
             // Update completion modal
             document.querySelector('#completionModal h2').textContent = t.congratulations;
             document.querySelector('#completionModal p').textContent = t.completed30;
-            document.querySelectorAll('.stat-row')[0].childNodes[0].textContent = t.accuracy_final + ' ';
-            document.querySelectorAll('.stat-row')[1].childNodes[0].textContent = t.highScore + ' ';
-            document.querySelectorAll('.stat-row')[2].childNodes[0].textContent = t.levelReached + ' ';
+            document.querySelectorAll('.stat-row')[0].childNodes[0].textContent = t.wpm + ' ';
+            document.querySelectorAll('.stat-row')[1].childNodes[0].textContent = t.lettersPerMin + ' ';
+            document.querySelectorAll('.stat-row')[2].childNodes[0].textContent = t.accuracy_final + ' ';
+            document.querySelectorAll('.stat-row')[4].childNodes[0].textContent = t.levelReached + ' ';
             document.querySelector('#completionModal button').textContent = t.practiceAgain;
 
             // Update settings modal
@@ -2242,10 +2279,10 @@
                 currentMode = savedMode;
             }
 
-            // Load high score
-            const savedHighScore = localStorage.getItem('highScore');
-            if (savedHighScore !== null) {
-                highScore = parseFloat(savedHighScore);
+            // Load best time
+            const savedBestTime = localStorage.getItem('bestTime');
+            if (savedBestTime !== null) {
+                bestTime = parseFloat(savedBestTime);
             }
         }
 
