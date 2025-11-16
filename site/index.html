@@ -1604,15 +1604,11 @@
         }
 
         function loadNewWord() {
-            // On first load, pick both words
-            if (!nextWord) {
-                currentWord = pickRandomWord();
-                nextWord = pickRandomWord();
-            } else {
-                // Move nextWord to currentWord, pick new nextWord
-                currentWord = nextWord;
-                nextWord = pickRandomWord();
-            }
+            // On first load, pick current word; otherwise use the preview
+            currentWord = nextWord ? nextWord : pickRandomWord();
+
+            // Always pick a new next word
+            nextWord = pickRandomWord();
 
             // Check if this is the last word
             const completionCount = currentMode === 'learn' ? 10 : 30;
