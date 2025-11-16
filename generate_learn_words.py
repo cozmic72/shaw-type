@@ -347,8 +347,8 @@ def generate_learn_word_lists(word_freq_file, learn_levels, output_file, layout_
         avg_len = sum(len(w) for w in level_words) / len(level_words) if level_words else 0
         print(f"  Level {level_num} ({level_info['name']}): {len(level_words)} words (avg length: {avg_len:.1f})")
 
-    # Generate compound letter lesson
-    if all_chars:
+    # Generate and insert compound letter lesson before 'Almost Complete' and 'All Keys' lessons
+    if all_chars and len(learn_words) >= 3:
         ligature_candidates = []
         for word, freq in all_words:
             ligature_count = sum(1 for ligature in LIGATURES.keys() if ligature in word)
@@ -366,32 +366,27 @@ def generate_learn_word_lists(word_freq_file, learn_levels, output_file, layout_
                 'chars': all_chars,
                 'words': ligature_words
             }
-            avg_len = sum(len(w) for w in ligature_words) / len(ligature_words) if ligature_words else 0
+            avg_len = sum(len(w) for w in ligature_words) / len(ligature_words)
             print(f"  Compound Letters: {len(ligature_words)} words (avg length: {avg_len:.1f})")
-        else:
-            compound_lesson = None
-            print(f"  Compound Letters: SKIPPED - only {len(ligature_words)} words available")
-    else:
-        compound_lesson = None
 
-    # Insert compound letter lesson at third-from-last position and renumber
-    if compound_lesson:
-        total_levels = len(learn_words)
-        if total_levels >= 2:
-            # Position for third from last
-            insert_pos = total_levels - 1
+            # Insert compound lesson at fourth from last position
+            lesson_nums = sorted([int(k) for k in learn_words.keys()])
+            insert_index = len(lesson_nums) - 3
 
-            # Create new dictionary with renumbered levels
             final_words = {}
-            for i in range(1, total_levels + 1):
-                if i < insert_pos:
-                    final_words[str(i)] = learn_words[str(i)]
-                elif i == insert_pos:
-                    final_words[str(i)] = compound_lesson
-                else:
-                    final_words[str(i + 1)] = learn_words[str(i)]
+            new_num = 1
+
+            for i, lesson_num in enumerate(lesson_nums):
+                if i == insert_index:
+                    final_words[str(new_num)] = compound_lesson
+                    new_num += 1
+
+                final_words[str(new_num)] = learn_words[str(lesson_num)]
+                new_num += 1
 
             learn_words = final_words
+        else:
+            print(f"  Compound Letters: SKIPPED - only {len(ligature_words)} words available")
 
     # Save to JSON
     with open(output_file, 'w', encoding='utf-8') as f:
