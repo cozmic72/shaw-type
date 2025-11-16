@@ -1604,8 +1604,24 @@
         }
 
         function loadNewWord() {
-            currentWord = pickRandomWord();
-            nextWord = pickRandomWord();
+            // On first load, pick both words
+            if (!nextWord) {
+                currentWord = pickRandomWord();
+                nextWord = pickRandomWord();
+            } else {
+                // Move nextWord to currentWord, pick new nextWord
+                currentWord = nextWord;
+                nextWord = pickRandomWord();
+            }
+
+            // Check if this is the last word
+            const completionCount = currentMode === 'learn' ? 10 : 30;
+            const isLastWord = (wordsCompleted === completionCount - 1);
+
+            // Append space to currentWord if it's not the last one
+            if (!isLastWord) {
+                currentWord = currentWord + ' ';
+            }
 
             typingInput.value = '';
             previousInput = '';
@@ -1620,18 +1636,8 @@
 
             // Wait for animation, then update
             setTimeout(() => {
-                // Use the nextWord that was already shown
-                currentWord = nextWord;
-                nextWord = pickRandomWord();
-
-                typingInput.value = '';
-                previousInput = '';
-                hasPendingLigature = false;
-
-                // Remove animation class and update display
                 currentWordSlot.classList.remove('animating-out');
-                updateWordDisplay();
-                updateLevel();
+                loadNewWord();
             }, 400); // Match CSS transition duration
         }
 
@@ -1721,8 +1727,7 @@
                 expandedPos += expandedLen;
             }
 
-            // Append space and next word (faded)
-            html += `<span class="char">&nbsp;</span>`;
+            // Append next word (faded) - no extra space needed as it's in currentWord
             const nextWordChars = Array.from(nextWord);
             for (let i = 0; i < nextWordChars.length; i++) {
                 html += `<span class="char" style="opacity: 0.3">${nextWordChars[i]}</span>`;
@@ -1739,10 +1744,27 @@
         }
 
         function checkCompletion() {
-            // Check if we've completed all words in the session
-            const completionCount = currentMode === 'learn' ? 10 : 30;
-            if (wordsCompleted === completionCount) {
-                showCompletionModal();
+            const userInput = typingInput.value;
+
+            // Compare expanded forms to handle ligature equivalence
+            const inputExpanded = expandLigatures(userInput);
+            const wordExpanded = expandLigatures(currentWord);
+
+            // Check if expanded forms match (word completed including space if present)
+            if (inputExpanded.length === wordExpanded.length &&
+                inputExpanded.every((char, i) => char === wordExpanded[i])) {
+                // Word completed correctly
+                wordsCompleted++;
+                updateStats();
+
+                // Check completion based on mode
+                const completionCount = currentMode === 'learn' ? 10 : 30;
+                if (wordsCompleted === completionCount) {
+                    showCompletionModal();
+                } else {
+                    // Advance to next word
+                    advanceToNextWord();
+                }
             }
         }
 
@@ -1995,32 +2017,8 @@
             checkCompletion();
         });
 
-        typingInput.addEventListener('keydown', (e) => {
-            // Allow Enter or Space to advance - but only if word is correct
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                const userInput = typingInput.value; // Don't trim - we want to check for exact match
-
-                // Check if word is correct using expanded forms
-                const inputExpanded = expandLigatures(userInput);
-                const wordExpanded = expandLigatures(currentWord);
-
-                // Only advance if the word matches exactly
-                if (inputExpanded.length === wordExpanded.length &&
-                    inputExpanded.every((char, i) => char === wordExpanded[i])) {
-                    // Resolve any pending ligature as correct
-                    if (hasPendingLigature) {
-                        // The pending ligature was correct
-                        hasPendingLigature = false;
-                    }
-
-                    wordsCompleted++;
-                    updateStats();
-                    advanceToNextWord();
-                }
-                // If word doesn't match, do nothing - user must keep typing or fix it
-            }
-        });
+        // No need for separate keydown handler - space is part of the word now
+        // Auto-advance happens in checkCompletion when word+space is typed
 
         // Burger menu functions
         function toggleBurgerMenu() {
