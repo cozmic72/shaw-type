@@ -955,7 +955,13 @@
                 dialectLabel: 'Choose spelling',
                 dialectBritish: 'British',
                 dialectAmerican: 'American',
-                hideWelcome: 'Hide welcome screen when page opens'
+                hideWelcome: 'Hide welcome screen when page opens',
+                // Layout names
+                layoutImperial: 'Shaw Imperial',
+                layoutNewImperial: 'New Shaw Imperial',
+                layoutQwerty: 'Shaw QWERTY',
+                layout2layer: 'Shaw 2-layer (shift)',
+                layoutJafl: 'Shaw-JAFL'
             },
             shavian: {
                 title: '·𐑖𐑷 𐑑𐑲𐑐',
@@ -1063,7 +1069,13 @@
                 dialectLabel: '𐑗𐑵𐑟 𐑕𐑐𐑧𐑤𐑦𐑙',
                 dialectBritish: '𐑚𐑮𐑦𐑑𐑦𐑖',
                 dialectAmerican: '𐑩𐑥𐑧𐑮𐑦𐑒𐑩𐑯',
-                hideWelcome: '𐑣𐑲𐑛 𐑢𐑧𐑤𐑒𐑳𐑥 𐑕𐑒𐑮𐑰𐑯 𐑢𐑧𐑯 𐑐𐑱𐑡 𐑴𐑐𐑩𐑯𐑟'
+                hideWelcome: '𐑣𐑲𐑛 𐑢𐑧𐑤𐑒𐑳𐑥 𐑕𐑒𐑮𐑰𐑯 𐑢𐑧𐑯 𐑐𐑱𐑡 𐑴𐑐𐑩𐑯𐑟',
+                // Layout names
+                layoutImperial: '·𐑖𐑷 𐑦𐑥𐑐𐑽𐑾𐑩𐑤',
+                layoutNewImperial: '𐑯𐑿 ·𐑖𐑷 𐑦𐑥𐑐𐑽𐑾𐑩𐑤',
+                layoutQwerty: '·𐑖𐑷 QWERTY',
+                layout2layer: '·𐑖𐑷 2-𐑤𐑱𐑼 (𐑖𐑦𐑓𐑑)',
+                layoutJafl: '·𐑖𐑷-JAFL'
             }
         };
 
@@ -2258,6 +2270,51 @@
             document.getElementById('settingsDialectBritish').textContent = t.dialectBritish;
             document.getElementById('settingsDialectAmerican').textContent = t.dialectAmerican;
             document.getElementById('settingsHideWelcome').textContent = t.hideWelcome;
+
+            // Update layout select options
+            updateLayoutSelectOptions();
+        }
+
+        function updateLayoutSelectOptions() {
+            const lang = useShavianUI ? 'shavian' : 'latin';
+            const t = translations[lang];
+
+            // Update both layout selects (settings and welcome)
+            const selects = [
+                document.getElementById('layoutSelectSettings'),
+                document.getElementById('layoutSelectWelcome')
+            ];
+
+            selects.forEach(select => {
+                if (select) {
+                    const currentValue = select.value;
+                    const options = select.querySelectorAll('option');
+
+                    options.forEach(option => {
+                        const value = option.value;
+                        switch(value) {
+                            case 'imperial':
+                                option.textContent = t.layoutImperial;
+                                break;
+                            case 'new-imperial':
+                                option.textContent = t.layoutNewImperial;
+                                break;
+                            case 'qwerty':
+                                option.textContent = t.layoutQwerty;
+                                break;
+                            case '2layer':
+                                option.textContent = t.layout2layer;
+                                break;
+                            case 'jafl':
+                                option.textContent = t.layoutJafl;
+                                break;
+                        }
+                    });
+
+                    // Restore selected value
+                    select.value = currentValue;
+                }
+            });
         }
 
         // Load saved preferences
