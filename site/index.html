@@ -1244,7 +1244,7 @@
             const subtitle = document.getElementById('mainSubtitle');
 
             if (currentMode === 'play') {
-                subtitle.textContent = `${t.level_label} ${currentLevel}`;
+                subtitle.textContent = `${t.level_label} ${currentLevelNumber}`;
             } else if (currentMode === 'learn') {
                 // Lesson name will be set when lesson is selected
                 subtitle.textContent = '';
@@ -1725,6 +1725,7 @@
         }
 
         function initializeGame() {
+            console.log(`[initializeGame] wordPool length: ${currentLevelWordPool.length}, wordCount: ${currentLevelWordCount}`);
             // Reset carousel completely
             words = ['', '', '', ''];
             carouselOffset = 2; // Will advance to 3, then 0
@@ -1739,36 +1740,8 @@
         }
 
         function updateLevel() {
-            const newLevel = getCurrentLevel();
-            if (newLevel !== currentLevel) {
-                // Save stats for the completed level
-                const levelAccuracy = currentLevelLettersTyped === 0 ? 100.0 :
-                    ((currentLevelCorrectLetters / currentLevelLettersTyped) * 100);
-                levelStats.push({
-                    level: currentLevel,
-                    accuracy: levelAccuracy,
-                    lettersTyped: currentLevelLettersTyped,
-                    correctLetters: currentLevelCorrectLetters
-                });
-
-                // Reset current level stats
-                currentLevelLettersTyped = 0;
-                currentLevelCorrectLetters = 0;
-
-                currentLevel = newLevel;
-
-                // Update subtitle when level changes in play mode
-                if (currentMode === 'play') {
-                    updateSubtitleForGame();
-                }
-            }
-
-            // Show '-' for practice mode, otherwise show the level/lesson number
-            if (currentMode === 'practice') {
-                levelDisplayEl.textContent = '-';
-            } else {
-                levelDisplayEl.textContent = currentLevel;
-            }
+            // Display the current level/lesson number
+            levelDisplayEl.textContent = currentLevelNumber;
         }
 
         function updateWordDisplay() {
@@ -1990,16 +1963,7 @@
         }
 
         function showCompletionModal() {
-            // Save stats for the final level
-            const finalLevelAccuracy = currentLevelLettersTyped === 0 ? 100.0 :
-                ((currentLevelCorrectLetters / currentLevelLettersTyped) * 100);
-            levelStats.push({
-                level: currentLevel,
-                accuracy: finalLevelAccuracy,
-                lettersTyped: currentLevelLettersTyped,
-                correctLetters: currentLevelCorrectLetters
-            });
-
+            // Stats already saved in transitionToNextLevel
             const accuracy = totalLettersTyped === 0 ? 100.0 : ((correctLetters / totalLettersTyped) * 100);
             const accuracyFormatted = accuracy.toFixed(1) + '%';
 
@@ -2042,7 +2006,7 @@
                 document.getElementById('levelReachedRow').style.display = 'block';
                 document.getElementById('levelStatsContainer').style.display = 'block';
 
-                document.getElementById('finalLevel').textContent = currentLevel;
+                document.getElementById('finalLevel').textContent = currentLevelNumber;
 
                 // Update high score display
                 const highScoreFormatted = highScore.toFixed(1) + '%';
