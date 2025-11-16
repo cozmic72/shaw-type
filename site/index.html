@@ -646,6 +646,7 @@
                 </label>
                 <select id="layoutSelectSettings" onchange="onLayoutChangeSettings()" style="width: 100%; padding: 8px; font-size: 16px; border: 2px solid #e0e0e0; border-radius: 8px;">
                     <option value="imperial">Shaw Imperial</option>
+                    <option value="new-imperial">New Shaw Imperial</option>
                     <option value="qwerty">Shaw QWERTY</option>
                     <option value="2layer">Shaw 2-layer (shift)</option>
                     <option value="jafl">Shaw-JAFL</option>
@@ -717,6 +718,7 @@
                 </label>
                 <select id="layoutSelectWelcome" onchange="onLayoutChangeWelcome()" style="width: 100%; padding: 8px; font-size: 16px; border: 2px solid #e0e0e0; border-radius: 8px;">
                     <option value="imperial">Shaw Imperial</option>
+                    <option value="new-imperial">New Shaw Imperial</option>
                     <option value="qwerty">Shaw QWERTY</option>
                     <option value="2layer">Shaw 2-layer (shift)</option>
                     <option value="jafl">Shaw-JAFL</option>
@@ -760,6 +762,8 @@
         let wordsByLength = {};
         let learnWordsImperial = {};
         let learnWordsImperialNoLig = {};
+        let learnWordsNewImperial = {};
+        let learnWordsNewImperialNoLig = {};
         let learnWordsQwerty = {};
         let learnWords2layer = {};
         let learnWordsJafl = {};
@@ -875,7 +879,8 @@
                 lessonFullHomeRow: 'Full Home Row',
                 lessonIndexFingerReach: 'Index Finger Reach',
                 lessonUpperLowerRows: 'Upper & Lower Rows',
-                lessonAlmostComplete: 'Almost Complete',
+                lessonNumberRowFocus: 'Number Row Focus',
+                lessonHardToReach: 'Hard to Reach',
                 lessonAllKeys: 'All Keys',
                 lessonCompoundLetters: 'Compound Letters',
                 // Lesson names - QWERTY
@@ -982,7 +987,8 @@
                 lessonFullHomeRow: '𐑓𐑫𐑤 𐑣𐑴𐑥 𐑮𐑴',
                 lessonIndexFingerReach: '𐑦𐑯𐑛𐑧𐑒𐑕 𐑓𐑦𐑙𐑜𐑼 𐑮𐑰𐑗',
                 lessonUpperLowerRows: '𐑳𐑐𐑼 & 𐑤𐑴𐑼 𐑮𐑴𐑟',
-                lessonAlmostComplete: '𐑷𐑤𐑥𐑴𐑕𐑑 𐑒𐑩𐑥𐑐𐑤𐑰𐑑',
+                lessonNumberRowFocus: '𐑯𐑳𐑥𐑚𐑼 𐑮𐑴 𐑓𐑴𐑒𐑩𐑕',
+                lessonHardToReach: '𐑣𐑭𐑮𐑛 𐑑 𐑮𐑰𐑗',
                 lessonAllKeys: '𐑷𐑤 𐑒𐑰𐑟',
                 lessonCompoundLetters: '𐑒𐑪𐑥𐑐𐑬𐑯𐑛 𐑤𐑧𐑑𐑼𐑟',
                 // Lesson names - QWERTY
@@ -1193,8 +1199,9 @@
             currentLayout = document.getElementById('layoutSelectSettings').value;
             localStorage.setItem('keyboardLayout', currentLayout);
             // Show/hide ligature toggle based on layout
-            // Only show for imperial, qwerty, and jafl
+            // Only show for imperial, new-imperial, qwerty, and jafl
             const supportsLigatures = currentLayout === 'imperial' ||
+                                     currentLayout === 'new-imperial' ||
                                      currentLayout === 'qwerty' ||
                                      currentLayout === 'jafl';
             document.getElementById('ligatureSettingOption').style.display =
@@ -1215,6 +1222,22 @@
             loadNewWord();
         }
 
+        function getLearnWords() {
+            // Get the appropriate word list for current layout and ligature settings
+            if (currentLayout === 'imperial') {
+                return useLigatures ? learnWordsImperial : learnWordsImperialNoLig;
+            } else if (currentLayout === 'new-imperial') {
+                return useLigatures ? learnWordsNewImperial : learnWordsNewImperialNoLig;
+            } else if (currentLayout === 'qwerty') {
+                return learnWordsQwerty;
+            } else if (currentLayout === '2layer') {
+                return learnWords2layer;
+            } else if (currentLayout === 'jafl') {
+                return useLigatures ? learnWordsJafl : learnWordsJaflNoLig;
+            }
+            return null;
+        }
+
         function translateLessonName(name) {
             const lang = useShavianUI ? 'shavian' : 'latin';
             const t = translations[lang];
@@ -1225,7 +1248,8 @@
                 'Full Home Row': t.lessonFullHomeRow,
                 'Index Finger Reach': t.lessonIndexFingerReach,
                 'Upper & Lower Rows': t.lessonUpperLowerRows,
-                'Almost Complete': t.lessonAlmostComplete,
+                'Number Row Focus': t.lessonNumberRowFocus,
+                'Hard to Reach': t.lessonHardToReach,
                 'All Keys': t.lessonAllKeys,
                 'Compound Letters': t.lessonCompoundLetters,
                 'Home Row + Shift': t.lessonHomeRowShift,
@@ -1287,16 +1311,7 @@
             const levelSelect = document.getElementById('levelSelect');
 
             // Get the appropriate word list for current settings
-            let learnWords;
-            if (currentLayout === 'imperial') {
-                learnWords = useLigatures ? learnWordsImperial : learnWordsImperialNoLig;
-            } else if (currentLayout === 'qwerty') {
-                learnWords = learnWordsQwerty;
-            } else if (currentLayout === '2layer') {
-                learnWords = learnWords2layer;
-            } else if (currentLayout === 'jafl') {
-                learnWords = useLigatures ? learnWordsJafl : learnWordsJaflNoLig;
-            }
+            const learnWords = getLearnWords();
 
             // Clear existing options
             const lang = useShavianUI ? 'shavian' : 'latin';
@@ -1420,6 +1435,22 @@
                 // Convert string keys to numbers
                 Object.keys(learnImperialNoLigData).forEach(key => {
                     learnWordsImperialNoLig[parseInt(key)] = learnImperialNoLigData[key];
+                });
+
+                // Load learn mode words for New Imperial
+                const learnNewImperialResponse = await fetch(`learn_words_new-imperial_${currentDialect}.json`);
+                const learnNewImperialData = await learnNewImperialResponse.json();
+                // Convert string keys to numbers
+                Object.keys(learnNewImperialData).forEach(key => {
+                    learnWordsNewImperial[parseInt(key)] = learnNewImperialData[key];
+                });
+
+                // Load learn mode words for New Imperial (no ligatures)
+                const learnNewImperialNoLigResponse = await fetch(`learn_words_new-imperial_${currentDialect}_no_lig.json`);
+                const learnNewImperialNoLigData = await learnNewImperialNoLigResponse.json();
+                // Convert string keys to numbers
+                Object.keys(learnNewImperialNoLigData).forEach(key => {
+                    learnWordsNewImperialNoLig[parseInt(key)] = learnNewImperialNoLigData[key];
                 });
 
                 // Load learn mode words for Shaw 2-layer
@@ -1974,7 +2005,7 @@
             localStorage.setItem('keyboardLayout', currentLayout);
 
             // Show/hide ligature toggle
-            const supportsLigatures = currentLayout === 'imperial' || currentLayout === 'qwerty' || currentLayout === 'jafl';
+            const supportsLigatures = currentLayout === 'imperial' || currentLayout === 'new-imperial' || currentLayout === 'qwerty' || currentLayout === 'jafl';
             document.getElementById('ligatureWelcomeOption').style.display = supportsLigatures ? 'block' : 'none';
         }
 
@@ -2035,7 +2066,7 @@
                 document.getElementById('shavianUIToggleWelcome').checked = useShavianUI;
 
                 // Show/hide ligature option
-                const supportsLigatures = currentLayout === 'imperial' || currentLayout === 'qwerty' || currentLayout === 'jafl';
+                const supportsLigatures = currentLayout === 'imperial' || currentLayout === 'new-imperial' || currentLayout === 'qwerty' || currentLayout === 'jafl';
                 document.getElementById('ligatureWelcomeOption').style.display = supportsLigatures ? 'block' : 'none';
 
                 // Update welcome language
@@ -2065,6 +2096,7 @@
 
             // Show/hide ligature option based on current layout
             const supportsLigatures = currentLayout === 'imperial' ||
+                                     currentLayout === 'new-imperial' ||
                                      currentLayout === 'qwerty' ||
                                      currentLayout === 'jafl';
             document.getElementById('ligatureSettingOption').style.display =
@@ -2084,16 +2116,7 @@
             const t = translations[lang];
 
             // Get the appropriate word list for current settings
-            let learnWords;
-            if (currentLayout === 'imperial') {
-                learnWords = useLigatures ? learnWordsImperial : learnWordsImperialNoLig;
-            } else if (currentLayout === 'qwerty') {
-                learnWords = learnWordsQwerty;
-            } else if (currentLayout === '2layer') {
-                learnWords = learnWords2layer;
-            } else if (currentLayout === 'jafl') {
-                learnWords = useLigatures ? learnWordsJafl : learnWordsJaflNoLig;
-            }
+            const learnWords = getLearnWords();
 
             const lessonList = document.getElementById('lessonList');
             lessonList.innerHTML = '';
@@ -2133,16 +2156,7 @@
             showGameContent();
 
             // Get the appropriate word list for current settings
-            let learnWords;
-            if (currentLayout === 'imperial') {
-                learnWords = useLigatures ? learnWordsImperial : learnWordsImperialNoLig;
-            } else if (currentLayout === 'qwerty') {
-                learnWords = learnWordsQwerty;
-            } else if (currentLayout === '2layer') {
-                learnWords = learnWords2layer;
-            } else if (currentLayout === 'jafl') {
-                learnWords = useLigatures ? learnWordsJafl : learnWordsJaflNoLig;
-            }
+            const learnWords = getLearnWords();
 
             // Update subtitle with lesson name
             const lang = useShavianUI ? 'shavian' : 'latin';
