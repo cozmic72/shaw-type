@@ -406,6 +406,32 @@
             background: #5568d3;
         }
 
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            font-size: 32px;
+            font-weight: bold;
+            color: #999;
+            cursor: pointer;
+            transition: color 0.2s;
+            line-height: 1;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-close:hover {
+            color: #333;
+        }
+
+        .completion-content,
+        .settings-content {
+            position: relative;
+        }
+
         #lengthSelect {
             padding: 8px 15px;
             font-size: 16px;
@@ -604,6 +630,7 @@
     <!-- Completion Modal -->
     <div class="completion-modal" id="completionModal">
         <div class="completion-content">
+            <span class="modal-close" onclick="resetPractice()">&times;</span>
             <h2 id="completionTitle">Congratulations!</h2>
             <p id="completionMessage">You completed 30 words!</p>
             <div class="final-score" id="finalScore">--</div>
@@ -622,6 +649,7 @@
     <!-- Settings Modal -->
     <div class="settings-modal" id="settingsModal">
         <div class="settings-content">
+            <span class="modal-close" onclick="closeSettings()">&times;</span>
             <h2>Settings</h2>
 
             <div class="settings-option">
@@ -674,19 +702,17 @@
                     <span id="settingsHideWelcome">Hide welcome screen when page opens</span>
                 </label>
             </div>
-
-            <button class="settings-close-btn" onclick="closeSettings()">Close</button>
         </div>
     </div>
 
     <!-- Content Modal -->
     <div class="settings-modal" id="contentModal">
         <div class="settings-content" style="max-width: 700px; max-height: 80vh; overflow-y: auto;">
+            <span class="modal-close" onclick="closeContentModal()">&times;</span>
             <h2 id="contentModalTitle">Content</h2>
             <div id="contentModalBody" style="margin-top: 20px;">
                 Loading...
             </div>
-            <button id="contentModalClose" class="settings-close-btn" onclick="closeContentModal()">Close</button>
         </div>
     </div>
 
@@ -746,14 +772,13 @@
     <!-- Lesson Selector Modal -->
     <div class="settings-modal" id="lessonModal">
         <div class="settings-content" style="max-width: 500px;">
+            <span class="modal-close" onclick="closeLessonModal()">&times;</span>
             <h2 id="lessonModalTitle">Choose a Lesson</h2>
             <p id="lessonModalSubtitle" style="margin: 15px 0; color: #666;">Select a lesson to practice:</p>
 
             <div id="lessonList" style="margin: 20px 0; max-height: 400px; overflow-y: auto;">
                 <!-- Lessons will be populated dynamically -->
             </div>
-
-            <button id="lessonModalCancel" class="settings-close-btn" onclick="closeLessonModal()">Cancel</button>
         </div>
     </div>
 
@@ -2245,7 +2270,6 @@
             document.querySelector('#settingsModal h2').textContent = t.settingsTitle;
             document.querySelector('#shavianUIToggle + span').textContent = t.displayShavian;
             document.querySelector('.settings-option-desc').textContent = t.displayShavianDesc;
-            document.querySelector('.settings-close-btn').textContent = t.close;
 
             // Update settings labels
             document.querySelector('.settings-option label').textContent = t.keyboardLayout;
@@ -2254,16 +2278,12 @@
             // Update lesson modal
             document.getElementById('lessonModalTitle').textContent = t.lessonModalTitle;
             document.getElementById('lessonModalSubtitle').textContent = t.lessonModalSubtitle;
-            document.getElementById('lessonModalCancel').textContent = t.lessonModalCancel;
 
             // Update burger menu items
             document.getElementById('menuAbout').textContent = t.menuAbout;
             document.getElementById('menuKeyboards').textContent = t.menuKeyboards;
             document.getElementById('menuResources').textContent = t.menuResources;
             document.getElementById('menuSettings').textContent = t.menuSettings;
-
-            // Update content modal close button
-            document.getElementById('contentModalClose').textContent = t.close;
 
             // Update settings dialog labels
             document.getElementById('settingsDialectLabel').textContent = t.dialectLabel;
