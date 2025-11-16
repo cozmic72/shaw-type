@@ -114,7 +114,8 @@ LEARN_LEVELS_IMPERIAL = {
     },
     5: {
         'name': 'Number Row Focus',
-        'chars': '𐑶𐑬𐑫𐑜𐑖𐑗𐑙𐑘𐑡𐑔𐑠𐑪𐑨𐑦𐑩𐑧𐑐𐑯𐑑𐑮𐑕𐑛𐑓𐑒𐑝𐑚𐑱𐑳𐑞𐑤𐑥𐑾𐑲𐑴𐑰𐑭𐑷𐑵𐑢𐑣𐑟',  # Number row + common chars
+        'chars': '𐑪𐑨𐑦𐑩𐑧𐑐𐑯𐑑𐑮𐑕𐑛𐑓𐑒𐑝𐑚𐑱𐑳𐑞𐑤𐑥𐑾𐑲𐑴𐑰𐑶𐑬𐑫𐑜𐑖𐑗𐑙𐑘𐑡𐑔',  # Level 4 chars + number row
+        'focus': '𐑶𐑬𐑫𐑜𐑖𐑗𐑙𐑘𐑡𐑔',  # Only number row characters
         'description': 'Master the number row characters'
     },
     6: {
@@ -314,13 +315,17 @@ def generate_learn_word_lists(word_freq_file, learn_levels, output_file, layout_
 
     for level_num, level_info in learn_levels.items():
         available_chars = level_info['chars']
-        new_chars = get_new_chars_for_level(level_num, learn_levels)
+        # Use 'focus' field if present, otherwise use new chars from this level
+        if 'focus' in level_info:
+            focus_chars = level_info['focus']
+        else:
+            focus_chars = get_new_chars_for_level(level_num, learn_levels)
 
         # Collect candidate words
         candidates = []
         for word, freq in all_words:
             if can_type_with_chars(word, available_chars, use_ligatures):
-                target_count = count_target_chars(word, new_chars, use_ligatures)
+                target_count = count_target_chars(word, focus_chars, use_ligatures)
                 # Only include words with at least one character from the focus group
                 if target_count > 0:
                     word_len = len(word)

@@ -21,3 +21,4 @@ from a previous session.
 - Refactor code before adding new functionality if it will make the change easier.
 - Avoid using too many tokens!  Do not read entire files without conferring with the user.  Be smart: use grep or 
   write ad hoc scripts if needed.
+- Important: Always ask the user to run the regeneration tools!   Not doing so corrupts the context!
