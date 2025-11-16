@@ -95,37 +95,43 @@ LEARN_LEVELS_IMPERIAL = {
     1: {
         'name': 'Home Row Center',
         'chars': '𐑦𐑩𐑧𐑐𐑯𐑑',  # Middle 6 keys of home row
+        'focus': '𐑦𐑩𐑧𐑐𐑯𐑑',  # All chars are new
         'description': 'Middle fingers only, home row'
     },
     2: {
         'name': 'Full Home Row',
         'chars': '𐑪𐑨𐑦𐑩𐑧𐑐𐑯𐑑𐑮𐑕𐑛',  # All home row
+        'focus': '𐑪𐑨𐑮𐑕𐑛',  # New chars: outer home row keys
         'description': 'All fingers, home row'
     },
     3: {
         'name': 'Index Finger Reach',
         'chars': '𐑪𐑨𐑦𐑩𐑧𐑐𐑯𐑑𐑮𐑕𐑛𐑓𐑒𐑝𐑚',  # Home + index reaches
+        'focus': '𐑓𐑒𐑝𐑚',  # New chars: index finger upper/lower
         'description': 'Add index finger upper/lower reaches'
     },
     4: {
         'name': 'Upper & Lower Rows',
         'chars': '𐑪𐑨𐑦𐑩𐑧𐑐𐑯𐑑𐑮𐑕𐑛𐑓𐑒𐑝𐑚𐑱𐑳𐑞𐑤𐑥𐑾𐑲𐑴𐑰',  # Add more upper/lower
+        'focus': '𐑱𐑳𐑞𐑤𐑥𐑾𐑲𐑴𐑰',  # New chars: more upper/lower row keys
         'description': 'Extend to more keys above and below'
     },
     5: {
         'name': 'Number Row Focus',
         'chars': '𐑪𐑨𐑦𐑩𐑧𐑐𐑯𐑑𐑮𐑕𐑛𐑓𐑒𐑝𐑚𐑱𐑳𐑞𐑤𐑥𐑾𐑲𐑴𐑰𐑶𐑬𐑫𐑜𐑖𐑗𐑙𐑘𐑡𐑔',  # Level 4 chars + number row
-        'focus': '𐑶𐑬𐑫𐑜𐑖𐑗𐑙𐑘𐑡𐑔',  # Only number row characters
+        'focus': '𐑶𐑬𐑫𐑜𐑖𐑗𐑙𐑘𐑡𐑔',  # New chars: number row only
         'description': 'Master the number row characters'
     },
     6: {
         'name': 'Almost Complete',
-        'chars': '𐑪𐑨𐑦𐑩𐑧𐑐𐑯𐑑𐑮𐑕𐑛𐑓𐑒𐑝𐑚𐑱𐑳𐑞𐑤𐑥𐑾𐑲𐑴𐑰𐑭𐑷𐑵𐑢𐑣𐑟',  # Most keys
+        'chars': '𐑪𐑨𐑦𐑩𐑧𐑐𐑯𐑑𐑮𐑕𐑛𐑓𐑒𐑝𐑚𐑱𐑳𐑞𐑤𐑥𐑾𐑲𐑴𐑰𐑶𐑬𐑫𐑜𐑖𐑗𐑙𐑘𐑡𐑔𐑭𐑷𐑵𐑢𐑣𐑟',  # Level 5 + outer columns
+        'focus': '𐑭𐑷𐑵𐑢𐑣𐑟',  # New chars: outer column keys
         'description': 'Add outer columns'
     },
     7: {
         'name': 'All Keys',
-        'chars': '𐑪𐑨𐑦𐑩𐑧𐑐𐑯𐑑𐑮𐑕𐑛𐑓𐑒𐑝𐑚𐑱𐑳𐑞𐑤𐑥𐑾𐑲𐑴𐑰𐑭𐑷𐑵𐑢𐑣𐑟𐑶𐑬𐑫𐑜𐑖𐑗𐑙𐑘𐑡𐑔𐑠',  # All
+        'chars': '𐑪𐑨𐑦𐑩𐑧𐑐𐑯𐑑𐑮𐑕𐑛𐑓𐑒𐑝𐑚𐑱𐑳𐑞𐑤𐑥𐑾𐑲𐑴𐑰𐑶𐑬𐑫𐑜𐑖𐑗𐑙𐑘𐑡𐑔𐑭𐑷𐑵𐑢𐑣𐑟𐑠',  # All
+        'focus': '𐑠',  # New char: final key
         'description': 'Complete keyboard'
     }
 }
@@ -135,31 +141,37 @@ LEARN_LEVELS_QWERTY = {
     1: {
         'name': 'Home Row Center',
         'chars': '𐑛𐑓𐑜𐑣𐑘𐑒',  # Middle 6 keys of home row
+        'focus': '𐑛𐑓𐑜𐑣𐑘𐑒',  # All chars are new
         'description': 'Middle fingers only, home row'
     },
     2: {
         'name': 'Full Home Row',
         'chars': '𐑩𐑕𐑛𐑓𐑜𐑣𐑘𐑒𐑤',  # All home row (base layer)
+        'focus': '𐑩𐑕𐑤',  # New chars: outer home row keys
         'description': 'All fingers, home row (unshifted)'
     },
     3: {
         'name': 'Home Row + Shift',
         'chars': '𐑩𐑕𐑛𐑓𐑜𐑣𐑘𐑒𐑤𐑨𐑖𐑼𐑲·𐑞𐑡',  # Home row both layers
+        'focus': '𐑨𐑖𐑼𐑲·𐑞𐑡',  # New chars: shift layer home row
         'description': 'Home row with shift layer'
     },
     4: {
         'name': 'Add Upper Row',
         'chars': '𐑩𐑕𐑛𐑓𐑜𐑣𐑘𐑒𐑤𐑨𐑖𐑼𐑲·𐑞𐑡𐑧𐑮𐑑𐑦𐑪𐑱𐑸𐑔𐑰𐑴𐑹',  # Add upper row
+        'focus': '𐑧𐑮𐑑𐑦𐑪𐑱𐑸𐑔𐑰𐑴𐑹',  # New chars: upper row both layers
         'description': 'Add upper row (both layers)'
     },
     5: {
         'name': 'Add Lower Row',
         'chars': '𐑩𐑕𐑛𐑓𐑜𐑣𐑘𐑒𐑤𐑨𐑖𐑼𐑲·𐑞𐑡𐑧𐑮𐑑𐑦𐑪𐑱𐑸𐑔𐑰𐑴𐑹𐑟𐑻𐑗𐑝𐑚𐑯𐑥𐑺𐑽𐑿𐑙𐑵',  # Add lower row
+        'focus': '𐑟𐑻𐑗𐑝𐑚𐑯𐑥𐑺𐑽𐑿𐑙𐑵',  # New chars: lower row both layers
         'description': 'Add lower row (both layers)'
     },
     6: {
         'name': 'All Keys',
         'chars': '𐑩𐑕𐑛𐑓𐑜𐑣𐑘𐑒𐑤𐑨𐑖𐑼𐑲·𐑞𐑡𐑧𐑮𐑑𐑦𐑪𐑱𐑸𐑔𐑰𐑴𐑹𐑟𐑻𐑗𐑝𐑚𐑯𐑥𐑺𐑽𐑿𐑙𐑵𐑶𐑢𐑭𐑳𐑐𐑬𐑾𐑷𐑫𐑠⸰',  # All
+        'focus': '𐑶𐑢𐑭𐑳𐑐𐑬𐑾𐑷𐑫𐑠⸰',  # New chars: remaining keys
         'description': 'Complete keyboard (all layers)'
     }
 }
@@ -169,31 +181,37 @@ LEARN_LEVELS_2LAYER = {
     1: {
         'name': 'Essential Phonemes',
         'chars': '𐑩𐑯𐑑𐑛𐑕𐑝𐑞𐑤𐑮',  # Most frequent sounds: schwa, n, t, d, s, v, th, l, r
+        'focus': '𐑩𐑯𐑑𐑛𐑕𐑝𐑞𐑤𐑮',  # All chars are new
         'description': 'Master the 9 most common sounds in English'
     },
     2: {
         'name': 'Vowel Voyage',
         'chars': '𐑩𐑯𐑑𐑛𐑕𐑝𐑞𐑤𐑮𐑦𐑧𐑨𐑪𐑳𐑴𐑵𐑬𐑭𐑷',  # Add vowels from base layer
+        'focus': '𐑦𐑧𐑨𐑪𐑳𐑴𐑵𐑬𐑭𐑷',  # New chars: vowels
         'description': 'Navigate through English vowel sounds'
     },
     3: {
         'name': 'Consonant Command',
         'chars': '𐑩𐑯𐑑𐑛𐑕𐑝𐑞𐑤𐑮𐑦𐑧𐑨𐑪𐑳𐑴𐑵𐑬𐑭𐑷𐑖𐑒𐑐𐑢𐑣𐑗',  # Add remaining base consonants
+        'focus': '𐑖𐑒𐑐𐑢𐑣𐑗',  # New chars: remaining consonants
         'description': 'Build confidence with base layer consonants'
     },
     4: {
         'name': 'Ligature Power',
         'chars': '𐑩𐑯𐑑𐑛𐑕𐑝𐑞𐑤𐑮𐑦𐑧𐑨𐑪𐑳𐑴𐑵𐑬𐑭𐑷𐑖𐑒𐑐𐑢𐑣𐑗𐑼𐑸𐑹𐑽𐑺𐑻',  # Add ligatures from both layers
+        'focus': '𐑼𐑸𐑹𐑽𐑺𐑻',  # New chars: ligatures
         'description': 'Harness the efficiency of compound letters'
     },
     5: {
         'name': 'Shift Mastery',
         'chars': '𐑩𐑯𐑑𐑛𐑕𐑝𐑞𐑤𐑮𐑦𐑧𐑨𐑪𐑳𐑴𐑵𐑬𐑭𐑷𐑖𐑒𐑐𐑢𐑣𐑗𐑼𐑸𐑹𐑽𐑺𐑻𐑿𐑱𐑲𐑰𐑾𐑶𐑓𐑘𐑔𐑙𐑥𐑠𐑜𐑚𐑟𐑫𐑡',  # Add most shift keys
+        'focus': '𐑿𐑱𐑲𐑰𐑾𐑶𐑓𐑘𐑔𐑙𐑥𐑠𐑜𐑚𐑟𐑫𐑡',  # New chars: shift layer
         'description': 'Unlock the full potential of the shift layer'
     },
     6: {
         'name': 'Complete Control',
-        'chars': '𐑩𐑯𐑑𐑛𐑕𐑝𐑞𐑤𐑮𐑦𐑧𐑨𐑪𐑳𐑴𐑵𐑬𐑭𐑷𐑖𐑒𐑐𐑢𐑣𐑗𐑼𐑸𐑹𐑽𐑺𐑻𐑿𐑱𐑲𐑰𐑾𐑶𐑓𐑘𐑔𐑙𐑥𐑠𐑜𐑚𐑟𐑫𐑡',  # All keys
+        'chars': '𐑩𐑯𐑑𐑛𐑕𐑝𐑞𐑤𐑮𐑦𐑧𐑨𐑪𐑳𐑴𐑵𐑬𐑭𐑷𐑖𐑒𐑐𐑢𐑣𐑗𐑼𐑸𐑹𐑽𐑺𐑻𐑿𐑱𐑲𐑰𐑾𐑶𐑓𐑘𐑔𐑙𐑥𐑠𐑜𐑚𐑟𐑫𐑡',  # All keys (same as level 5 - no new chars)
+        'focus': '𐑩𐑯𐑑𐑛𐑕𐑝𐑞𐑤𐑮𐑦𐑧𐑨𐑪𐑳𐑴𐑵𐑬𐑭𐑷𐑖𐑒𐑐𐑢𐑣𐑗𐑼𐑸𐑹𐑽𐑺𐑻𐑿𐑱𐑲𐑰𐑾𐑶𐑓𐑘𐑔𐑙𐑥𐑠𐑜𐑚𐑟𐑫𐑡',  # Review all chars
         'description': 'Command every key with confidence'
     }
 }
@@ -203,31 +221,37 @@ LEARN_LEVELS_JAFL = {
     1: {
         'name': 'Core Foundation',
         'chars': '𐑩𐑯𐑑𐑛𐑕𐑤𐑮𐑦𐑝𐑞',  # Most frequent letters available
+        'focus': '𐑩𐑯𐑑𐑛𐑕𐑤𐑮𐑦𐑝𐑞',  # All chars are new
         'description': 'Build your foundation with essential sounds'
     },
     2: {
         'name': 'Home Sweet Home',
         'chars': '𐑪𐑨𐑩𐑦𐑳𐑤𐑮𐑕𐑯𐑢',  # Full home row (base)
+        'focus': '𐑪𐑨𐑳𐑢',  # New chars: rest of home row
         'description': 'Master the comfort of the home row'
     },
     3: {
         'name': 'Upper Expedition',
         'chars': '𐑪𐑨𐑩𐑦𐑳𐑤𐑮𐑕𐑯𐑢𐑱𐑧𐑰𐑥𐑒𐑐𐑑𐑛𐑓',  # Add upper row (base)
+        'focus': '𐑱𐑧𐑰𐑥𐑒𐑐𐑓',  # New chars: upper row (𐑑𐑛 already in level 1)
         'description': 'Journey to the upper reaches of your keyboard'
     },
     4: {
         'name': 'Lower Exploration',
         'chars': '𐑪𐑨𐑩𐑦𐑳𐑤𐑮𐑕𐑯𐑢𐑱𐑧𐑰𐑥𐑒𐑐𐑑𐑛𐑓𐑲𐑴𐑞𐑟𐑣𐑝𐑚',  # Add lower row (base)
+        'focus': '𐑲𐑴𐑟𐑣𐑚',  # New chars: lower row (𐑞𐑝 already in level 1)
         'description': 'Explore the depths below home position'
     },
     5: {
         'name': 'Shift Introduction',
         'chars': '𐑪𐑨𐑩𐑦𐑳𐑤𐑮𐑕𐑯𐑢𐑱𐑧𐑰𐑥𐑒𐑐𐑑𐑛𐑓𐑲𐑴𐑞𐑟𐑣𐑝𐑚𐑷𐑭𐑵𐑫𐑖𐑙𐑘',  # Add common shift keys
+        'focus': '𐑷𐑭𐑵𐑫𐑖𐑙𐑘',  # New chars: shift layer
         'description': 'Discover new dimensions with the shift key'
     },
     6: {
         'name': 'Master Typist',
         'chars': '𐑪𐑨𐑩𐑦𐑳𐑤𐑮𐑕𐑯𐑢𐑱𐑧𐑰𐑥𐑒𐑐𐑑𐑛𐑓𐑲𐑴𐑞𐑟𐑣𐑝𐑚𐑷𐑭𐑵𐑫𐑖𐑙𐑘𐑬𐑹𐑸𐑿𐑜𐑗𐑡𐑶𐑔𐑠',  # All keys
+        'focus': '𐑬𐑹𐑸𐑿𐑜𐑗𐑡𐑶𐑔𐑠',  # New chars: final shift keys
         'description': 'Achieve mastery over the complete keyboard'
     }
 }
@@ -317,7 +341,7 @@ def generate_learn_word_lists(word_freq_file, learn_levels, output_file, layout_
         available_chars = level_info['chars']
         # Use 'focus' field if present, otherwise use new chars from this level
         if 'focus' in level_info:
-            focus_chars = level_info['focus']
+            focus_chars = set(level_info['focus'])
         else:
             focus_chars = get_new_chars_for_level(level_num, learn_levels)
 
