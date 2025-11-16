@@ -1615,15 +1615,12 @@
         }
 
         function advanceToNextWord() {
-            // Trigger animation
-            const currentSlot = document.getElementById('currentWord');
-            const nextSlot = document.getElementById('nextWord');
-
             // Animate current word out
-            currentSlot.classList.add('animating-out');
+            currentWordSlot.classList.add('animating-out');
 
             // Wait for animation, then update
             setTimeout(() => {
+                // Use the nextWord that was already shown
                 currentWord = nextWord;
                 nextWord = pickRandomWord();
 
@@ -1632,7 +1629,7 @@
                 hasPendingLigature = false;
 
                 // Remove animation class and update display
-                currentSlot.classList.remove('animating-out');
+                currentWordSlot.classList.remove('animating-out');
                 updateWordDisplay();
                 updateLevel();
             }, 400); // Match CSS transition duration
@@ -1724,10 +1721,15 @@
                 expandedPos += expandedLen;
             }
 
-            currentWordSlot.innerHTML = html;
+            // Append space and next word (faded)
+            html += `<span class="char"> </span>`;
+            const nextWordChars = Array.from(nextWord);
+            for (let i = 0; i < nextWordChars.length; i++) {
+                html += `<span class="char" style="opacity: 0.3">${nextWordChars[i]}</span>`;
+            }
 
-            // Update next word slot (no coloring, just plain text)
-            nextWordSlot.textContent = nextWord;
+            currentWordSlot.innerHTML = html;
+            nextWordSlot.textContent = ''; // Don't need separate next slot anymore
         }
 
         function updateStats() {
@@ -2016,28 +2018,26 @@
             // Allow Enter or Space to advance - but only if word is correct
             if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
-                const userInput = typingInput.value.trim();
+                const userInput = typingInput.value; // Don't trim - we want to check for exact match
 
-                if (userInput.length > 0) {
-                    // Check if word is correct using expanded forms
-                    const inputExpanded = expandLigatures(userInput);
-                    const wordExpanded = expandLigatures(currentWord);
+                // Check if word is correct using expanded forms
+                const inputExpanded = expandLigatures(userInput);
+                const wordExpanded = expandLigatures(currentWord);
 
-                    // Only advance if the word matches exactly
-                    if (inputExpanded.length === wordExpanded.length &&
-                        inputExpanded.every((char, i) => char === wordExpanded[i])) {
-                        // Resolve any pending ligature as correct
-                        if (hasPendingLigature) {
-                            // The pending ligature was correct
-                            hasPendingLigature = false;
-                        }
-
-                        wordsCompleted++;
-                        updateStats();
-                        advanceToNextWord();
+                // Only advance if the word matches exactly
+                if (inputExpanded.length === wordExpanded.length &&
+                    inputExpanded.every((char, i) => char === wordExpanded[i])) {
+                    // Resolve any pending ligature as correct
+                    if (hasPendingLigature) {
+                        // The pending ligature was correct
+                        hasPendingLigature = false;
                     }
-                    // If word doesn't match, do nothing - user must keep typing or fix it
+
+                    wordsCompleted++;
+                    updateStats();
+                    advanceToNextWord();
                 }
+                // If word doesn't match, do nothing - user must keep typing or fix it
             }
         });
 
