@@ -1774,8 +1774,9 @@
         // Content modal functions
         async function openContentModal(page) {
             closeBurgerMenu();
-            // Blur input to dismiss mobile keyboard
+            // Blur input and set readonly to prevent mobile keyboard
             typingInput.blur();
+            typingInput.setAttribute('readonly', 'readonly');
 
             const modal = document.getElementById('contentModal');
             const titleEl = document.getElementById('contentModalTitle');
@@ -1810,6 +1811,8 @@
 
         function closeContentModal() {
             document.getElementById('contentModal').classList.remove('show');
+            // Re-enable input
+            typingInput.removeAttribute('readonly');
         }
 
         // Welcome modal functions
@@ -1909,8 +1912,9 @@
 
         // Settings functions
         function openSettings() {
-            // Blur input to dismiss mobile keyboard
+            // Blur input and set readonly to prevent mobile keyboard
             typingInput.blur();
+            typingInput.setAttribute('readonly', 'readonly');
 
             // Sync settings with current state
             const dialectRadio = document.querySelector(`input[name="dialectSettings"][value="${currentDialect}"]`);
@@ -1935,12 +1939,15 @@
 
         function closeSettings() {
             document.getElementById('settingsModal').classList.remove('show');
+            // Re-enable input
+            typingInput.removeAttribute('readonly');
         }
 
         // Lesson selector functions
         function openLessonSelector() {
-            // Blur input to dismiss mobile keyboard
+            // Blur input and set readonly to prevent mobile keyboard
             typingInput.blur();
+            typingInput.setAttribute('readonly', 'readonly');
 
             // Get current translations
             const lang = useShavianUI ? 'shavian' : 'latin';
@@ -2011,6 +2018,8 @@
 
         function closeLessonModal() {
             document.getElementById('lessonModal').classList.remove('show');
+            // Re-enable input
+            typingInput.removeAttribute('readonly');
         }
 
         function toggleShavianUI() {
