@@ -2434,6 +2434,13 @@
 
             // Update previous input for next comparison
             previousInput = typingInput.value;
+
+            // POSTCONDITION: Log final state
+            console.log('📊 POSTCONDITION: word=' + JSON.stringify(currentWord) +
+                       ', input=' + JSON.stringify(typingInput.value) +
+                       ', correct=' + correctLetters + '/' + totalLettersTyped +
+                       ', errorState=' + isInErrorState);
+
             updateWordDisplay();
             updateStats();
             checkCompletion();
