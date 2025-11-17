@@ -5,6 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shaw Type - Shavian Typing Practice</title>
     <style>
+        @font-face {
+            font-family: 'Inter-Alia';
+            src: url('fonts/InterAlia-Regular.otf') format('opentype');
+            font-weight: 400;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'Inter-Alia';
+            src: url('fonts/InterAlia-Medium.otf') format('opentype');
+            font-weight: 500;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'Inter-Alia';
+            src: url('fonts/InterAlia-Bold.otf') format('opentype');
+            font-weight: 700;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'Ormin';
+            src: url('fonts/Ormin-Regular.otf') format('opentype');
+            font-weight: 400;
+            font-style: normal;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -12,7 +40,7 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-family: 'Inter-Alia', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
@@ -152,6 +180,7 @@
             position: absolute;
             top: 50%;
             font-size: 48px;
+            font-family: 'Ormin', 'Inter-Alia', sans-serif;
             letter-spacing: 4px;
             white-space: nowrap;
             transition: transform 0.3s ease, opacity 0.3s ease;
@@ -180,6 +209,7 @@
 
         .word-display .word {
             font-size: 48px;
+            font-family: 'Ormin', 'Inter-Alia', sans-serif;
             letter-spacing: 4px;
         }
 
