@@ -1897,41 +1897,23 @@
                     // Build HTML with coloring for current word
                     let html = '';
                     const wordChars = Array.from(currentWord);
-                    const wordExpanded = expandLigatures(currentWord);
-                    const inputExpanded = expandLigatures(userInput);
-                    let expandedPos = 0;
+                    const inputChars = Array.from(userInput);
 
                     for (let j = 0; j < wordChars.length; j++) {
                         const char = wordChars[j];
                         let className = '';
-                        const isLigature = LIGATURES[char];
-                        const expandedLen = isLigature ? 2 : 1;
 
-                        let allCorrect = true;
-                        let anyTyped = false;
-                        let anyIncorrect = false;
-
-                        for (let k = 0; k < expandedLen; k++) {
-                            const expIdx = expandedPos + k;
-                            if (expIdx < inputExpanded.length) {
-                                anyTyped = true;
-                                if (inputExpanded[expIdx] !== wordExpanded[expIdx]) {
-                                    anyIncorrect = true;
-                                    allCorrect = false;
-                                }
+                        if (j < inputChars.length) {
+                            // User has typed this position
+                            if (inputChars[j] === char) {
+                                className = 'correct';
                             } else {
-                                allCorrect = false;
+                                className = 'incorrect';
                             }
                         }
-
-                        if (anyIncorrect) {
-                            className = 'incorrect';
-                        } else if (anyTyped && allCorrect) {
-                            className = 'correct';
-                        }
+                        // else: not typed yet, no className
 
                         html += `<span class="char ${className}">${char}</span>`;
-                        expandedPos += expandedLen;
                     }
                     slot.innerHTML = html;
                 } else if (posOffset === 1) {
@@ -2002,13 +1984,8 @@
         function checkCompletion() {
             const userInput = typingInput.value;
 
-            // Compare expanded forms to handle ligature equivalence
-            const inputExpanded = expandLigatures(userInput);
-            const wordExpanded = expandLigatures(currentWord);
-
-            // Check if expanded forms match (word completed including space if present)
-            if (inputExpanded.length === wordExpanded.length &&
-                inputExpanded.every((char, i) => char === wordExpanded[i])) {
+            // Check if user typed the complete word correctly
+            if (userInput === currentWord) {
                 // Word completed correctly
                 wordsCompleted++;
                 wordsInCurrentLevel++;
