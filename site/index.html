@@ -1933,12 +1933,14 @@
                                 className = 'correct';
                             } else {
                                 // Check if this could be ligature in progress
+                                // Only "in progress" if this is the LAST character typed (still waiting for next)
                                 const isLigatureInProgress = useLigatures &&
                                     LIGATURES[char] &&
-                                    LIGATURES[char][0] === inputChars[j];
+                                    LIGATURES[char][0] === inputChars[j] &&
+                                    inputChars.length === j + 1;
 
                                 if (isLigatureInProgress) {
-                                    // Don't mark as incorrect - ligature in progress
+                                    // Don't mark as incorrect - ligature in progress, waiting for completion
                                     className = '';
                                 } else {
                                     className = 'incorrect';
