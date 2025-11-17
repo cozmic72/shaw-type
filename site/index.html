@@ -947,45 +947,18 @@
             COMPONENT_TO_LIGATURE[key] = compound;
         });
 
-        // Expand a string, replacing compound ligatures with their components
-        function expandLigatures(str) {
-            const chars = Array.from(str);
-            const expanded = [];
-            chars.forEach(char => {
-                if (LIGATURES[char]) {
-                    expanded.push(...LIGATURES[char]);
-                } else {
-                    expanded.push(char);
-                }
-            });
-            return expanded;
-        }
+        // Check if input matches expected word, treating ligatures as single characters
+        function matchesWord(input, expected) {
+            const inputChars = Array.from(input);
+            const expectedChars = Array.from(expected);
 
-        // Check if input matches expected, considering ligature equivalence
-        function matchesWithLigatures(inputChars, expectedChars, index) {
-            // Get the expanded forms for comparison
-            const expectedExpanded = expandLigatures(expectedChars.join(''));
-            const inputExpanded = expandLigatures(inputChars.join(''));
-
-            // Check if input (up to index) matches expected
-            for (let i = 0; i <= index && i < inputExpanded.length; i++) {
-                if (i >= expectedExpanded.length) return false;
-                if (inputExpanded[i] !== expectedExpanded[i]) return false;
+            for (let i = 0; i < inputChars.length; i++) {
+                if (i >= expectedChars.length) return false;
+                if (inputChars[i] !== expectedChars[i]) return false;
             }
             return true;
         }
 
-        // Check if the current input could be a partial ligature match
-        function isPartialLigatureMatch(inputChars, expectedChars, inputIndex) {
-            const inputExpanded = expandLigatures(inputChars.join(''));
-            const expectedExpanded = expandLigatures(expectedChars.join(''));
-
-            // If we're in the middle of potentially typing a ligature, don't mark as error yet
-            if (inputIndex < inputExpanded.length && inputIndex < expectedExpanded.length) {
-                return inputExpanded[inputIndex] === expectedExpanded[inputIndex];
-            }
-            return true;
-        }
 
         // Mode management
         let currentMode = 'play'; // 'learn' or 'play'
@@ -1300,7 +1273,6 @@
             currentLevelNumber = 1;
             recentWords = [];
             levelStats = [];
-            hasPendingLigature = false;
 
             // Update display
             updateStats();
@@ -1331,7 +1303,6 @@
             currentLevelNumber = 1;
             recentWords = [];
             levelStats = [];
-            hasPendingLigature = false;
 
             // Update display
             updateStats();
@@ -1878,7 +1849,6 @@
 
             typingInput.value = '';
             previousInput = '';
-            hasPendingLigature = false;
             isInErrorState = false;
             updateWordDisplay();
 
@@ -2255,7 +2225,6 @@
             currentLevelNumber = 1;
             recentWords = [];
             levelStats = [];
-            hasPendingLigature = false;
 
             // Hide modal
             document.getElementById('completionModal').classList.remove('show');
@@ -2291,7 +2260,6 @@
             wordsCompleted = 0;
             totalLettersTyped = 0;
             correctLetters = 0;
-            hasPendingLigature = false;
 
             // Hide modal
             document.getElementById('completionModal').classList.remove('show');
@@ -2315,7 +2283,6 @@
             recentWords = [];
             currentLevelLettersTyped = 0;
             currentLevelCorrectLetters = 0;
-            hasPendingLigature = false;
             updateStats();
 
             // Open lesson selector
@@ -2324,7 +2291,6 @@
 
         // Event listeners
         let previousInput = '';
-        let hasPendingLigature = false; // Track if last character was a ligature candidate
         let isInErrorState = false; // Track if last typed character was incorrect
 
         typingInput.addEventListener('input', (e) => {
@@ -2347,24 +2313,27 @@
                         const compound = COMPONENT_TO_LIGATURE[lastTwo];
                         userInput = beforeLigature + compound;
                         typingInput.value = userInput;
-                        // Update previousInput so ligature completion is seen as complete
-                        previousInput = userInput;
                         console.log('Ligature formed:', lastTwo, '→', compound);
                     }
                 }
             }
 
-            // Expand to component characters for checking
-            const inputExpanded = expandLigatures(userInput);
-            const prevInputExpanded = expandLigatures(previousInput);
-            const wordExpanded = expandLigatures(currentWord);
+            // Get character arrays for comparison (treats ligatures as single characters)
+            const inputChars = Array.from(userInput);
+            const prevInputChars = Array.from(previousInput);
+            const wordChars = Array.from(currentWord);
+
+            // If user backspaced, clear error state
+            if (inputChars.length < prevInputChars.length) {
+                isInErrorState = false;
+            }
 
             // If in error state and user is trying to type more (not backspace), block it
-            if (isInErrorState && inputExpanded.length > prevInputExpanded.length) {
+            if (isInErrorState && inputChars.length > prevInputChars.length) {
                 // Revert to previous input
                 typingInput.value = previousInput;
 
-                // Flash the input text red as visual feedback
+                // Flash the input background red as visual feedback
                 typingInput.style.animation = 'none';
                 setTimeout(() => {
                     typingInput.style.animation = 'error-flash 0.4s ease-out';
@@ -2373,78 +2342,34 @@
                 return;
             }
 
-            // If user backspaced, clear error state
-            if (inputExpanded.length < prevInputExpanded.length) {
-                isInErrorState = false;
-            }
+            // Track accuracy for newly typed characters
+            if (inputChars.length > prevInputChars.length) {
+                // User typed new character(s)
+                const numNewChars = inputChars.length - prevInputChars.length;
 
-            // Re-expand after potential ligature formation
-            const inputExpandedFinal = expandLigatures(userInput);
-            const wordExpandedFinal = expandLigatures(currentWord);
+                totalLettersTyped += numNewChars;
+                currentLevelLettersTyped += numNewChars;
 
-            // Handle backspace - resolve pending ligature as incorrect
-            if (inputExpandedFinal.length < prevInputExpanded.length && hasPendingLigature) {
-                // User backspaced while a ligature candidate was pending - count it as wrong
-                totalLettersTyped++;
-                currentLevelLettersTyped++;
-                hasPendingLigature = false;
-            }
+                // Check if the new character(s) match the expected word
+                const currentIndex = prevInputChars.length;
+                let allCorrect = true;
 
-            // Track letter-level accuracy at the expanded character level
-            // Only count new expanded characters typed (not backspaces)
-            if (inputExpandedFinal.length > prevInputExpanded.length) {
-                const expandedIndex = prevInputExpanded.length;
-
-                // Check if we're resolving a pending ligature
-                if (hasPendingLigature) {
-                    // A ligature represents 2 characters being typed
-                    totalLettersTyped += 2;
-                    currentLevelLettersTyped += 2;
-
-                    // Check if this completes the ligature correctly
-                    if (expandedIndex < wordExpandedFinal.length &&
-                        inputExpandedFinal[expandedIndex] === wordExpandedFinal[expandedIndex]) {
-                        // Ligature completed correctly - count both characters as correct
-                        correctLetters += 2;
-                        currentLevelCorrectLetters += 2;
-                    } else {
-                        // Wrong continuation - the pending character was wrong
-                        // Already counted 2 letters above, no additional increment needed
+                for (let i = 0; i < numNewChars; i++) {
+                    const idx = currentIndex + i;
+                    if (idx >= wordChars.length || inputChars[idx] !== wordChars[idx]) {
+                        allCorrect = false;
                         isInErrorState = true;
+                        break;
                     }
-                    hasPendingLigature = false;
-                } else {
-                    // Check if this could be the start of a ligature candidate (if ligatures enabled)
-                    // Look ahead to see if the next two characters form a known ligature
-                    let isLigatureCandidate = false;
-                    if (useLigatures && expandedIndex < wordExpandedFinal.length - 1) {
-                        const twoChars = wordExpandedFinal[expandedIndex] + wordExpandedFinal[expandedIndex + 1];
-                        isLigatureCandidate = COMPONENT_TO_LIGATURE[twoChars] !== undefined;
-                    }
+                }
 
-                    if (expandedIndex < wordExpandedFinal.length &&
-                        inputExpandedFinal[expandedIndex] === wordExpandedFinal[expandedIndex] &&
-                        isLigatureCandidate) {
-                        // This is a potential ligature start - mark as pending, don't count yet
-                        hasPendingLigature = true;
-                    } else {
-                        // Normal character - count it now
-                        totalLettersTyped++;
-                        currentLevelLettersTyped++;
-
-                        if (expandedIndex < wordExpandedFinal.length &&
-                            inputExpandedFinal[expandedIndex] === wordExpandedFinal[expandedIndex]) {
-                            correctLetters++;
-                            currentLevelCorrectLetters++;
-                        } else {
-                            // Wrong character typed - enter error state
-                            isInErrorState = true;
-                        }
-                    }
+                if (allCorrect) {
+                    correctLetters += numNewChars;
+                    currentLevelCorrectLetters += numNewChars;
                 }
             }
 
-            // Use typingInput.value in case we replaced a ligature
+            // Update previous input for next comparison
             previousInput = typingInput.value;
             updateWordDisplay();
             updateStats();
@@ -2685,7 +2610,6 @@
             totalLettersTyped = 0;
             correctLetters = 0;
             levelStats = [];
-            hasPendingLigature = false;
 
             updateStats();
 
