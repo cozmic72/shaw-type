@@ -109,7 +109,6 @@
 
         .game-content {
             display: block;
-            position: relative;
         }
 
         .game-content.hidden {
@@ -228,18 +227,16 @@
         }
 
         .countdown-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            backdrop-filter: blur(8px);
-            background: rgba(255, 255, 255, 0.7);
-            display: flex;
+            display: none;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            z-index: 100;
-            border-radius: 12px;
+            min-height: 300px;
+            padding: 40px;
+        }
+
+        .countdown-overlay.show {
+            display: flex;
         }
 
         .countdown-content {
@@ -670,6 +667,16 @@
         <!-- Game Content -->
         <div class="game-content hidden" id="gameContent">
 
+        <!-- Countdown Screen -->
+        <div class="countdown-overlay" id="countdownOverlay">
+            <div class="countdown-content">
+                <div class="countdown-text" id="countdownText"></div>
+                <div class="countdown-instructions" id="countdownInstructions"></div>
+            </div>
+        </div>
+
+        <!-- Actual Game Elements -->
+        <div id="gameElements" class="hidden">
         <div class="word-display">
             <div class="word-carousel">
                 <div class="word-slot slot-0" id="wordSlot0"></div>
@@ -702,12 +709,7 @@
             <strong id="currentLessonName"></strong>
         </div>
 
-        <div class="countdown-overlay" id="countdownOverlay" style="display: none;">
-            <div class="countdown-content">
-                <div class="countdown-text" id="countdownText"></div>
-                <div class="countdown-instructions" id="countdownInstructions"></div>
-            </div>
-        </div>
+        </div> <!-- End gameElements -->
 
         </div> <!-- End game-content -->
     </div> <!-- End container -->
@@ -1649,6 +1651,7 @@
         // Countdown animation before starting level
         function showCountdown(callback) {
             const overlay = document.getElementById('countdownOverlay');
+            const gameElements = document.getElementById('gameElements');
             const text = document.getElementById('countdownText');
             const instructions = document.getElementById('countdownInstructions');
 
@@ -1657,7 +1660,9 @@
             const t = translations[lang];
             instructions.textContent = t.countdownInstructions;
 
-            overlay.style.display = 'flex';
+            // Show countdown, hide game elements
+            overlay.classList.add('show');
+            gameElements.classList.add('hidden');
 
             let count = 3;
             function updateCountdown() {
@@ -1671,7 +1676,9 @@
                     count--;
                     setTimeout(updateCountdown, 800);
                 } else {
-                    overlay.style.display = 'none';
+                    // Hide countdown, show game elements
+                    overlay.classList.remove('show');
+                    gameElements.classList.remove('hidden');
                     callback();
                 }
             }
@@ -1698,12 +1705,13 @@
             // Update UI - use provided type label
             document.getElementById('mainSubtitle').textContent = `${typeLabel} ${currentLevelNumber}: ${title}`;
 
-            // Initialize game first (loads words in the background)
-            initializeGame();
-
-            // Show countdown over the initialized game, then start timer and focus input
+            // Show countdown, then initialize game when countdown ends
             showCountdown(() => {
-                startTime = Date.now(); // Start the timer when countdown ends
+                // Initialize game (loads words)
+                initializeGame();
+                // Start timer
+                startTime = Date.now();
+                // Focus input
                 typingInput.focus();
             });
         }
