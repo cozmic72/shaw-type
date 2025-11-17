@@ -947,16 +947,30 @@
             COMPONENT_TO_LIGATURE[key] = compound;
         });
 
-        // Check if input matches expected word, treating ligatures as single characters
-        function matchesWord(input, expected) {
-            const inputChars = Array.from(input);
-            const expectedChars = Array.from(expected);
+        // Form ligatures in a word by replacing component pairs with ligatures
+        function formLigaturesInWord(word) {
+            let result = word;
+            let changed = true;
 
-            for (let i = 0; i < inputChars.length; i++) {
-                if (i >= expectedChars.length) return false;
-                if (inputChars[i] !== expectedChars[i]) return false;
+            // Keep trying until no more ligatures can be formed
+            while (changed) {
+                changed = false;
+                const chars = Array.from(result);
+
+                for (let i = 0; i < chars.length - 1; i++) {
+                    const pair = chars[i] + chars[i + 1];
+                    if (COMPONENT_TO_LIGATURE[pair]) {
+                        // Found a ligature - replace the pair
+                        result = chars.slice(0, i).join('') +
+                                COMPONENT_TO_LIGATURE[pair] +
+                                chars.slice(i + 2).join('');
+                        changed = true;
+                        break; // Start over after making a change
+                    }
+                }
             }
-            return true;
+
+            return result;
         }
 
 
@@ -1799,9 +1813,12 @@
                 // Disable transitions for the new slot so it appears instantly
                 slot.style.transition = 'none';
 
+                // Form ligatures in the word if enabled (for display purposes)
+                const displayWord = useLigatures ? formLigaturesInWord(newWord) : newWord;
+
                 // Update the slot's HTML content so offsetWidth is accurate
                 let html = '';
-                const wordChars = Array.from(newWord);
+                const wordChars = Array.from(displayWord);
                 for (let j = 0; j < wordChars.length; j++) {
                     html += `<span class="char">${wordChars[j]}</span>`;
                 }
@@ -1840,12 +1857,18 @@
             // Get current word from carousel
             currentWord = words[carouselOffset];
 
+            // If ligatures are enabled, form them in the expected word
+            if (useLigatures) {
+                currentWord = formLigaturesInWord(currentWord);
+            }
+
             // Append space to currentWord if it's not the last word of the level
             if (!isLastWordOfLevel) {
                 currentWord = currentWord + ' ';
-                // Store it back in the array so prev word will have the space
-                words[carouselOffset] = currentWord;
             }
+
+            // Store the processed word back (with ligatures if enabled, and space if needed)
+            words[carouselOffset] = currentWord;
 
             typingInput.value = '';
             previousInput = '';
@@ -1919,14 +1942,15 @@
                 } else if (posOffset === 1) {
                     // Next word
                     slot.classList.add('pos-next');
+                    const displayWord = (useLigatures && word) ? formLigaturesInWord(word) : (word || '');
                     let html = '';
-                    const wordChars = Array.from(word || '');
+                    const wordChars = Array.from(displayWord);
                     for (let j = 0; j < wordChars.length; j++) {
                         html += `<span class="char">${wordChars[j]}</span>`;
                     }
                     slot.innerHTML = html;
                 } else if (posOffset === 3) {
-                    // Previous word
+                    // Previous word (already has ligatures formed when it was current)
                     slot.classList.add('pos-prev');
                     let html = '';
                     const wordChars = Array.from(word || '');
