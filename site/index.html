@@ -1931,19 +1931,11 @@
                             // User has typed this position
                             if (inputChars[j] === char) {
                                 className = 'correct';
+                            } else if (previousWasLigatureStart && j === inputChars.length - 1) {
+                                // Waiting for ligature completion - don't mark as wrong yet
+                                className = '';
                             } else {
-                                // Check if this is a ligature we're waiting to complete
-                                const isLigatureInProgress = previousWasLigatureStart &&
-                                    j === inputChars.length - 1 &&
-                                    LIGATURES[char] &&
-                                    LIGATURES[char][0] === inputChars[j];
-
-                                if (isLigatureInProgress) {
-                                    // Don't mark as incorrect - ligature in progress, waiting for completion
-                                    className = '';
-                                } else {
-                                    className = 'incorrect';
-                                }
+                                className = 'incorrect';
                             }
                         }
                         // else: not typed yet, no className
