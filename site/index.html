@@ -1630,10 +1630,15 @@
         }
 
         // Countdown animation before starting level
-        function showCountdown(callback) {
+        function showCountdown(wordPool, wordCount, type, title, typeLabel, completionCallback) {
             const overlay = document.getElementById('countdownOverlay');
             const gameElements = document.getElementById('gameElements');
             const text = document.getElementById('countdownText');
+
+            // Set instructions in subtitle
+            const lang = useShavianUI ? 'shavian' : 'latin';
+            const t = translations[lang];
+            document.getElementById('mainSubtitle').textContent = t.countdownInstructions;
 
             // Show countdown, hide game elements
             overlay.classList.add('show');
@@ -1654,7 +1659,8 @@
                     // Hide countdown, show game elements
                     overlay.classList.remove('show');
                     gameElements.classList.remove('hidden');
-                    callback();
+                    // Call startLevel with the parameters
+                    startLevel(wordPool, wordCount, type, title, typeLabel, completionCallback);
                 }
             }
 
@@ -1677,33 +1683,17 @@
             currentLevelCorrectLetters = 0;
             recentWords = [];
 
-            // Set instructions in subtitle initially
-            const lang = useShavianUI ? 'shavian' : 'latin';
-            const t = translations[lang];
-            document.getElementById('mainSubtitle').textContent = t.countdownInstructions;
+            // Make sure gameElements is visible
+            document.getElementById('gameElements').classList.remove('hidden');
 
-            // Only show countdown for play mode (levels), not practice mode (lessons)
-            if (type === 'level') {
-                // Show countdown, then initialize game when countdown ends
-                showCountdown(() => {
-                    // Initialize game (loads words)
-                    initializeGame();
-                    // Start timer
-                    startTime = Date.now();
-                    // Focus input
-                    typingInput.focus();
-                });
-            } else {
-                // Practice mode: no countdown, just initialize immediately
-                // Make sure gameElements is visible
-                document.getElementById('gameElements').classList.remove('hidden');
-                // Initialize game (loads words)
-                initializeGame();
-                // Start timer
-                startTime = Date.now();
-                // Focus input
-                typingInput.focus();
-            }
+            // Initialize game (loads words)
+            initializeGame();
+
+            // Start timer
+            startTime = Date.now();
+
+            // Focus input
+            typingInput.focus();
         }
 
         function pickRandomWord() {
@@ -2033,38 +2023,20 @@
 
             console.log(`[transitionToNextLevel] nextLevelData is ${nextLevelData ? 'not null' : 'null'}`);
             if (nextLevelData) {
-                // Animate carousel out
-                const carousel = document.querySelector('.word-carousel');
-                carousel.style.transition = 'transform 0.5s ease, opacity 0.5s ease';
-                carousel.style.transform = 'translateX(-100px)';
-                carousel.style.opacity = '0';
+                // Start new level with new words
+                const lang = useShavianUI ? 'shavian' : 'latin';
+                const t = translations[lang];
+                const type = currentMode === 'learn' ? 'lesson' : 'level';
+                const typeLabel = type === 'lesson' ? t.lesson_label : t.level_label;
 
-                setTimeout(() => {
-                    // Start new level with new words
-                    const lang = useShavianUI ? 'shavian' : 'latin';
-                    const t = translations[lang];
-                    const type = currentMode === 'learn' ? 'lesson' : 'level';
-                    const typeLabel = type === 'lesson' ? t.lesson_label : t.level_label;
+                if (type === 'level') {
+                    // Play mode: show countdown before starting
+                    showCountdown(nextLevelData.wordPool, nextLevelData.wordCount, type, nextLevelData.title, typeLabel, currentLevelCompletionCallback);
+                } else {
+                    // Practice mode: set instructions and start directly
+                    document.getElementById('mainSubtitle').textContent = t.countdownInstructions;
                     startLevel(nextLevelData.wordPool, nextLevelData.wordCount, type, nextLevelData.title, typeLabel, currentLevelCompletionCallback);
-
-                    // Animate in from right
-                    carousel.style.transition = 'none';
-                    carousel.style.transform = 'translateX(100px)';
-                    carousel.style.opacity = '0';
-                    carousel.offsetHeight; // Force reflow
-
-                    carousel.style.transition = 'transform 0.5s ease, opacity 0.5s ease';
-                    carousel.style.transform = 'translateX(0)';
-                    carousel.style.opacity = '1';
-
-                    setTimeout(() => {
-                        carousel.style.transition = '';
-                        carousel.style.transform = '';
-                        carousel.style.opacity = '';
-                    }, 500);
-
-                    typingInput.focus();
-                }, 500);
+                }
             } else {
                 // No more levels/lessons - show completion modal
                 console.log('[transitionToNextLevel] Calling showCompletionModal');
@@ -2215,17 +2187,18 @@
 
             if (currentMode === 'play') {
                 const levelData = getPlayLevelData(1);
-                startLevel(levelData.wordPool, levelData.wordCount, 'level', levelData.title, t.level_label, null);
+                showCountdown(levelData.wordPool, levelData.wordCount, 'level', levelData.title, t.level_label, null);
             } else {
                 // In learn mode, use the selected lesson
+                // Set instructions in subtitle
+                document.getElementById('mainSubtitle').textContent = t.countdownInstructions;
+
                 const levelData = getLearnLessonData(parseInt(selectedLevel));
                 if (levelData) {
                     currentLevelNumber = parseInt(selectedLevel);
                     startLevel(levelData.wordPool, levelData.wordCount, 'lesson', levelData.title, t.lesson_label, showLessonCompletionDialog);
                 }
             }
-
-            typingInput.focus();
         }
 
         function continueLesson() {
@@ -2623,13 +2596,15 @@
             // Start the selected lesson
             const lang = useShavianUI ? 'shavian' : 'latin';
             const t = translations[lang];
+
+            // Set instructions in subtitle
+            document.getElementById('mainSubtitle').textContent = t.countdownInstructions;
+
             const levelData = getLearnLessonData(parseInt(level));
             if (levelData) {
                 currentLevelNumber = parseInt(level);
                 startLevel(levelData.wordPool, levelData.wordCount, 'lesson', levelData.title, t.lesson_label, showLessonCompletionDialog);
             }
-
-            typingInput.focus();
         }
 
         function closeLessonModal() {
