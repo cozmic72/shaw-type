@@ -1698,14 +1698,11 @@
             // Update UI - use provided type label
             document.getElementById('mainSubtitle').textContent = `${typeLabel} ${currentLevelNumber}: ${title}`;
 
-            // Clear any existing words from previous level
-            wordSlots.forEach(slot => {
-                slot.innerHTML = '';
-            });
+            // Initialize game first (loads words in the background)
+            initializeGame();
 
-            // Show countdown before initializing
+            // Show countdown over the initialized game, then just focus input when done
             showCountdown(() => {
-                initializeGame();
                 typingInput.focus();
             });
         }
@@ -1817,23 +1814,12 @@
 
         function initializeGame() {
             console.log(`[initializeGame] wordPool length: ${currentLevelWordPool.length}, wordCount: ${currentLevelWordCount}`);
-
-            // Clear all word slots immediately
-            wordSlots.forEach(slot => {
-                slot.innerHTML = '';
-                slot.style.transition = 'none';
-            });
-
             // Reset carousel completely
             words = ['', '', '', ''];
             carouselOffset = 2; // Will advance to 3, then 0
-
-            // Use setTimeout to ensure visual reset completes before loading words
-            setTimeout(() => {
-                // Run the cycle twice to load first two words
-                loadNewWord(); // Loads first word, advances to offset 3
-                loadNewWord(); // Loads second word, advances to offset 0 (current)
-            }, 50);
+            // Run the cycle twice to load first two words
+            loadNewWord(); // Loads first word, advances to offset 3
+            loadNewWord(); // Loads second word, advances to offset 0 (current)
         }
 
         function advanceToNextWord() {
