@@ -2383,46 +2383,40 @@
                     isInErrorState = true;
                 }
             } else if (inputChars.length > prevInputChars.length) {
-                // User typed new character(s) - normal case
+                // User typed new character(s)
                 const numNewChars = inputChars.length - prevInputChars.length;
                 const currentIndex = prevInputChars.length;
 
-                // Check if this is the first component of a ligature
-                if (useLigatures && numNewChars === 1 && currentIndex < wordChars.length) {
+                // Check if this is the first component of a ligature (and we should wait)
+                if (useLigatures && currentIndex < wordChars.length) {
                     const expectedChar = wordChars[currentIndex];
                     const typedChar = inputChars[currentIndex];
                     if (LIGATURES[expectedChar] && LIGATURES[expectedChar][0] === typedChar) {
-                        // Don't count this yet - wait for ligature to complete
+                        // This could form a ligature - wait for next character
                         previousWasLigatureStart = true;
-                        // Don't set error state - still waiting
-                    } else {
-                        // Normal wrong character
-                        totalLettersTyped += numNewChars;
-                        currentLevelLettersTyped += numNewChars;
-                        previousWasLigatureStart = false;
+                        return; // Don't count yet, don't set error state
+                    }
+                }
+
+                // Not a ligature start - count it normally
+                totalLettersTyped += numNewChars;
+                currentLevelLettersTyped += numNewChars;
+                previousWasLigatureStart = false;
+
+                // Check if correct
+                let allCorrect = true;
+                for (let i = 0; i < numNewChars; i++) {
+                    const idx = currentIndex + i;
+                    if (idx >= wordChars.length || inputChars[idx] !== wordChars[idx]) {
+                        allCorrect = false;
                         isInErrorState = true;
+                        break;
                     }
-                } else {
-                    // Not a potential ligature start - count it now
-                    totalLettersTyped += numNewChars;
-                    currentLevelLettersTyped += numNewChars;
-                    previousWasLigatureStart = false;
+                }
 
-                    // Check if correct
-                    let allCorrect = true;
-                    for (let i = 0; i < numNewChars; i++) {
-                        const idx = currentIndex + i;
-                        if (idx >= wordChars.length || inputChars[idx] !== wordChars[idx]) {
-                            allCorrect = false;
-                            isInErrorState = true;
-                            break;
-                        }
-                    }
-
-                    if (allCorrect) {
-                        correctLetters += numNewChars;
-                        currentLevelCorrectLetters += numNewChars;
-                    }
+                if (allCorrect) {
+                    correctLetters += numNewChars;
+                    currentLevelCorrectLetters += numNewChars;
                 }
             }
 
