@@ -1466,7 +1466,7 @@
 
             return {
                 wordPool: pool,
-                wordCount: 5,
+                wordCount: 2, // Temporarily set to 2 for testing
                 title: title
             };
         }
@@ -1918,6 +1918,7 @@
             }
 
             // Default behavior: try to advance to next level
+            console.log(`[transitionToNextLevel] Mode: ${currentMode}, Current level: ${currentLevelNumber}`);
             let nextLevelData = null;
             if (currentMode === 'learn') {
                 const nextLessonIndex = parseInt(selectedLevel) + 1;
@@ -1928,12 +1929,17 @@
                 }
             } else {
                 const nextLevelNum = currentLevelNumber + 1;
+                console.log(`[transitionToNextLevel] Next level num: ${nextLevelNum}`);
                 if (nextLevelNum <= 6) {
                     nextLevelData = getPlayLevelData(nextLevelNum);
                     currentLevelNumber = nextLevelNum;
+                    console.log(`[transitionToNextLevel] Got next level data for level ${nextLevelNum}`);
+                } else {
+                    console.log(`[transitionToNextLevel] No more levels (${nextLevelNum} > 6)`);
                 }
             }
 
+            console.log(`[transitionToNextLevel] nextLevelData is ${nextLevelData ? 'not null' : 'null'}`);
             if (nextLevelData) {
                 // Animate carousel out
                 const carousel = document.querySelector('.word-carousel');
@@ -1969,6 +1975,7 @@
                 }, 500);
             } else {
                 // No more levels/lessons - show completion modal
+                console.log('[transitionToNextLevel] Calling showCompletionModal');
                 showCompletionModal();
             }
         }
@@ -2006,6 +2013,7 @@
         }
 
         function showCompletionModal() {
+            console.log('[showCompletionModal] Called');
             // Stats already saved in transitionToNextLevel
             const accuracy = totalLettersTyped === 0 ? 100.0 : ((correctLetters / totalLettersTyped) * 100);
             const accuracyFormatted = accuracy.toFixed(1) + '%';
@@ -2033,7 +2041,6 @@
             if (currentMode === 'learn') {
                 document.getElementById('completionTitle').textContent = 'Session Complete!';
                 document.getElementById('completionMessage').textContent = 'You completed 10 words!';
-                document.getElementById('highScoreRow').style.display = 'none';
                 document.getElementById('levelReachedRow').style.display = 'none';
                 document.getElementById('levelStatsContainer').style.display = 'none';
 
@@ -2044,16 +2051,11 @@
                 `;
             } else {
                 document.getElementById('completionTitle').textContent = 'Congratulations!';
-                document.getElementById('completionMessage').textContent = 'You completed 30 words!';
-                document.getElementById('highScoreRow').style.display = 'block';
+                document.getElementById('completionMessage').textContent = `You completed ${wordsCompleted} words!`;
                 document.getElementById('levelReachedRow').style.display = 'block';
                 document.getElementById('levelStatsContainer').style.display = 'block';
 
                 document.getElementById('finalLevel').textContent = currentLevelNumber;
-
-                // Update high score display
-                const highScoreFormatted = highScore.toFixed(1) + '%';
-                document.getElementById('finalHighScore').textContent = highScoreFormatted;
 
                 // Generate per-level stats HTML
                 const lang = useShavianUI ? 'shavian' : 'latin';
@@ -2073,11 +2075,15 @@
 
             // Update main display (time is the primary score)
             document.getElementById('finalScore').textContent = timeFormatted;
+            document.getElementById('finalScore').style.display = 'block';
 
-            // Update all stat rows
+            // Update all stat rows and show them for play mode
             document.getElementById('finalAccuracy').textContent = accuracyFormatted;
+            document.getElementById('finalAccuracy').parentElement.style.display = 'block';
             document.getElementById('finalWPM').textContent = wpm.toFixed(1);
+            document.getElementById('finalWPM').parentElement.style.display = 'block';
             document.getElementById('finalLPM').textContent = lettersPerMinute.toFixed(0);
+            document.getElementById('finalLPM').parentElement.style.display = 'block';
 
             // Show/hide best time indicator and display best time
             if (isNewBest && bestTime !== null) {
