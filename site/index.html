@@ -239,23 +239,11 @@
             display: flex;
         }
 
-        .countdown-content {
-            text-align: center;
-        }
-
         .countdown-text {
             font-size: 72px;
             font-weight: bold;
             color: #667eea;
-            margin-bottom: 20px;
             animation: countdown-pulse 0.5s ease-in-out;
-        }
-
-        .countdown-instructions {
-            font-size: 16px;
-            color: #666;
-            max-width: 300px;
-            line-height: 1.5;
         }
 
         @keyframes countdown-pulse {
@@ -632,10 +620,6 @@
             .countdown-text {
                 font-size: 48px;
             }
-
-            .countdown-instructions {
-                font-size: 14px;
-            }
         }
     </style>
 </head>
@@ -669,10 +653,7 @@
 
         <!-- Countdown Screen -->
         <div class="countdown-overlay" id="countdownOverlay">
-            <div class="countdown-content">
-                <div class="countdown-text" id="countdownText"></div>
-                <div class="countdown-instructions" id="countdownInstructions"></div>
-            </div>
+            <div class="countdown-text" id="countdownText"></div>
         </div>
 
         <!-- Actual Game Elements -->
@@ -1653,12 +1634,6 @@
             const overlay = document.getElementById('countdownOverlay');
             const gameElements = document.getElementById('gameElements');
             const text = document.getElementById('countdownText');
-            const instructions = document.getElementById('countdownInstructions');
-
-            // Set instruction text based on current language
-            const lang = useShavianUI ? 'shavian' : 'latin';
-            const t = translations[lang];
-            instructions.textContent = t.countdownInstructions;
 
             // Show countdown, hide game elements
             overlay.classList.add('show');
@@ -1702,18 +1677,33 @@
             currentLevelCorrectLetters = 0;
             recentWords = [];
 
-            // Update UI - use provided type label
-            document.getElementById('mainSubtitle').textContent = `${typeLabel} ${currentLevelNumber}: ${title}`;
+            // Set instructions in subtitle initially
+            const lang = useShavianUI ? 'shavian' : 'latin';
+            const t = translations[lang];
+            document.getElementById('mainSubtitle').textContent = t.countdownInstructions;
 
-            // Show countdown, then initialize game when countdown ends
-            showCountdown(() => {
+            // Only show countdown for play mode (levels), not practice mode (lessons)
+            if (type === 'level') {
+                // Show countdown, then initialize game when countdown ends
+                showCountdown(() => {
+                    // Initialize game (loads words)
+                    initializeGame();
+                    // Start timer
+                    startTime = Date.now();
+                    // Focus input
+                    typingInput.focus();
+                });
+            } else {
+                // Practice mode: no countdown, just initialize immediately
+                // Make sure gameElements is visible
+                document.getElementById('gameElements').classList.remove('hidden');
                 // Initialize game (loads words)
                 initializeGame();
                 // Start timer
                 startTime = Date.now();
                 // Focus input
                 typingInput.focus();
-            });
+            }
         }
 
         function pickRandomWord() {
@@ -1980,6 +1970,12 @@
                 wordsInCurrentLevel++;
                 console.log(`[checkCompletion] Word ${wordsInCurrentLevel} of level completed (total: ${wordsCompleted})`);
                 updateStats();
+
+                // After first word, update subtitle with level/lesson info
+                if (wordsCompleted === 1) {
+                    document.getElementById('mainSubtitle').textContent =
+                        `${currentLevelTypeLabel} ${currentLevelNumber}: ${currentLevelTitle}`;
+                }
 
                 // Check if level is complete
                 if (wordsInCurrentLevel === currentLevelWordCount) {
