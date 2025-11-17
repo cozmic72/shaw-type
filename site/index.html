@@ -1249,6 +1249,9 @@
 
         // UI Navigation
         function goHome() {
+            // Cancel any running countdown
+            cancelCountdown();
+
             // Hide game content and countdown, show home screen
             document.getElementById('gameContent').classList.add('hidden');
             document.getElementById('countdownScreen').classList.add('hidden');
@@ -1699,10 +1702,19 @@
             }
         }
 
+        // Countdown state
+        let countdownTimeouts = [];
+        let countdownCancelled = false;
+
         // Countdown animation before starting level
         function showCountdown(wordPool, wordCount, type, title, typeLabel, completionCallback) {
             console.log('[showCountdown] CALLED - this should NOT happen on page load!');
             console.trace(); // Show the call stack
+
+            // Clear any existing countdown
+            cancelCountdown();
+            countdownCancelled = false;
+
             const countdownScreen = document.getElementById('countdownScreen');
             const gameContent = document.getElementById('gameContent');
             const text = document.getElementById('countdownText');
@@ -1718,15 +1730,20 @@
 
             let count = 3;
             function updateCountdown() {
+                if (countdownCancelled) return; // Stop if cancelled
+
                 if (count > 0) {
                     text.textContent = count;
                     // Reset animation
                     text.style.animation = 'none';
-                    setTimeout(() => {
+                    const animTimeout = setTimeout(() => {
+                        if (countdownCancelled) return;
                         text.style.animation = 'countdown-pulse 0.5s ease-in-out';
                     }, 10);
+                    countdownTimeouts.push(animTimeout);
                     count--;
-                    setTimeout(updateCountdown, 800);
+                    const nextTimeout = setTimeout(updateCountdown, 800);
+                    countdownTimeouts.push(nextTimeout);
                 } else {
                     // Hide countdown, show game content
                     countdownScreen.classList.add('hidden');
@@ -1737,6 +1754,12 @@
             }
 
             updateCountdown();
+        }
+
+        function cancelCountdown() {
+            countdownCancelled = true;
+            countdownTimeouts.forEach(timeout => clearTimeout(timeout));
+            countdownTimeouts = [];
         }
 
         // Start a new level/lesson with given word pool, count, and metadata
