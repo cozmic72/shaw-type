@@ -2336,44 +2336,6 @@
                 return;
             }
 
-            // Expand to component characters for checking
-            const inputExpanded = expandLigatures(userInput);
-            const prevInputExpanded = expandLigatures(previousInput);
-            const wordExpanded = expandLigatures(currentWord);
-
-            // If in error state and user is trying to type more (not backspace), block it
-            // UNLESS they're completing a ligature
-            if (isInErrorState && inputExpanded.length > prevInputExpanded.length) {
-                // Check if this input would complete a ligature
-                let isCompletingLigature = false;
-                if (useLigatures) {
-                    const inputChars = Array.from(userInput);
-                    if (inputChars.length >= 2) {
-                        const lastTwo = inputChars[inputChars.length - 2] + inputChars[inputChars.length - 1];
-                        isCompletingLigature = COMPONENT_TO_LIGATURE[lastTwo] !== undefined;
-                    }
-                }
-
-                // If not completing a ligature, block the input
-                if (!isCompletingLigature) {
-                    // Revert to previous input
-                    typingInput.value = previousInput;
-
-                    // Flash the input text red as visual feedback
-                    typingInput.style.animation = 'none';
-                    setTimeout(() => {
-                        typingInput.style.animation = 'error-flash 0.4s ease-out';
-                    }, 10);
-
-                    return;
-                }
-            }
-
-            // If user backspaced, clear error state
-            if (inputExpanded.length < prevInputExpanded.length) {
-                isInErrorState = false;
-            }
-
             // Check if we can form a ligature from the last two characters (if enabled)
             if (useLigatures) {
                 const inputChars = Array.from(userInput);
@@ -2388,6 +2350,30 @@
                         console.log('Ligature formed:', lastTwo, '→', compound);
                     }
                 }
+            }
+
+            // Expand to component characters for checking
+            const inputExpanded = expandLigatures(userInput);
+            const prevInputExpanded = expandLigatures(previousInput);
+            const wordExpanded = expandLigatures(currentWord);
+
+            // If in error state and user is trying to type more (not backspace), block it
+            if (isInErrorState && inputExpanded.length > prevInputExpanded.length) {
+                // Revert to previous input
+                typingInput.value = previousInput;
+
+                // Flash the input text red as visual feedback
+                typingInput.style.animation = 'none';
+                setTimeout(() => {
+                    typingInput.style.animation = 'error-flash 0.4s ease-out';
+                }, 10);
+
+                return;
+            }
+
+            // If user backspaced, clear error state
+            if (inputExpanded.length < prevInputExpanded.length) {
+                isInErrorState = false;
             }
 
             // Re-expand after potential ligature formation
