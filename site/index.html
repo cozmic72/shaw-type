@@ -2360,17 +2360,19 @@
                 isInErrorState = false;
             }
 
-            // Check if we can form a ligature from the last two characters (always)
-            const inputChars = Array.from(userInput);
-            if (inputChars.length >= 2) {
-                const lastTwo = inputChars[inputChars.length - 2] + inputChars[inputChars.length - 1];
-                if (COMPONENT_TO_LIGATURE[lastTwo]) {
-                    // Form the ligature
-                    const beforeLigature = inputChars.slice(0, -2).join('');
-                    const compound = COMPONENT_TO_LIGATURE[lastTwo];
-                    userInput = beforeLigature + compound;
-                    typingInput.value = userInput;
-                    console.log('Ligature formed:', lastTwo, '→', compound);
+            // Check if we can form a ligature from the last two characters (if enabled)
+            if (useLigatures) {
+                const inputChars = Array.from(userInput);
+                if (inputChars.length >= 2) {
+                    const lastTwo = inputChars[inputChars.length - 2] + inputChars[inputChars.length - 1];
+                    if (COMPONENT_TO_LIGATURE[lastTwo]) {
+                        // Form the ligature
+                        const beforeLigature = inputChars.slice(0, -2).join('');
+                        const compound = COMPONENT_TO_LIGATURE[lastTwo];
+                        userInput = beforeLigature + compound;
+                        typingInput.value = userInput;
+                        console.log('Ligature formed:', lastTwo, '→', compound);
+                    }
                 }
             }
 
@@ -2410,10 +2412,10 @@
                     }
                     hasPendingLigature = false;
                 } else {
-                    // Check if this could be the start of a ligature candidate
+                    // Check if this could be the start of a ligature candidate (if ligatures enabled)
                     // Look ahead to see if the next two characters form a known ligature
                     let isLigatureCandidate = false;
-                    if (expandedIndex < wordExpandedFinal.length - 1) {
+                    if (useLigatures && expandedIndex < wordExpandedFinal.length - 1) {
                         const twoChars = wordExpandedFinal[expandedIndex] + wordExpandedFinal[expandedIndex + 1];
                         isLigatureCandidate = COMPONENT_TO_LIGATURE[twoChars] !== undefined;
                     }
