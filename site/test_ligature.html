@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>Ligature Test</title></head>
+<body>
+<h1>Ligature Test</h1>
+<p>Expected word: <span id="expected"></span></p>
+<p>Type here: <input id="input" type="text" style="font-size:24px"></p>
+<p>Status: <span id="status"></span></p>
+<script>
+const LIGATURES = {
+    '𐑼': ['𐑩', '𐑮'], '𐑽': ['𐑾', '𐑮'], '𐑾': ['𐑦', '𐑩'], 
+    '𐑿': ['𐑘', '𐑵'], '𐑬': ['𐑬', '𐑵'], '𐑶': ['𐑴', '𐑦']
+};
+const COMPONENT_TO_LIGATURE = {};
+Object.keys(LIGATURES).forEach(compound => {
+    const [first, second] = LIGATURES[compound];
+    COMPONENT_TO_LIGATURE[first + second] = compound;
+});
+
+const expected = '𐑼 '; // ligature with space
+document.getElementById('expected').textContent = JSON.stringify(expected);
+
+const input = document.getElementById('input');
+const status = document.getElementById('status');
+
+let previousInput = '';
+
+input.addEventListener('input', (e) => {
+    let userInput = e.target.value;
+    console.log('=== Input event ===');
+    console.log('Raw input:', JSON.stringify(userInput));
+    console.log('Expected:', JSON.stringify(expected));
+    
+    // Form ligature
+    const inputChars = Array.from(userInput);
+    if (inputChars.length >= 2) {
+        const lastTwo = inputChars[inputChars.length - 2] + inputChars[inputChars.length - 1];
+        console.log('Last two:', JSON.stringify(lastTwo));
+        if (COMPONENT_TO_LIGATURE[lastTwo]) {
+            const compound = COMPONENT_TO_LIGATURE[lastTwo];
+            userInput = inputChars.slice(0, -2).join('') + compound;
+            input.value = userInput;
+            console.log('Ligature formed! New input:', JSON.stringify(userInput));
+        }
+    }
+    
+    console.log('previousInput:', JSON.stringify(previousInput));
+    console.log('currentInput:', JSON.stringify(userInput));
+    console.log('Match?', userInput === expected);
+    
+    status.textContent = userInput === expected ? 'MATCH!' : 'No match';
+    previousInput = userInput;
+});
+</script>
+</body>
+</html>

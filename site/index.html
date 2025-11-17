@@ -1931,7 +1931,17 @@
                             if (inputChars[j] === char) {
                                 className = 'correct';
                             } else {
-                                className = 'incorrect';
+                                // Check if this could be ligature in progress
+                                const isLigatureInProgress = useLigatures &&
+                                    LIGATURES[char] &&
+                                    LIGATURES[char][0] === inputChars[j];
+
+                                if (isLigatureInProgress) {
+                                    // Don't mark as incorrect - ligature in progress
+                                    className = '';
+                                } else {
+                                    className = 'incorrect';
+                                }
                             }
                         }
                         // else: not typed yet, no className
@@ -2297,6 +2307,11 @@
         typingInput.addEventListener('input', (e) => {
             let userInput = e.target.value;
 
+            console.log('=== INPUT EVENT ===');
+            console.log('Raw input:', JSON.stringify(userInput));
+            console.log('Previous:', JSON.stringify(previousInput));
+            console.log('Expected:', JSON.stringify(currentWord));
+
             // Ignore leading spaces at the start of the level
             if (previousInput === '' && userInput.trim() === '') {
                 typingInput.value = '';
@@ -2312,6 +2327,7 @@
                 const inputChars = Array.from(userInput);
                 if (inputChars.length >= 2) {
                     const lastTwo = inputChars[inputChars.length - 2] + inputChars[inputChars.length - 1];
+                    console.log('Checking last two:', JSON.stringify(lastTwo));
                     if (COMPONENT_TO_LIGATURE[lastTwo]) {
                         // Form the ligature
                         const beforeLigature = inputChars.slice(0, -2).join('');
@@ -2320,7 +2336,8 @@
                         userInput = beforeLigature + compound;
                         typingInput.value = userInput;
                         ligatureFormed = true;
-                        console.log('Ligature formed:', lastTwo, '→', compound, 'at position', ligaturePosition);
+                        console.log('✓ Ligature formed:', lastTwo, '→', compound, 'at position', ligaturePosition);
+                        console.log('New input:', JSON.stringify(userInput));
                     }
                 }
             }
@@ -2353,6 +2370,7 @@
             // Track accuracy for newly typed characters
             if (ligatureFormed) {
                 // Ligature just formed - treat as completing one character
+                console.log('→ Ligature tracking: position=' + ligaturePosition + ', char=' + JSON.stringify(inputChars[ligaturePosition]) + ', expected=' + JSON.stringify(wordChars[ligaturePosition]));
                 totalLettersTyped++;
                 currentLevelLettersTyped++;
 
@@ -2362,8 +2380,10 @@
                     correctLetters++;
                     currentLevelCorrectLetters++;
                     isInErrorState = false; // Clear error state on successful ligature
+                    console.log('✓ Ligature correct! Total:', totalLettersTyped, 'Correct:', correctLetters);
                 } else {
                     isInErrorState = true;
+                    console.log('✗ Ligature incorrect!');
                 }
             } else if (inputChars.length > prevInputChars.length) {
                 // User typed new character(s) - normal case
@@ -2384,7 +2404,7 @@
                 if (isLigatureStart) {
                     // Don't count this yet - wait for ligature to complete
                     // Don't set error state either
-                    console.log('Ligature start detected, waiting for completion');
+                    console.log('→ Ligature start detected, waiting for completion');
                 } else {
                     // Count it now
                     totalLettersTyped += numNewChars;
@@ -2406,7 +2426,10 @@
                         correctLetters += numNewChars;
                         currentLevelCorrectLetters += numNewChars;
                     }
+                    console.log('→ Normal char: Total:', totalLettersTyped, 'Correct:', correctLetters);
                 }
+            } else {
+                console.log('→ No change in length (backspace or ligature formed with same length)');
             }
 
             // Update previous input for next comparison
