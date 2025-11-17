@@ -109,6 +109,7 @@
 
         .game-content {
             display: block;
+            position: relative;
         }
 
         .game-content.hidden {
@@ -227,23 +228,37 @@
         }
 
         .countdown-overlay {
-            position: fixed;
+            position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+            background: rgba(255, 255, 255, 0.7);
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 1000;
+            z-index: 100;
+            border-radius: 12px;
+        }
+
+        .countdown-content {
+            text-align: center;
         }
 
         .countdown-text {
-            font-size: 120px;
+            font-size: 72px;
             font-weight: bold;
             color: #667eea;
+            margin-bottom: 20px;
             animation: countdown-pulse 0.5s ease-in-out;
+        }
+
+        .countdown-instructions {
+            font-size: 16px;
+            color: #666;
+            max-width: 300px;
+            line-height: 1.5;
         }
 
         @keyframes countdown-pulse {
@@ -618,7 +633,11 @@
             }
 
             .countdown-text {
-                font-size: 80px;
+                font-size: 48px;
+            }
+
+            .countdown-instructions {
+                font-size: 14px;
             }
         }
     </style>
@@ -684,7 +703,10 @@
         </div>
 
         <div class="countdown-overlay" id="countdownOverlay" style="display: none;">
-            <div class="countdown-text" id="countdownText"></div>
+            <div class="countdown-content">
+                <div class="countdown-text" id="countdownText"></div>
+                <div class="countdown-instructions" id="countdownInstructions"></div>
+            </div>
         </div>
 
         </div> <!-- End game-content -->
@@ -978,6 +1000,7 @@
                 level_label: 'Level',
                 words: 'Words',
                 accuracy: 'Accuracy',
+                countdownInstructions: 'Type the words shown, tap the spacebar to move to the next word.',
                 // Lesson names - Imperial
                 lessonHomeRowCenter: 'Home Row Center',
                 lessonFullHomeRow: 'Full Home Row',
@@ -1091,6 +1114,7 @@
                 level_label: '𐑤𐑧𐑝𐑩𐑤',
                 words: '𐑢𐑻𐑛𐑟',
                 accuracy: '𐑨𐑒𐑘𐑫𐑮𐑩𐑕𐑦',
+                countdownInstructions: '𐑑𐑲𐑐 𐑞 𐑢𐑻𐑛𐑟 𐑖𐑴𐑯, 𐑑𐑨𐑐 𐑞 𐑕𐑐𐑱𐑕𐑚𐑸 𐑑 𐑥𐑵𐑝 𐑑 𐑞 𐑯𐑧𐑒𐑕𐑑 𐑢𐑻𐑛.',
                 // Lesson names - Imperial
                 lessonHomeRowCenter: '𐑣𐑴𐑥 𐑮𐑴 𐑕𐑧𐑯𐑑𐑼',
                 lessonFullHomeRow: '𐑓𐑫𐑤 𐑣𐑴𐑥 𐑮𐑴',
@@ -1626,6 +1650,12 @@
         function showCountdown(callback) {
             const overlay = document.getElementById('countdownOverlay');
             const text = document.getElementById('countdownText');
+            const instructions = document.getElementById('countdownInstructions');
+
+            // Set instruction text based on current language
+            const lang = useShavianUI ? 'shavian' : 'latin';
+            const t = translations[lang];
+            instructions.textContent = t.countdownInstructions;
 
             overlay.style.display = 'flex';
 
