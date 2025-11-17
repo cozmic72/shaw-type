@@ -62,20 +62,39 @@
             font-weight: 600;
         }
 
-        dl {
-            margin-bottom: 1.5em;
+        details {
+            margin-bottom: 0.75em;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 0.5em;
         }
 
-        dt {
+        summary {
             font-weight: 600;
             color: #667eea;
-            margin-top: 1em;
+            cursor: pointer;
+            padding: 0.5em;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+            user-select: none;
+        }
+
+        summary:hover {
+            background-color: #f0f0ff;
+        }
+
+        summary::marker {
+            color: #667eea;
+        }
+
+        details[open] summary {
             margin-bottom: 0.5em;
         }
 
-        dd {
-            margin-left: 0;
-            margin-bottom: 1em;
+        details > ul {
+            margin-left: 2em;
+            margin-top: 0.5em;
+            margin-bottom: 0.5em;
         }
 
         ul {
@@ -490,6 +509,8 @@
             border-radius: 20px;
             max-width: 500px;
             width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
             animation: slideIn 0.3s ease;
         }
 
