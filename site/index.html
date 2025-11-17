@@ -982,7 +982,7 @@
                 level_label: 'Level',
                 words: 'Words',
                 accuracy: 'Accuracy',
-                countdownInstructions: 'Type the words shown - hit space between words.',
+                gameInstructions: 'Type the words shown - hit space between words.',
                 // Lesson names - Imperial
                 lessonHomeRowCenter: 'Home Row Center',
                 lessonFullHomeRow: 'Full Home Row',
@@ -1096,7 +1096,7 @@
                 level_label: '𐑤𐑧𐑝𐑩𐑤',
                 words: '𐑢𐑻𐑛𐑟',
                 accuracy: '𐑨𐑒𐑘𐑫𐑮𐑩𐑕𐑦',
-                countdownInstructions: '𐑑𐑲𐑐 𐑞 𐑢𐑻𐑛𐑟 𐑖𐑴𐑯 - 𐑣𐑦𐑑 𐑕𐑐𐑱𐑕 𐑚𐑦𐑑𐑢𐑰𐑯 𐑢𐑻𐑛𐑟.',
+                gameInstructions: '𐑑𐑲𐑐 𐑞 𐑢𐑻𐑛𐑟 𐑖𐑴𐑯 - 𐑣𐑦𐑑 𐑕𐑐𐑱𐑕 𐑚𐑦𐑑𐑢𐑰𐑯 𐑢𐑻𐑛𐑟.',
                 // Lesson names - Imperial
                 lessonHomeRowCenter: '𐑣𐑴𐑥 𐑮𐑴 𐑕𐑧𐑯𐑑𐑼',
                 lessonFullHomeRow: '𐑓𐑫𐑤 𐑣𐑴𐑥 𐑮𐑴',
@@ -1685,7 +1685,7 @@
             // Set instructions in subtitle
             const lang = useShavianUI ? 'shavian' : 'latin';
             const t = translations[lang];
-            document.getElementById('mainSubtitle').textContent = t.countdownInstructions;
+            document.getElementById('mainSubtitle').textContent = t.gameInstructions;
 
             // Show countdown, hide game content
             countdownScreen.classList.remove('hidden');
@@ -2075,7 +2075,7 @@
 
                 // Set instructions in subtitle for practice mode
                 if (type === 'lesson') {
-                    document.getElementById('mainSubtitle').textContent = t.countdownInstructions;
+                    document.getElementById('mainSubtitle').textContent = t.gameInstructions;
                 }
 
                 // Just start the level directly (both play and practice)
@@ -2231,12 +2231,12 @@
             if (currentMode === 'play') {
                 const levelData = getPlayLevelData(1);
                 // Set instructions in subtitle
-                document.getElementById('mainSubtitle').textContent = t.countdownInstructions;
+                document.getElementById('mainSubtitle').textContent = t.gameInstructions;
                 startLevel(levelData.wordPool, levelData.wordCount, 'level', levelData.title, t.level_label, null);
             } else {
                 // In learn mode, use the selected lesson
                 // Set instructions in subtitle
-                document.getElementById('mainSubtitle').textContent = t.countdownInstructions;
+                document.getElementById('mainSubtitle').textContent = t.gameInstructions;
 
                 const levelData = getLearnLessonData(parseInt(selectedLevel));
                 if (levelData) {
@@ -2643,7 +2643,7 @@
             const t = translations[lang];
 
             // Set instructions in subtitle
-            document.getElementById('mainSubtitle').textContent = t.countdownInstructions;
+            document.getElementById('mainSubtitle').textContent = t.gameInstructions;
 
             const levelData = getLearnLessonData(parseInt(level));
             if (levelData) {
