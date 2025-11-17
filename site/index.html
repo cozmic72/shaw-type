@@ -2025,20 +2025,19 @@
 
             console.log(`[transitionToNextLevel] nextLevelData is ${nextLevelData ? 'not null' : 'null'}`);
             if (nextLevelData) {
-                // Start new level with new words
+                // Start new level with new words (no countdown between levels!)
                 const lang = useShavianUI ? 'shavian' : 'latin';
                 const t = translations[lang];
                 const type = currentMode === 'learn' ? 'lesson' : 'level';
                 const typeLabel = type === 'lesson' ? t.lesson_label : t.level_label;
 
-                if (type === 'level') {
-                    // Play mode: show countdown before starting
-                    showCountdown(nextLevelData.wordPool, nextLevelData.wordCount, type, nextLevelData.title, typeLabel, currentLevelCompletionCallback);
-                } else {
-                    // Practice mode: set instructions and start directly
+                // Set instructions in subtitle for practice mode
+                if (type === 'lesson') {
                     document.getElementById('mainSubtitle').textContent = t.countdownInstructions;
-                    startLevel(nextLevelData.wordPool, nextLevelData.wordCount, type, nextLevelData.title, typeLabel, currentLevelCompletionCallback);
                 }
+
+                // Just start the level directly (both play and practice)
+                startLevel(nextLevelData.wordPool, nextLevelData.wordCount, type, nextLevelData.title, typeLabel, currentLevelCompletionCallback);
             } else {
                 // No more levels/lessons - show completion modal
                 console.log('[transitionToNextLevel] Calling showCompletionModal');
