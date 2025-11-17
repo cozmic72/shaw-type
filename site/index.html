@@ -1253,7 +1253,18 @@
             document.getElementById('homeScreen').classList.add('hidden');
             document.getElementById('backBtn').classList.remove('hidden');
 
-            // Update subtitle to show level
+            // Reset all stats
+            wordsCompleted = 0;
+            totalLettersTyped = 0;
+            correctLetters = 0;
+            currentLevelNumber = 1;
+            recentWords = [];
+            levelStats = [];
+            hasPendingLigature = false;
+
+            // Update display
+            updateStats();
+            updateLevel();
             updateSubtitleForGame();
 
             // Show/hide lesson info
@@ -1262,8 +1273,39 @@
             // Update UI language
             updateUILanguage();
 
-            // Reset and start (will show countdown, then game)
-            resetPractice();
+            // Show countdown, then start game
+            const lang = useShavianUI ? 'shavian' : 'latin';
+            const t = translations[lang];
+            const levelData = getPlayLevelData(1);
+            showCountdown(levelData.wordPool, levelData.wordCount, 'level', levelData.title, t.level_label, null);
+        }
+
+        function playAgain() {
+            // Hide completion modal
+            document.getElementById('completionModal').style.display = 'none';
+
+            // Reset all stats
+            wordsCompleted = 0;
+            totalLettersTyped = 0;
+            correctLetters = 0;
+            currentLevelNumber = 1;
+            recentWords = [];
+            levelStats = [];
+            hasPendingLigature = false;
+
+            // Update display
+            updateStats();
+            updateLevel();
+            updateSubtitleForGame();
+
+            // Show/hide lesson info
+            document.getElementById('currentLessonInfo').style.display = 'none';
+
+            // Show countdown, then start game
+            const lang = useShavianUI ? 'shavian' : 'latin';
+            const t = translations[lang];
+            const levelData = getPlayLevelData(1);
+            showCountdown(levelData.wordPool, levelData.wordCount, 'level', levelData.title, t.level_label, null);
         }
 
         function startPractice() {
@@ -2134,7 +2176,7 @@
                 document.getElementById('levelStatsContainer').innerHTML = levelStatsHTML;
 
                 document.getElementById('completionButtons').innerHTML = `
-                    <button onclick="resetPractice()">Play Again</button>
+                    <button onclick="playAgain()">Play Again</button>
                 `;
             }
 
@@ -2188,7 +2230,9 @@
 
             if (currentMode === 'play') {
                 const levelData = getPlayLevelData(1);
-                showCountdown(levelData.wordPool, levelData.wordCount, 'level', levelData.title, t.level_label, null);
+                // Set instructions in subtitle
+                document.getElementById('mainSubtitle').textContent = t.countdownInstructions;
+                startLevel(levelData.wordPool, levelData.wordCount, 'level', levelData.title, t.level_label, null);
             } else {
                 // In learn mode, use the selected lesson
                 // Set instructions in subtitle
