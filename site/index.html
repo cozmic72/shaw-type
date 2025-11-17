@@ -2388,35 +2388,35 @@
                 const currentIndex = prevInputChars.length;
 
                 // Check if this is the first component of a ligature (and we should wait)
-                if (useLigatures && currentIndex < wordChars.length) {
-                    const expectedChar = wordChars[currentIndex];
-                    const typedChar = inputChars[currentIndex];
-                    if (LIGATURES[expectedChar] && LIGATURES[expectedChar][0] === typedChar) {
-                        // This could form a ligature - wait for next character
-                        previousWasLigatureStart = true;
-                        return; // Don't count yet, don't set error state
+                const isLigatureStartChar = useLigatures && currentIndex < wordChars.length &&
+                    LIGATURES[wordChars[currentIndex]] &&
+                    LIGATURES[wordChars[currentIndex]][0] === inputChars[currentIndex];
+
+                if (isLigatureStartChar) {
+                    // This could form a ligature - wait for next character
+                    previousWasLigatureStart = true;
+                    // Don't count yet, don't set error state
+                } else {
+                    // Not a ligature start - count it normally
+                    totalLettersTyped += numNewChars;
+                    currentLevelLettersTyped += numNewChars;
+                    previousWasLigatureStart = false;
+
+                    // Check if correct
+                    let allCorrect = true;
+                    for (let i = 0; i < numNewChars; i++) {
+                        const idx = currentIndex + i;
+                        if (idx >= wordChars.length || inputChars[idx] !== wordChars[idx]) {
+                            allCorrect = false;
+                            isInErrorState = true;
+                            break;
+                        }
                     }
-                }
 
-                // Not a ligature start - count it normally
-                totalLettersTyped += numNewChars;
-                currentLevelLettersTyped += numNewChars;
-                previousWasLigatureStart = false;
-
-                // Check if correct
-                let allCorrect = true;
-                for (let i = 0; i < numNewChars; i++) {
-                    const idx = currentIndex + i;
-                    if (idx >= wordChars.length || inputChars[idx] !== wordChars[idx]) {
-                        allCorrect = false;
-                        isInErrorState = true;
-                        break;
+                    if (allCorrect) {
+                        correctLetters += numNewChars;
+                        currentLevelCorrectLetters += numNewChars;
                     }
-                }
-
-                if (allCorrect) {
-                    correctLetters += numNewChars;
-                    currentLevelCorrectLetters += numNewChars;
                 }
             }
 
