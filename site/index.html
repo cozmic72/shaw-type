@@ -2337,6 +2337,7 @@
             }
 
             // Check if we can form a ligature from the last two characters (if enabled)
+            let ligatureFormed = false;
             if (useLigatures) {
                 const inputChars = Array.from(userInput);
                 if (inputChars.length >= 2) {
@@ -2347,6 +2348,7 @@
                         const compound = COMPONENT_TO_LIGATURE[lastTwo];
                         userInput = beforeLigature + compound;
                         typingInput.value = userInput;
+                        ligatureFormed = true;
                         console.log('Ligature formed:', lastTwo, '→', compound);
                     }
                 }
@@ -2358,7 +2360,8 @@
             const wordExpanded = expandLigatures(currentWord);
 
             // If in error state and user is trying to type more (not backspace), block it
-            if (isInErrorState && inputExpanded.length > prevInputExpanded.length) {
+            // Allow ligature completion to proceed
+            if (isInErrorState && inputExpanded.length > prevInputExpanded.length && !ligatureFormed) {
                 // Revert to previous input
                 typingInput.value = previousInput;
 
