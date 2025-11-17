@@ -226,11 +226,38 @@
             font-weight: bold;
         }
 
-        .instructions {
-            text-align: center;
-            color: #666;
-            font-size: 14px;
-            margin-top: 20px;
+        .countdown-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .countdown-text {
+            font-size: 120px;
+            font-weight: bold;
+            color: #667eea;
+            animation: countdown-pulse 0.5s ease-in-out;
+        }
+
+        @keyframes countdown-pulse {
+            0% {
+                transform: scale(0.5);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
         }
 
         .completion-modal {
@@ -590,9 +617,8 @@
                 margin-bottom: 15px;
             }
 
-            .instructions {
-                font-size: 13px;
-                margin-top: 15px;
+            .countdown-text {
+                font-size: 80px;
             }
         }
     </style>
@@ -657,8 +683,8 @@
             <strong id="currentLessonName"></strong>
         </div>
 
-        <div class="instructions">
-            Type the word shown above. Press Enter or Space to move to the next word.
+        <div class="countdown-overlay" id="countdownOverlay" style="display: none;">
+            <div class="countdown-text" id="countdownText"></div>
         </div>
 
         </div> <!-- End game-content -->
@@ -979,7 +1005,6 @@
                 lessonLowerExploration: 'Lower Exploration',
                 lessonShiftIntroduction: 'Shift Introduction',
                 lessonMasterTypist: 'Master Typist',
-                instructions: 'Type the word shown above. Press Enter or Space to move to the next word.',
                 congratulations: 'Congratulations!',
                 completed30: 'You completed 30 words!',
                 wpm: 'WPM:',
@@ -1093,7 +1118,6 @@
                 lessonLowerExploration: '𐑤𐑴𐑼 𐑧𐑒𐑕𐑐𐑤𐑼𐑱𐑖𐑩𐑯',
                 lessonShiftIntroduction: '𐑖𐑦𐑓𐑑 𐑦𐑯𐑑𐑮𐑩𐑛𐑳𐑒𐑖𐑩𐑯',
                 lessonMasterTypist: '𐑥𐑭𐑕𐑑𐑼 𐑑𐑲𐑐𐑦𐑕𐑑',
-                instructions: '𐑑𐑲𐑐 𐑞 𐑢𐑻𐑛 𐑖𐑴𐑯 𐑩𐑚𐑳𐑝. 𐑐𐑮𐑧𐑕 𐑧𐑯𐑑𐑼 𐑹 𐑕𐑐𐑱𐑕 𐑑 𐑥𐑵𐑝 𐑑 𐑞 𐑯𐑧𐑒𐑕𐑑 𐑢𐑻𐑛.',
                 congratulations: '𐑒𐑩𐑙𐑜𐑮𐑨𐑗𐑫𐑤𐑱𐑖𐑩𐑯𐑟!',
                 completed30: '𐑿 𐑒𐑩𐑥𐑐𐑤𐑰𐑑𐑩𐑛 30 𐑢𐑻𐑛𐑟!',
                 wpm: '𐑢𐑻𐑛𐑟 𐑐𐑻 𐑥𐑦𐑯𐑦𐑑:',
@@ -1598,6 +1622,33 @@
             }
         }
 
+        // Countdown animation before starting level
+        function showCountdown(callback) {
+            const overlay = document.getElementById('countdownOverlay');
+            const text = document.getElementById('countdownText');
+
+            overlay.style.display = 'flex';
+
+            let count = 3;
+            function updateCountdown() {
+                if (count > 0) {
+                    text.textContent = count;
+                    // Reset animation
+                    text.style.animation = 'none';
+                    setTimeout(() => {
+                        text.style.animation = 'countdown-pulse 0.5s ease-in-out';
+                    }, 10);
+                    count--;
+                    setTimeout(updateCountdown, 800);
+                } else {
+                    overlay.style.display = 'none';
+                    callback();
+                }
+            }
+
+            updateCountdown();
+        }
+
         // Start a new level/lesson with given word pool, count, and metadata
         function startLevel(wordPool, wordCount, type, title, typeLabel, completionCallback) {
             console.log(`[startLevel] Starting ${type}: "${title}" (${wordCount} words from pool of ${wordPool.length})`);
@@ -1617,8 +1668,11 @@
             // Update UI - use provided type label
             document.getElementById('mainSubtitle').textContent = `${typeLabel} ${currentLevelNumber}: ${title}`;
 
-            // Initialize game with new words
-            initializeGame();
+            // Show countdown before initializing
+            showCountdown(() => {
+                initializeGame();
+                typingInput.focus();
+            });
         }
 
         function pickRandomWord() {
@@ -1720,6 +1774,7 @@
             typingInput.value = '';
             previousInput = '';
             hasPendingLigature = false;
+            isInErrorState = false;
             updateWordDisplay();
 
             updateLevel();
@@ -2176,9 +2231,33 @@
         // Event listeners
         let previousInput = '';
         let hasPendingLigature = false; // Track if last character was a ligature candidate
+        let isInErrorState = false; // Track if last typed character was incorrect
 
         typingInput.addEventListener('input', (e) => {
             let userInput = e.target.value;
+
+            // Ignore leading spaces at the start of the level
+            if (previousInput === '' && userInput.trim() === '') {
+                typingInput.value = '';
+                return;
+            }
+
+            // Expand to component characters for checking
+            const inputExpanded = expandLigatures(userInput);
+            const prevInputExpanded = expandLigatures(previousInput);
+            const wordExpanded = expandLigatures(currentWord);
+
+            // If in error state and user is trying to type more (not backspace), block it
+            if (isInErrorState && inputExpanded.length > prevInputExpanded.length) {
+                // Revert to previous input
+                typingInput.value = previousInput;
+                return;
+            }
+
+            // If user backspaced, clear error state
+            if (inputExpanded.length < prevInputExpanded.length) {
+                isInErrorState = false;
+            }
 
             // Check if we can form a ligature from the last two characters (always)
             const inputChars = Array.from(userInput);
@@ -2194,13 +2273,12 @@
                 }
             }
 
-            // Expand to component characters for accurate tracking
-            const inputExpanded = expandLigatures(userInput);
-            const prevInputExpanded = expandLigatures(previousInput);
-            const wordExpanded = expandLigatures(currentWord);
+            // Re-expand after potential ligature formation
+            const inputExpandedFinal = expandLigatures(userInput);
+            const wordExpandedFinal = expandLigatures(currentWord);
 
             // Handle backspace - resolve pending ligature as incorrect
-            if (inputExpanded.length < prevInputExpanded.length && hasPendingLigature) {
+            if (inputExpandedFinal.length < prevInputExpanded.length && hasPendingLigature) {
                 // User backspaced while a ligature candidate was pending - count it as wrong
                 totalLettersTyped++;
                 currentLevelLettersTyped++;
@@ -2209,7 +2287,7 @@
 
             // Track letter-level accuracy at the expanded character level
             // Only count new expanded characters typed (not backspaces)
-            if (inputExpanded.length > prevInputExpanded.length) {
+            if (inputExpandedFinal.length > prevInputExpanded.length) {
                 const expandedIndex = prevInputExpanded.length;
 
                 // Check if we're resolving a pending ligature
@@ -2219,27 +2297,28 @@
                     currentLevelLettersTyped += 2;
 
                     // Check if this completes the ligature correctly
-                    if (expandedIndex < wordExpanded.length &&
-                        inputExpanded[expandedIndex] === wordExpanded[expandedIndex]) {
+                    if (expandedIndex < wordExpandedFinal.length &&
+                        inputExpandedFinal[expandedIndex] === wordExpandedFinal[expandedIndex]) {
                         // Ligature completed correctly - count both characters as correct
                         correctLetters += 2;
                         currentLevelCorrectLetters += 2;
                     } else {
                         // Wrong continuation - the pending character was wrong
                         // Already counted 2 letters above, no additional increment needed
+                        isInErrorState = true;
                     }
                     hasPendingLigature = false;
                 } else {
                     // Check if this could be the start of a ligature candidate
                     // Look ahead to see if the next two characters form a known ligature
                     let isLigatureCandidate = false;
-                    if (expandedIndex < wordExpanded.length - 1) {
-                        const twoChars = wordExpanded[expandedIndex] + wordExpanded[expandedIndex + 1];
+                    if (expandedIndex < wordExpandedFinal.length - 1) {
+                        const twoChars = wordExpandedFinal[expandedIndex] + wordExpandedFinal[expandedIndex + 1];
                         isLigatureCandidate = COMPONENT_TO_LIGATURE[twoChars] !== undefined;
                     }
 
-                    if (expandedIndex < wordExpanded.length &&
-                        inputExpanded[expandedIndex] === wordExpanded[expandedIndex] &&
+                    if (expandedIndex < wordExpandedFinal.length &&
+                        inputExpandedFinal[expandedIndex] === wordExpandedFinal[expandedIndex] &&
                         isLigatureCandidate) {
                         // This is a potential ligature start - mark as pending, don't count yet
                         hasPendingLigature = true;
@@ -2248,10 +2327,13 @@
                         totalLettersTyped++;
                         currentLevelLettersTyped++;
 
-                        if (expandedIndex < wordExpanded.length &&
-                            inputExpanded[expandedIndex] === wordExpanded[expandedIndex]) {
+                        if (expandedIndex < wordExpandedFinal.length &&
+                            inputExpandedFinal[expandedIndex] === wordExpandedFinal[expandedIndex]) {
                             correctLetters++;
                             currentLevelCorrectLetters++;
+                        } else {
+                            // Wrong character typed - enter error state
+                            isInErrorState = true;
                         }
                     }
                 }
