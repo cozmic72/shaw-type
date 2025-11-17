@@ -1701,8 +1701,9 @@
             // Initialize game first (loads words in the background)
             initializeGame();
 
-            // Show countdown over the initialized game, then just focus input when done
+            // Show countdown over the initialized game, then start timer and focus input
             showCountdown(() => {
+                startTime = Date.now(); // Start the timer when countdown ends
                 typingInput.focus();
             });
         }
@@ -2196,7 +2197,6 @@
             recentWords = [];
             levelStats = [];
             hasPendingLigature = false;
-            startTime = Date.now(); // Start the timer
 
             // Hide modal
             document.getElementById('completionModal').classList.remove('show');
@@ -2613,7 +2613,6 @@
             correctLetters = 0;
             levelStats = [];
             hasPendingLigature = false;
-            startTime = Date.now();
 
             updateStats();
 
