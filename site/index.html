@@ -264,6 +264,15 @@
             }
         }
 
+        @keyframes error-flash {
+            0% {
+                color: #e74c3c;
+            }
+            100% {
+                color: #333;
+            }
+        }
+
         .completion-modal {
             display: none;
             position: fixed;
@@ -2305,6 +2314,13 @@
             if (isInErrorState && inputExpanded.length > prevInputExpanded.length) {
                 // Revert to previous input
                 typingInput.value = previousInput;
+
+                // Flash the input text red as visual feedback
+                typingInput.style.animation = 'none';
+                setTimeout(() => {
+                    typingInput.style.animation = 'error-flash 0.4s ease-out';
+                }, 10);
+
                 return;
             }
 
