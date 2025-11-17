@@ -2336,13 +2336,15 @@
             const wordChars = Array.from(currentWord);
 
             // Check if we were waiting for ligature completion and it didn't happen
-            if (previousWasLigatureStart && !ligatureFormed) {
-                // The ligature didn't complete - backtrack and count the previous character as wrong
+            if (previousWasLigatureStart && !ligatureFormed && inputChars.length > prevInputChars.length) {
+                // The ligature didn't complete - the starting character was wrong
+                // Count it as wrong, keep it visible, and block further typing
                 totalLettersTyped++;
                 currentLevelLettersTyped++;
                 // Don't increment correctLetters - it was wrong
                 isInErrorState = true;
                 previousWasLigatureStart = false; // Clear the flag
+                // NOTE: previousInput still has the ligature start char, which is what we want
             }
 
             // If user backspaced, clear error state and ligature tracking
@@ -2354,8 +2356,10 @@
             // If in error state and user is trying to type more (not backspace), block it
             // BUT allow if a ligature just formed (that's completing a character, not adding a new one)
             if (isInErrorState && inputChars.length > prevInputChars.length && !ligatureFormed) {
-                // Revert to previous input
+                // Revert to previous input (keeps the wrong char visible)
                 typingInput.value = previousInput;
+                // Update previousInput before returning so next comparison works
+                previousInput = typingInput.value;
 
                 // Flash the input background red as visual feedback
                 typingInput.style.animation = 'none';
@@ -2363,6 +2367,9 @@
                     typingInput.style.animation = 'error-flash 0.4s ease-out';
                 }, 10);
 
+                updateWordDisplay();
+                updateStats();
+                checkCompletion();
                 return;
             }
 
