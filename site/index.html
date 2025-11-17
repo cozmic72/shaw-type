@@ -90,7 +90,7 @@
         }
 
         .countdown-screen {
-            display: flex;
+            display: none;
             flex-direction: column;
             align-items: center;
             justify-content: center;
@@ -101,6 +101,10 @@
 
         .countdown-screen.hidden {
             display: none;
+        }
+
+        .countdown-screen:not(.hidden) {
+            display: flex;
         }
 
         .home-btn {
@@ -1246,7 +1250,9 @@
             currentMode = 'play';
             localStorage.setItem('currentMode', currentMode);
 
-            showGameContent();
+            // Hide home screen, show back button
+            document.getElementById('homeScreen').classList.add('hidden');
+            document.getElementById('backBtn').classList.remove('hidden');
 
             // Update subtitle to show level
             updateSubtitleForGame();
@@ -1257,7 +1263,7 @@
             // Update UI language
             updateUILanguage();
 
-            // Reset and start
+            // Reset and start (will show countdown, then game)
             resetPractice();
         }
 
