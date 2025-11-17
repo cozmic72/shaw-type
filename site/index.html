@@ -2387,30 +2387,29 @@
                 const numNewChars = inputChars.length - prevInputChars.length;
                 const currentIndex = prevInputChars.length;
 
-                // Check if this could be the first component of a ligature
-                let isLigatureStart = false;
+                // Check if this is the first component of a ligature
                 if (useLigatures && numNewChars === 1 && currentIndex < wordChars.length) {
                     const expectedChar = wordChars[currentIndex];
                     const typedChar = inputChars[currentIndex];
-                    // Check if the expected char is a ligature and typed char is its first component
                     if (LIGATURES[expectedChar] && LIGATURES[expectedChar][0] === typedChar) {
-                        isLigatureStart = true;
+                        // Don't count this yet - wait for ligature to complete
+                        previousWasLigatureStart = true;
+                        // Don't set error state - still waiting
+                    } else {
+                        // Normal wrong character
+                        totalLettersTyped += numNewChars;
+                        currentLevelLettersTyped += numNewChars;
+                        previousWasLigatureStart = false;
+                        isInErrorState = true;
                     }
-                }
-
-                if (isLigatureStart) {
-                    // Don't count this yet - wait for ligature to complete
-                    // Don't set error state either
-                    previousWasLigatureStart = true; // Set flag to track this
                 } else {
-                    // Count it now
+                    // Not a potential ligature start - count it now
                     totalLettersTyped += numNewChars;
                     currentLevelLettersTyped += numNewChars;
-                    previousWasLigatureStart = false; // Not a ligature start
+                    previousWasLigatureStart = false;
 
-                    // Check if the new character(s) match the expected word
+                    // Check if correct
                     let allCorrect = true;
-
                     for (let i = 0; i < numNewChars; i++) {
                         const idx = currentIndex + i;
                         if (idx >= wordChars.length || inputChars[idx] !== wordChars[idx]) {
