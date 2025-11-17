@@ -2294,6 +2294,9 @@
             openLessonSelector();
         }
 
+        // Debug flag - set to true in console to enable detailed logging
+        window.debugTyping = false;
+
         // Event listeners
         let previousInput = '';
         let isInErrorState = false; // Track if last typed character was incorrect
@@ -2430,14 +2433,16 @@
             // Update previous input for next comparison
             previousInput = typingInput.value;
 
-            // POSTCONDITION: Log final state (for debugging)
-            // console.log('📊 POSTCONDITION: word=' + JSON.stringify(currentWord) +
-            //            ', input=' + JSON.stringify(typingInput.value) +
-            //            ', totalCorrect=' + correctLetters + '/' + totalLettersTyped +
-            //            ', levelCorrect=' + currentLevelCorrectLetters + '/' + currentLevelLettersTyped +
-            //            ', wordsCompleted=' + wordsCompleted +
-            //            ', wordsInLevel=' + wordsInCurrentLevel + '/' + currentLevelWordCount +
-            //            ', errorState=' + isInErrorState);
+            // POSTCONDITION: Log final state (when debugging enabled)
+            if (window.debugTyping) {
+                console.log('📊 POSTCONDITION: word=' + JSON.stringify(currentWord) +
+                           ', input=' + JSON.stringify(typingInput.value) +
+                           ', totalCorrect=' + correctLetters + '/' + totalLettersTyped +
+                           ', levelCorrect=' + currentLevelCorrectLetters + '/' + currentLevelLettersTyped +
+                           ', wordsCompleted=' + wordsCompleted +
+                           ', wordsInLevel=' + wordsInCurrentLevel + '/' + currentLevelWordCount +
+                           ', errorState=' + isInErrorState);
+            }
 
             updateWordDisplay();
             updateStats();
