@@ -1873,6 +1873,7 @@
             typingInput.value = '';
             previousInput = '';
             isInErrorState = false;
+            previousWasLigatureStart = false;
             updateWordDisplay();
 
             updateLevel();
@@ -2303,6 +2304,7 @@
         // Event listeners
         let previousInput = '';
         let isInErrorState = false; // Track if last typed character was incorrect
+        let previousWasLigatureStart = false; // Track if previous input was waiting for ligature completion
 
         typingInput.addEventListener('input', (e) => {
             let userInput = e.target.value;
@@ -2340,9 +2342,20 @@
             const prevInputChars = Array.from(previousInput);
             const wordChars = Array.from(currentWord);
 
-            // If user backspaced, clear error state
+            // Check if we were waiting for ligature completion and it didn't happen
+            if (previousWasLigatureStart && !ligatureFormed) {
+                // The ligature didn't complete - backtrack and count the previous character as wrong
+                totalLettersTyped++;
+                currentLevelLettersTyped++;
+                // Don't increment correctLetters - it was wrong
+                isInErrorState = true;
+                previousWasLigatureStart = false; // Clear the flag
+            }
+
+            // If user backspaced, clear error state and ligature tracking
             if (inputChars.length < prevInputChars.length) {
                 isInErrorState = false;
+                previousWasLigatureStart = false;
             }
 
             // If in error state and user is trying to type more (not backspace), block it
@@ -2365,6 +2378,7 @@
                 // Ligature just formed - treat as completing one character
                 totalLettersTyped++;
                 currentLevelLettersTyped++;
+                previousWasLigatureStart = false; // Clear the flag - ligature completed
 
                 // Check if the ligature matches the expected position
                 if (ligaturePosition < wordChars.length &&
@@ -2394,10 +2408,12 @@
                 if (isLigatureStart) {
                     // Don't count this yet - wait for ligature to complete
                     // Don't set error state either
+                    previousWasLigatureStart = true; // Set flag to track this
                 } else {
                     // Count it now
                     totalLettersTyped += numNewChars;
                     currentLevelLettersTyped += numNewChars;
+                    previousWasLigatureStart = false; // Not a ligature start
 
                     // Check if the new character(s) match the expected word
                     let allCorrect = true;
