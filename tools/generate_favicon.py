@@ -25,8 +25,8 @@ def generate_favicon_size(size, font_path, shaw_char='𐑖', tee_char='𐑑'):
                           fill=white_fill + (255,), outline=blue_border + (255,),
                           width=border_width)
 
-    # Calculate font size - increased by 15% (115% of size)
-    font_size = int(size * 1.15)
+    # Calculate font size - reduced to give comfortable margins (100% of size)
+    font_size = int(size * 1.0)
     font = ImageFont.truetype(font_path, font_size)
 
     # Get bounding boxes for both characters (same font size)
