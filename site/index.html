@@ -291,6 +291,7 @@
             width: 100%;
             padding: 15px;
             font-size: 32px;
+            font-family: 'Inter-Alia', sans-serif;
             border: 3px solid #e0e0e0;
             border-radius: 10px;
             text-align: center;
@@ -796,7 +797,7 @@
     <!-- Completion Modal -->
     <div class="completion-modal" id="completionModal">
         <div class="completion-content">
-            <span class="modal-close" onclick="resetPractice()">&times;</span>
+            <span class="modal-close" onclick="goHome()">&times;</span>
             <h2 id="completionTitle">Congratulations!</h2>
             <p id="completionMessage">You completed 30 words!</p>
             <div class="final-score" id="finalScore">--</div>
@@ -985,21 +986,25 @@
         let currentLevelLettersTyped = 0; // Letters typed in current level
         let currentLevelCorrectLetters = 0; // Correct letters in current level
 
-        // Ligature mappings
+        // Ligature mappings - each ligature can have multiple 2-character input sequences
+        const VS1 = '\uFE00';
         const LIGATURES = {
-            '𐑼': ['𐑩', '𐑮'], // ER
-            '𐑸': ['𐑭', '𐑮'], // AR
-            '𐑹': ['𐑷', '𐑮'], // OR
-            '𐑿': ['𐑘', '𐑵'], // YEW
-            '𐑽': ['𐑾', '𐑮']  // AIR
+            '𐑼': [['𐑩', '𐑮']],                      // ER: one way
+            '𐑸': [['𐑭', '𐑮']],                      // AR: one way
+            '𐑹': [['𐑷', '𐑮']],                      // OR: one way
+            '𐑿': [['𐑘', '𐑵']],                      // YEW: one way
+            '𐑽': [['𐑾', '𐑮']],                      // AIR (compound): one way
+            '𐑻': [['𐑻', '𐑮'], ['𐑻' + VS1, '𐑮'], ['𐑳', '𐑮']],  // ERR: three ways (err+roar, err+VS1+roar, up+roar JAFL)
+            '𐑺': [['𐑺', '𐑮'], ['𐑺' + VS1, '𐑮']]                // AIR (simple): two ways (air+roar, air+VS1+roar)
         };
 
-        // Reverse mapping: component pairs to compound
+        // Reverse mapping: all component sequences to their compound ligature
         const COMPONENT_TO_LIGATURE = {};
         Object.keys(LIGATURES).forEach(compound => {
-            const [first, second] = LIGATURES[compound];
-            const key = first + second;
-            COMPONENT_TO_LIGATURE[key] = compound;
+            LIGATURES[compound].forEach(sequence => {
+                const key = sequence.join('');
+                COMPONENT_TO_LIGATURE[key] = compound;
+            });
         });
 
         // Form ligatures in a word by replacing component pairs with ligatures
@@ -1007,7 +1012,6 @@
             let result = word;
             let changed = true;
 
-            // Keep trying until no more ligatures can be formed
             while (changed) {
                 changed = false;
                 const chars = Array.from(result);
@@ -1015,12 +1019,11 @@
                 for (let i = 0; i < chars.length - 1; i++) {
                     const pair = chars[i] + chars[i + 1];
                     if (COMPONENT_TO_LIGATURE[pair]) {
-                        // Found a ligature - replace the pair
                         result = chars.slice(0, i).join('') +
                                 COMPONENT_TO_LIGATURE[pair] +
                                 chars.slice(i + 2).join('');
                         changed = true;
-                        break; // Start over after making a change
+                        break;
                     }
                 }
             }
@@ -2000,6 +2003,7 @@
                     let html = '';
                     const wordChars = Array.from(currentWord);
                     const inputChars = Array.from(userInput);
+                    const isPending = isPendingLigatureStart(inputChars, wordChars);
 
                     for (let j = 0; j < wordChars.length; j++) {
                         const char = wordChars[j];
@@ -2009,7 +2013,7 @@
                             // User has typed this position
                             if (inputChars[j] === char) {
                                 className = 'correct';
-                            } else if (previousWasLigatureStart && j === inputChars.length - 1) {
+                            } else if (isPending && j === inputChars.length - 1) {
                                 // Waiting for ligature completion - don't mark as wrong yet
                                 className = '';
                             } else {
@@ -2397,22 +2401,34 @@
         function formLigatures(input) {
             if (!useLigatures) return input;
             const chars = Array.from(input);
+
+            // Check if last 2 characters form a ligature
             if (chars.length >= 2) {
                 const lastTwo = chars[chars.length - 2] + chars[chars.length - 1];
                 if (COMPONENT_TO_LIGATURE[lastTwo]) {
                     return chars.slice(0, -2).join('') + COMPONENT_TO_LIGATURE[lastTwo];
                 }
             }
+
             return input;
         }
 
         // Helper: Check if last character is a pending ligature start
         function isPendingLigatureStart(inputChars, wordChars) {
             if (!useLigatures || inputChars.length === 0) return false;
+
             const lastIdx = inputChars.length - 1;
-            return lastIdx < wordChars.length &&
-                   LIGATURES[wordChars[lastIdx]] &&
-                   LIGATURES[wordChars[lastIdx]][0] === inputChars[lastIdx];
+            if (lastIdx >= wordChars.length) return false;
+
+            const expectedChar = wordChars[lastIdx];
+            const lastChar = inputChars[lastIdx];
+
+            // Check if the last character is the first of any pair that forms the expected ligature
+            if (LIGATURES[expectedChar]) {
+                return LIGATURES[expectedChar].some(pair => pair[0] === lastChar);
+            }
+
+            return false;
         }
 
         typingInput.addEventListener('input', (e) => {
