@@ -16,11 +16,7 @@ def generate_favicon_size(size, font_path, shaw_char='𐑖', tee_char='𐑑'):
     font_size = int(size * 0.9)
     font = ImageFont.truetype(font_path, font_size)
 
-    # Calculate smaller font for the tee (40% of main font size)
-    tee_font_size = int(font_size * 0.4)
-    tee_font = ImageFont.truetype(font_path, tee_font_size)
-
-    # Get bounding boxes for both characters
+    # Get bounding boxes for both characters (same font size)
     temp_draw = ImageDraw.Draw(img)
 
     # Shaw character bounding box
@@ -28,8 +24,8 @@ def generate_favicon_size(size, font_path, shaw_char='𐑖', tee_char='𐑑'):
     shaw_width = shaw_bbox[2] - shaw_bbox[0]
     shaw_height = shaw_bbox[3] - shaw_bbox[1]
 
-    # Tee character bounding box
-    tee_bbox = temp_draw.textbbox((0, 0), tee_char, font=tee_font)
+    # Tee character bounding box (same font)
+    tee_bbox = temp_draw.textbbox((0, 0), tee_char, font=font)
     tee_width = tee_bbox[2] - tee_bbox[0]
     tee_height = tee_bbox[3] - tee_bbox[1]
 
@@ -37,7 +33,7 @@ def generate_favicon_size(size, font_path, shaw_char='𐑖', tee_char='𐑑'):
     shaw_x = (size - shaw_width) // 2 - shaw_bbox[0] - int(tee_width * 0.3)
     shaw_y = (size - shaw_height) // 2 - shaw_bbox[1]
 
-    # Position tee to nestle in shaw's curve (offset right and down)
+    # Position tee to nestle in shaw's curve (same baseline, offset right and down 40%)
     tee_x = shaw_x + int(shaw_width * 0.6)  # Offset to the right
     tee_y = shaw_y + int(font_size * 0.4) - tee_bbox[1]  # 40% down from shaw baseline
 
@@ -47,11 +43,11 @@ def generate_favicon_size(size, font_path, shaw_char='𐑖', tee_char='𐑑'):
 
     shadow_offset = max(2, size // 20)
 
-    # Draw shadows
+    # Draw shadows (same font for both)
     shadow_draw.text((shaw_x + shadow_offset, shaw_y + shadow_offset),
                      shaw_char, font=font, fill=(0, 0, 0, 180))
     shadow_draw.text((tee_x + shadow_offset, tee_y + shadow_offset),
-                     tee_char, font=tee_font, fill=(0, 0, 0, 180))
+                     tee_char, font=font, fill=(0, 0, 0, 180))
 
     # Blur the shadow
     shadow_layer = shadow_layer.filter(ImageFilter.GaussianBlur(radius=max(2, size // 25)))
@@ -59,10 +55,10 @@ def generate_favicon_size(size, font_path, shaw_char='𐑖', tee_char='𐑑'):
     # Composite shadow onto main image
     img = Image.alpha_composite(img, shadow_layer)
 
-    # Draw white shaw and black tee
+    # Draw white shaw and black tee (same font size)
     draw = ImageDraw.Draw(img)
     draw.text((shaw_x, shaw_y), shaw_char, font=font, fill='white')
-    draw.text((tee_x, tee_y), tee_char, font=tee_font, fill='black')
+    draw.text((tee_x, tee_y), tee_char, font=font, fill='black')
 
     return img
 
