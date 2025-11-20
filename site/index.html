@@ -2961,6 +2961,75 @@
             }
         }
 
+        // Keyboard support for dialogs
+        document.addEventListener('keydown', (e) => {
+            // Check which modal is open
+            const completionModal = document.getElementById('completionModal');
+            const settingsModal = document.getElementById('settingsModal');
+            const lessonModal = document.getElementById('lessonModal');
+            const contentModal = document.getElementById('contentModal');
+
+            const isModalOpen = completionModal.classList.contains('show') ||
+                               settingsModal.classList.contains('show') ||
+                               lessonModal.classList.contains('show') ||
+                               contentModal.classList.contains('show');
+
+            if (!isModalOpen) return;
+
+            // Handle Escape key - close/back action
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                if (completionModal.classList.contains('show')) {
+                    goHome();
+                } else if (settingsModal.classList.contains('show')) {
+                    closeSettings();
+                } else if (lessonModal.classList.contains('show')) {
+                    closeLessonModal();
+                } else if (contentModal.classList.contains('show')) {
+                    closeContentModal();
+                }
+                return;
+            }
+
+            // Handle Enter key - activate first/default button
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (completionModal.classList.contains('show')) {
+                    const firstButton = completionModal.querySelector('button');
+                    if (firstButton) firstButton.click();
+                } else if (lessonModal.classList.contains('show')) {
+                    // In lesson selector, no default button action
+                }
+                return;
+            }
+
+            // Handle Tab key - cycle between buttons
+            if (e.key === 'Tab') {
+                const activeModal = completionModal.classList.contains('show') ? completionModal :
+                                  settingsModal.classList.contains('show') ? settingsModal :
+                                  lessonModal.classList.contains('show') ? lessonModal :
+                                  contentModal;
+
+                const buttons = Array.from(activeModal.querySelectorAll('button'));
+                if (buttons.length > 1) {
+                    e.preventDefault();
+                    const currentFocus = document.activeElement;
+                    const currentIndex = buttons.indexOf(currentFocus);
+
+                    let nextIndex;
+                    if (e.shiftKey) {
+                        // Shift+Tab - go backwards
+                        nextIndex = currentIndex <= 0 ? buttons.length - 1 : currentIndex - 1;
+                    } else {
+                        // Tab - go forwards
+                        nextIndex = currentIndex >= buttons.length - 1 ? 0 : currentIndex + 1;
+                    }
+
+                    buttons[nextIndex].focus();
+                }
+            }
+        });
+
         // Start the app
         loadPreferences();
         init();
