@@ -1839,8 +1839,10 @@
             // Initialize game (loads words)
             initializeGame();
 
-            // Start timer
-            startTime = Date.now();
+            // Start timer only for play mode at level 1 (beginning of game)
+            if (currentMode === 'play' && currentLevelNumber === 1 && wordsCompleted === 0) {
+                startTime = Date.now();
+            }
 
             // Focus input
             typingInput.focus();
