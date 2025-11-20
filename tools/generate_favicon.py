@@ -6,8 +6,8 @@ Generate favicon PNGs with Shavian text in Ormin font at multiple sizes.
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 import os
 
-def generate_favicon_size(size, font_path, text='·𐑖'):
-    """Generate a single favicon at the given size."""
+def generate_favicon_size(size, font_path, shaw_char='𐑖', tee_char='𐑑'):
+    """Generate a single favicon at the given size with nestled 𐑖 and 𐑑."""
     # Create image with purple background
     bg_color = (102, 126, 234)  # #667eea
     img = Image.new('RGBA', (size, size), bg_color + (255,))
@@ -16,33 +16,53 @@ def generate_favicon_size(size, font_path, text='·𐑖'):
     font_size = int(size * 0.9)
     font = ImageFont.truetype(font_path, font_size)
 
-    # Create a separate layer for the shadow
+    # Calculate smaller font for the tee (40% of main font size)
+    tee_font_size = int(font_size * 0.4)
+    tee_font = ImageFont.truetype(font_path, tee_font_size)
+
+    # Get bounding boxes for both characters
+    temp_draw = ImageDraw.Draw(img)
+
+    # Shaw character bounding box
+    shaw_bbox = temp_draw.textbbox((0, 0), shaw_char, font=font)
+    shaw_width = shaw_bbox[2] - shaw_bbox[0]
+    shaw_height = shaw_bbox[3] - shaw_bbox[1]
+
+    # Tee character bounding box
+    tee_bbox = temp_draw.textbbox((0, 0), tee_char, font=tee_font)
+    tee_width = tee_bbox[2] - tee_bbox[0]
+    tee_height = tee_bbox[3] - tee_bbox[1]
+
+    # Position shaw to be slightly left of center
+    shaw_x = (size - shaw_width) // 2 - shaw_bbox[0] - int(tee_width * 0.3)
+    shaw_y = (size - shaw_height) // 2 - shaw_bbox[1]
+
+    # Position tee to nestle in shaw's curve (offset right and down)
+    tee_x = shaw_x + int(shaw_width * 0.6)  # Offset to the right
+    tee_y = shaw_y + int(font_size * 0.4) - tee_bbox[1]  # 40% down from shaw baseline
+
+    # Create shadow layers
     shadow_layer = Image.new('RGBA', (size, size), (0, 0, 0, 0))
     shadow_draw = ImageDraw.Draw(shadow_layer)
 
-    # Get text bounding box
-    temp_draw = ImageDraw.Draw(img)
-    bbox = temp_draw.textbbox((0, 0), text, font=font)
-    text_width = bbox[2] - bbox[0]
-    text_height = bbox[3] - bbox[1]
-
-    # Center the text
-    x = (size - text_width) // 2 - bbox[0]
-    y = (size - text_height) // 2 - bbox[1]
-
-    # Draw shadow with more pronounced offset and opacity
     shadow_offset = max(2, size // 20)
-    shadow_draw.text((x + shadow_offset, y + shadow_offset), text, font=font, fill=(0, 0, 0, 180))
 
-    # Blur the shadow more for depth
+    # Draw shadows
+    shadow_draw.text((shaw_x + shadow_offset, shaw_y + shadow_offset),
+                     shaw_char, font=font, fill=(0, 0, 0, 180))
+    shadow_draw.text((tee_x + shadow_offset, tee_y + shadow_offset),
+                     tee_char, font=tee_font, fill=(0, 0, 0, 180))
+
+    # Blur the shadow
     shadow_layer = shadow_layer.filter(ImageFilter.GaussianBlur(radius=max(2, size // 25)))
 
     # Composite shadow onto main image
     img = Image.alpha_composite(img, shadow_layer)
 
-    # Draw white text (no stroke for cleaner appearance)
+    # Draw white shaw and black tee
     draw = ImageDraw.Draw(img)
-    draw.text((x, y), text, font=font, fill='white')
+    draw.text((shaw_x, shaw_y), shaw_char, font=font, fill='white')
+    draw.text((tee_x, tee_y), tee_char, font=tee_font, fill='black')
 
     return img
 
@@ -53,24 +73,23 @@ def generate_favicons():
         print(f"Error: Font not found at {font_path}")
         return
 
-    # Text to render: '·𐑖' (simplified Shavian)
-    text = '·𐑖'
+    # Characters to render: '𐑖' (shaw) with nestled '𐑑' (tee)
 
     # Generate multiple sizes (64x64 and larger)
     sizes = [64, 128, 180, 192, 512]
 
     for size in sizes:
-        img = generate_favicon_size(size, font_path, text)
+        img = generate_favicon_size(size, font_path)
         output_path = f'../site/favicon-{size}x{size}.png'
         img.save(output_path, 'PNG')
         print(f"Generated {output_path}")
 
     # Also generate default favicon.png (64x64) and favicon.ico (32x32)
-    img_64 = generate_favicon_size(64, font_path, text)
+    img_64 = generate_favicon_size(64, font_path)
     img_64.save('../site/favicon.png', 'PNG')
     print(f"Generated ../site/favicon.png (64x64)")
 
-    img_32 = generate_favicon_size(32, font_path, text)
+    img_32 = generate_favicon_size(32, font_path)
     img_32.save('../site/favicon.ico', 'ICO')
     print(f"Generated ../site/favicon.ico (32x32)")
 
