@@ -25,8 +25,8 @@ def generate_favicon_size(size, font_path, shaw_char='𐑖', tee_char='𐑑'):
                           fill=white_fill + (255,), outline=blue_border + (255,),
                           width=border_width)
 
-    # Calculate font size - reduced to give comfortable margins (90% of size)
-    font_size = int(size * 0.9)
+    # Calculate font size - increased by 8% (98% of size)
+    font_size = int(size * 0.98)
     font = ImageFont.truetype(font_path, font_size)
 
     # Get bounding boxes for both characters (same font size)
@@ -47,7 +47,7 @@ def generate_favicon_size(size, font_path, shaw_char='𐑖', tee_char='𐑑'):
     shaw_y = int(size * 0.12) - shaw_bbox[1]  # Position at 12% from top
 
     # Position tee to nestle in shaw's curve, with baseline clear of bottom
-    tee_x = shaw_x + int(shaw_width * 0.7)  # Nudged further right (was 0.6)
+    tee_x = shaw_x + int(shaw_width * 0.75)  # Increased spacing (was 0.7)
     # Position tee moved up to match shaw's upward nudge
     tee_bottom_margin = int(size * 0.16)  # Increased from 8% to 16% to move up with shaw
     tee_y = size - tee_bottom_margin - tee_bbox[3]
