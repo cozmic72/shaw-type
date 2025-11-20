@@ -12,8 +12,8 @@ def generate_favicon_size(size, font_path, shaw_char='𐑖', tee_char='𐑑'):
     bg_color = (102, 126, 234)  # #667eea
     img = Image.new('RGBA', (size, size), bg_color + (255,))
 
-    # Calculate font size to use almost full space (90% of size)
-    font_size = int(size * 0.9)
+    # Calculate font size - increased to use full space (100% of size)
+    font_size = int(size * 1.0)
     font = ImageFont.truetype(font_path, font_size)
 
     # Get bounding boxes for both characters (same font size)
@@ -33,8 +33,8 @@ def generate_favicon_size(size, font_path, shaw_char='𐑖', tee_char='𐑑'):
     shaw_x = (size - shaw_width) // 2 - shaw_bbox[0] - int(tee_width * 0.3)
     shaw_y = (size - shaw_height) // 2 - shaw_bbox[1]
 
-    # Position tee to nestle in shaw's curve (same baseline, offset right and down 40%)
-    tee_x = shaw_x + int(shaw_width * 0.6)  # Offset to the right
+    # Position tee to nestle in shaw's curve (nudged further right, baseline 40% down)
+    tee_x = shaw_x + int(shaw_width * 0.7)  # Nudged further right (was 0.6)
     tee_y = shaw_y + int(font_size * 0.4) - tee_bbox[1]  # 40% down from shaw baseline
 
     # Create shadow layers
