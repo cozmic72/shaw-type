@@ -42,9 +42,9 @@ def generate_favicon_size(size, font_path, shaw_char='𐑖', tee_char='𐑑'):
     tee_width = tee_bbox[2] - tee_bbox[0]
     tee_height = tee_bbox[3] - tee_bbox[1]
 
-    # Position shaw to be slightly left of center and nudged up more to balance gaps
+    # Position shaw to be slightly left of center at 12% from top
     shaw_x = (size - shaw_width) // 2 - shaw_bbox[0] - int(tee_width * 0.3)
-    shaw_y = (size - shaw_height) // 2 - shaw_bbox[1] - int(size * 0.08)  # Nudged up 8% to balance top/bottom gaps
+    shaw_y = int(size * 0.12) - shaw_bbox[1]  # Position at 12% from top
 
     # Position tee to nestle in shaw's curve, with baseline clear of bottom
     tee_x = shaw_x + int(shaw_width * 0.7)  # Nudged further right (was 0.6)
