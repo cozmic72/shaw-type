@@ -30,9 +30,10 @@ def generate_play_words(word_freq_file, output_file, dialect='gb'):
             words_by_length[length] = []
         words_by_length[length].append(word)
 
-    # Create output structure with top words for each length (1-7 characters)
+    # Create output structure with top words for each length (1-10 characters, capped)
+    MAX_WORD_LENGTH = 10
     output = {}
-    for length in range(1, 8):
+    for length in range(1, MAX_WORD_LENGTH + 1):
         if length in words_by_length:
             # Take top 200 by frequency
             output[str(length)] = words_by_length[length][:200]

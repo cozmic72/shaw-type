@@ -1982,8 +1982,26 @@
             levelDisplayEl.textContent = currentLevelNumber;
         }
 
+        // Calculate appropriate font size based on max word length
+        function getFontSizeForMaxLength(maxLength) {
+            const baseFontSize = 48;
+            // Reduce font size as max length increases: 48px for short words, down to 24px for very long
+            if (maxLength <= 4) return baseFontSize;
+            if (maxLength <= 6) return 42;
+            if (maxLength <= 8) return 36;
+            if (maxLength <= 10) return 30;
+            return 24;
+        }
+
         function updateWordDisplay() {
             const userInput = typingInput.value;
+
+            // Calculate max word length in current pool for font sizing
+            let maxWordLength = 4;
+            if (currentLevelWordPool && currentLevelWordPool.length > 0) {
+                maxWordLength = Math.max(...currentLevelWordPool.map(w => Array.from(w).length));
+            }
+            const fontSize = getFontSizeForMaxLength(maxWordLength);
 
             // Update each carousel slot
             for (let i = 0; i < 4; i++) {
@@ -1995,6 +2013,9 @@
 
                 // Remove old position classes
                 slot.className = 'word-slot slot-' + i;
+
+                // Set font size based on max word length
+                slot.style.fontSize = fontSize + 'px';
 
                 // Add appropriate position class
                 if (posOffset === 0) {
@@ -2424,6 +2445,22 @@
         window.getWordCount = function() { return currentLevelWordCount; };
         window.setLevel = function(n) { currentLevelNumber = n; };
         window.getLevel = function() { return currentLevelNumber; };
+        window.setNextWord = function(word) {
+            // Set the next word (in slot after current)
+            const nextSlot = (carouselOffset + 1) % 4;
+            words[nextSlot] = word;
+
+            // Temporarily modify word pool to include this word at max length for font sizing test
+            const wordLength = Array.from(word).length;
+            const tempPool = [...(currentLevelWordPool || []), word];
+            currentLevelWordPool = tempPool;
+
+            // Update display to show the word and apply font sizing
+            updateWordDisplay();
+
+            console.log(`Next word set to: "${word}" (length: ${wordLength})`);
+            console.log(`Font size will be: ${getFontSizeForMaxLength(wordLength)}px`);
+        };
 
         // Event listeners
         let previousInput = '';  // For error state reversion
