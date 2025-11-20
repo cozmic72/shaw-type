@@ -6,14 +6,14 @@ Generate favicon PNGs with Shavian text in Ormin font at multiple sizes.
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 import os
 
-def generate_favicon_size(size, font_path, text='·𐑖𐑷'):
+def generate_favicon_size(size, font_path, text='·𐑖'):
     """Generate a single favicon at the given size."""
     # Create image with purple background
     bg_color = (102, 126, 234)  # #667eea
     img = Image.new('RGBA', (size, size), bg_color + (255,))
 
-    # Calculate font size proportional to image size
-    font_size = int(size * 0.66)
+    # Calculate font size to use almost full space (90% of size)
+    font_size = int(size * 0.9)
     font = ImageFont.truetype(font_path, font_size)
 
     # Create a separate layer for the shadow
@@ -30,20 +30,19 @@ def generate_favicon_size(size, font_path, text='·𐑖𐑷'):
     x = (size - text_width) // 2 - bbox[0]
     y = (size - text_height) // 2 - bbox[1]
 
-    # Draw shadow (offset by a few pixels, semi-transparent black)
-    shadow_offset = max(1, size // 32)
-    shadow_draw.text((x + shadow_offset, y + shadow_offset), text, font=font, fill=(0, 0, 0, 128))
+    # Draw shadow with more pronounced offset and opacity
+    shadow_offset = max(2, size // 20)
+    shadow_draw.text((x + shadow_offset, y + shadow_offset), text, font=font, fill=(0, 0, 0, 180))
 
-    # Blur the shadow slightly
-    shadow_layer = shadow_layer.filter(ImageFilter.GaussianBlur(radius=max(1, size // 40)))
+    # Blur the shadow more for depth
+    shadow_layer = shadow_layer.filter(ImageFilter.GaussianBlur(radius=max(2, size // 25)))
 
     # Composite shadow onto main image
     img = Image.alpha_composite(img, shadow_layer)
 
-    # Draw white text with stroke for boldness
+    # Draw white text (no stroke for cleaner appearance)
     draw = ImageDraw.Draw(img)
-    stroke_width = max(1, size // 32)
-    draw.text((x, y), text, font=font, fill='white', stroke_width=stroke_width, stroke_fill='white')
+    draw.text((x, y), text, font=font, fill='white')
 
     return img
 
@@ -54,8 +53,8 @@ def generate_favicons():
         print(f"Error: Font not found at {font_path}")
         return
 
-    # Text to render: '·𐑖𐑷' (Shaw in Shavian)
-    text = '·𐑖𐑷'
+    # Text to render: '·𐑖' (simplified Shavian)
+    text = '·𐑖'
 
     # Generate multiple sizes (64x64 and larger)
     sizes = [64, 128, 180, 192, 512]
