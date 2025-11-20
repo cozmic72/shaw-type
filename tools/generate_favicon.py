@@ -8,18 +8,22 @@ import os
 
 def generate_favicon_size(size, font_path, shaw_char='𐑖', tee_char='𐑑'):
     """Generate a single favicon at the given size with nestled 𐑖 and 𐑑."""
-    # Create image with deep blue-purple background
-    bg_color = (85, 95, 220)  # #555fdc - deeper blue with more purple
-    img = Image.new('RGBA', (size, size), bg_color + (255,))
+    # Create transparent image
+    img = Image.new('RGBA', (size, size), (0, 0, 0, 0))
 
-    # Add rounded corners with transparency
-    mask = Image.new('L', (size, size), 0)
-    mask_draw = ImageDraw.Draw(mask)
+    # Draw rounded rectangle with white fill and blue border
+    draw = ImageDraw.Draw(img)
     corner_radius = size // 5  # 20% corner radius
-    mask_draw.rounded_rectangle([(0, 0), (size, size)], radius=corner_radius, fill=255)
+    border_width = max(2, size // 32)  # Moderately thin border
 
-    # Apply mask to create rounded corners
-    img.putalpha(mask)
+    # Colors
+    blue_border = (85, 95, 220)  # #555fdc
+    white_fill = (255, 255, 255)
+
+    # Draw white rounded rectangle
+    draw.rounded_rectangle([(0, 0), (size-1, size-1)], radius=corner_radius,
+                          fill=white_fill + (255,), outline=blue_border + (255,),
+                          width=border_width)
 
     # Calculate font size - increased by 15% (115% of size)
     font_size = int(size * 1.15)
@@ -48,27 +52,9 @@ def generate_favicon_size(size, font_path, shaw_char='𐑖', tee_char='𐑑'):
     tee_bottom_margin = int(size * 0.08)  # 8% margin from bottom
     tee_y = size - tee_bottom_margin - tee_bbox[3]
 
-    # Create shadow layers
-    shadow_layer = Image.new('RGBA', (size, size), (0, 0, 0, 0))
-    shadow_draw = ImageDraw.Draw(shadow_layer)
-
-    shadow_offset = max(1, size // 40)  # More subtle offset for contrast
-
-    # Draw shadows (same font for both)
-    shadow_draw.text((shaw_x + shadow_offset, shaw_y + shadow_offset),
-                     shaw_char, font=font, fill=(0, 0, 0, 180))
-    shadow_draw.text((tee_x + shadow_offset, tee_y + shadow_offset),
-                     tee_char, font=font, fill=(0, 0, 0, 180))
-
-    # Blur the shadow
-    shadow_layer = shadow_layer.filter(ImageFilter.GaussianBlur(radius=max(2, size // 25)))
-
-    # Composite shadow onto main image
-    img = Image.alpha_composite(img, shadow_layer)
-
-    # Draw white shaw and black tee (same font size)
+    # Draw black shaw and black tee (same font size, no shadow needed)
     draw = ImageDraw.Draw(img)
-    draw.text((shaw_x, shaw_y), shaw_char, font=font, fill='white')
+    draw.text((shaw_x, shaw_y), shaw_char, font=font, fill='black')
     draw.text((tee_x, tee_y), tee_char, font=font, fill='black')
 
     return img
