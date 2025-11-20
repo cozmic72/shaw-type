@@ -2924,6 +2924,37 @@
         }
 
         // Load saved preferences
+        // localStorage patch system - sorted list of patches to apply
+        const PATCHES = [
+            [1, function patch1_clearBestTime() {
+                // Clear best time due to timer bug fix
+                localStorage.removeItem('bestTime');
+                console.log('Patch 1: Cleared bestTime from localStorage');
+            }]
+        ];
+
+        function applyPatches() {
+            const currentPatchLevel = parseInt(localStorage.getItem('patchLevel') || '0');
+            console.log(`Current patch level: ${currentPatchLevel}`);
+
+            // Apply all patches greater than current level
+            PATCHES.forEach(([patchNumber, patchFunction]) => {
+                if (patchNumber > currentPatchLevel) {
+                    console.log(`Applying patch ${patchNumber}...`);
+                    patchFunction();
+                }
+            });
+
+            // Update patch level to highest patch number
+            if (PATCHES.length > 0) {
+                const latestPatch = PATCHES[PATCHES.length - 1][0];
+                if (latestPatch > currentPatchLevel) {
+                    localStorage.setItem('patchLevel', latestPatch.toString());
+                    console.log(`Updated patch level to ${latestPatch}`);
+                }
+            }
+        }
+
         function loadPreferences() {
             // Load Shavian UI preference
             const savedShavianUI = localStorage.getItem('useShavianUI');
@@ -3033,6 +3064,7 @@
         });
 
         // Start the app
+        applyPatches();
         loadPreferences();
         init();
         updateUILanguage();
