@@ -57,8 +57,8 @@ def generate_favicons():
     # Text to render: '·𐑖𐑷' (Shaw in Shavian)
     text = '·𐑖𐑷'
 
-    # Generate multiple sizes
-    sizes = [16, 32, 48, 64, 128, 180, 192, 512]
+    # Generate multiple sizes (64x64 and larger)
+    sizes = [64, 128, 180, 192, 512]
 
     for size in sizes:
         img = generate_favicon_size(size, font_path, text)
