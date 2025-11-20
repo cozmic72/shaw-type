@@ -8,8 +8,8 @@ import os
 
 def generate_favicon_size(size, font_path, shaw_char='𐑖', tee_char='𐑑'):
     """Generate a single favicon at the given size with nestled 𐑖 and 𐑑."""
-    # Create image with purple background
-    bg_color = (102, 126, 234)  # #667eea
+    # Create image with deep blue-purple background
+    bg_color = (85, 95, 220)  # #555fdc - deeper blue with more purple
     img = Image.new('RGBA', (size, size), bg_color + (255,))
 
     # Add rounded corners with transparency
