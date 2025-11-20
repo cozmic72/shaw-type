@@ -38,13 +38,15 @@ def generate_favicon_size(size, font_path, shaw_char='𐑖', tee_char='𐑑'):
     tee_width = tee_bbox[2] - tee_bbox[0]
     tee_height = tee_bbox[3] - tee_bbox[1]
 
-    # Position shaw to be slightly left of center
+    # Position shaw to be slightly left of center and nudged up a bit
     shaw_x = (size - shaw_width) // 2 - shaw_bbox[0] - int(tee_width * 0.3)
-    shaw_y = (size - shaw_height) // 2 - shaw_bbox[1]
+    shaw_y = (size - shaw_height) // 2 - shaw_bbox[1] - int(size * 0.02)  # Nudged up 2%
 
-    # Position tee to nestle in shaw's curve (nudged further right, baseline 40% down)
+    # Position tee to nestle in shaw's curve, with baseline clear of bottom
     tee_x = shaw_x + int(shaw_width * 0.7)  # Nudged further right (was 0.6)
-    tee_y = shaw_y + int(font_size * 0.4) - tee_bbox[1]  # 40% down from shaw baseline
+    # Position tee so its bottom clears the icon bottom comfortably
+    tee_bottom_margin = int(size * 0.08)  # 8% margin from bottom
+    tee_y = size - tee_bottom_margin - tee_bbox[3]
 
     # Create shadow layers
     shadow_layer = Image.new('RGBA', (size, size), (0, 0, 0, 0))
