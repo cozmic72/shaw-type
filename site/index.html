@@ -1950,8 +1950,8 @@
 
             typingInput.value = '';
             previousInput = '';
+            maxEffectiveLength = 0;
             isInErrorState = false;
-            previousWasLigatureStart = false;
             updateWordDisplay();
 
             updateLevel();
@@ -2372,154 +2372,124 @@
             openLessonSelector();
         }
 
-        // Debug flag - set to true in console to enable detailed logging
+        // Debug flag - set in console for testing
         window.debugTyping = false;
 
+        // Expose settings for console access (for quick testing)
+        window.setWordCount = function(n) { currentLevelWordCount = n; };
+        window.getWordCount = function() { return currentLevelWordCount; };
+        window.setLevel = function(n) { currentLevelNumber = n; };
+        window.getLevel = function() { return currentLevelNumber; };
+
         // Event listeners
-        let previousInput = '';
+        let previousInput = '';  // For error state reversion
+        let maxEffectiveLength = 0;  // High water mark for counting (excludes pending ligature starts)
         let isInErrorState = false; // Track if last typed character was incorrect
-        let previousWasLigatureStart = false; // Track if previous input was waiting for ligature completion
+
+        // Helper: Convert string to array of Unicode code points for debugging
+        function toCodePoints(str) {
+            return Array.from(str).map(c =>
+                'U+' + c.codePointAt(0).toString(16).toUpperCase().padStart(4, '0')
+            ).join(' ');
+        }
+
+        // Helper: Form ligatures in input string if enabled
+        function formLigatures(input) {
+            if (!useLigatures) return input;
+            const chars = Array.from(input);
+            if (chars.length >= 2) {
+                const lastTwo = chars[chars.length - 2] + chars[chars.length - 1];
+                if (COMPONENT_TO_LIGATURE[lastTwo]) {
+                    return chars.slice(0, -2).join('') + COMPONENT_TO_LIGATURE[lastTwo];
+                }
+            }
+            return input;
+        }
+
+        // Helper: Check if last character is a pending ligature start
+        function isPendingLigatureStart(inputChars, wordChars) {
+            if (!useLigatures || inputChars.length === 0) return false;
+            const lastIdx = inputChars.length - 1;
+            return lastIdx < wordChars.length &&
+                   LIGATURES[wordChars[lastIdx]] &&
+                   LIGATURES[wordChars[lastIdx]][0] === inputChars[lastIdx];
+        }
 
         typingInput.addEventListener('input', (e) => {
             let userInput = e.target.value;
 
+            // Debug: log raw input with Unicode code points
+            if (window.debugTyping) {
+                const eventData = e.data || '';
+                console.log('📥 INPUT: "' + userInput + '" [' + toCodePoints(userInput) + '] len=' + Array.from(userInput).length +
+                           ' | inputType=' + e.inputType +
+                           ' | event.data="' + eventData + '" [' + toCodePoints(eventData) + ']' +
+                           ' | expected="' + currentWord + '" [' + toCodePoints(currentWord) + ']');
+            }
+
             // Ignore leading spaces at the start of the level
-            if (previousInput === '' && userInput.trim() === '') {
+            if (maxEffectiveLength === 0 && userInput.trim() === '') {
                 typingInput.value = '';
-                return;
-            }
+            } else {
+                // Form ligatures if enabled (for keyboards that don't do it themselves)
+                userInput = formLigatures(userInput);
+                typingInput.value = userInput;
 
-            // Track if a ligature was formed
-            let ligatureFormed = false;
-            let ligaturePosition = -1;
-
-            // Check if we can form a ligature from the last two characters (if enabled)
-            if (useLigatures) {
+                // Get character arrays for comparison
                 const inputChars = Array.from(userInput);
-                if (inputChars.length >= 2) {
-                    const lastTwo = inputChars[inputChars.length - 2] + inputChars[inputChars.length - 1];
-                    if (COMPONENT_TO_LIGATURE[lastTwo]) {
-                        // Form the ligature
-                        const beforeLigature = inputChars.slice(0, -2).join('');
-                        const compound = COMPONENT_TO_LIGATURE[lastTwo];
-                        // IMPORTANT: Use Array.from to count characters, not code units
-                        ligaturePosition = Array.from(beforeLigature).length; // Position where ligature ends up
-                        userInput = beforeLigature + compound;
-                        typingInput.value = userInput;
-                        ligatureFormed = true;
-                    }
-                }
-            }
+                const wordChars = Array.from(currentWord);
 
-            // Get character arrays for comparison (treats ligatures as single characters)
-            const inputChars = Array.from(userInput);
-            const prevInputChars = Array.from(previousInput);
-            const wordChars = Array.from(currentWord);
+                // Calculate effective length (excludes pending ligature start)
+                const pendingLigature = isPendingLigatureStart(inputChars, wordChars);
+                const effectiveLength = pendingLigature ? inputChars.length - 1 : inputChars.length;
 
-            // Check if we were waiting for ligature completion and it didn't happen
-            if (previousWasLigatureStart && !ligatureFormed && inputChars.length > prevInputChars.length) {
-                // The ligature didn't complete - the starting character was wrong
-                // Count it as wrong, keep it visible, and block further typing
-                totalLettersTyped++;
-                currentLevelLettersTyped++;
-                // Don't increment correctLetters - it was wrong
-                isInErrorState = true;
-                previousWasLigatureStart = false; // Clear the flag
-                // NOTE: previousInput still has the ligature start char, which is what we want
-            }
+                // Process based on effective length change
+                if (effectiveLength < maxEffectiveLength) {
+                    // Backspace or deletion - clear error state
+                    isInErrorState = false;
+                    maxEffectiveLength = effectiveLength;
+                } else if (isInErrorState && effectiveLength > maxEffectiveLength) {
+                    // Blocked - revert input and flash red
+                    typingInput.value = previousInput;
+                    typingInput.style.animation = 'none';
+                    setTimeout(() => {
+                        typingInput.style.animation = 'error-flash 0.4s ease-out';
+                    }, 10);
+                } else if (effectiveLength > maxEffectiveLength) {
+                    // New characters to count
+                    const numNew = effectiveLength - maxEffectiveLength;
+                    totalLettersTyped += numNew;
+                    currentLevelLettersTyped += numNew;
 
-            // If user backspaced, clear error state and ligature tracking
-            if (inputChars.length < prevInputChars.length) {
-                isInErrorState = false;
-                previousWasLigatureStart = false;
-            }
-
-            // If in error state and user is trying to type more (not backspace), block it
-            // BUT allow if a ligature just formed (that's completing a character, not adding a new one)
-            if (isInErrorState && inputChars.length > prevInputChars.length && !ligatureFormed) {
-                // Revert to previous input (keeps the wrong char visible)
-                typingInput.value = previousInput;
-                // Update previousInput before returning so next comparison works
-                previousInput = typingInput.value;
-
-                // Flash the input background red as visual feedback
-                typingInput.style.animation = 'none';
-                setTimeout(() => {
-                    typingInput.style.animation = 'error-flash 0.4s ease-out';
-                }, 10);
-
-                updateWordDisplay();
-                updateStats();
-                checkCompletion();
-                return;
-            }
-
-            // Track accuracy for newly typed characters
-            if (ligatureFormed) {
-                // Ligature just formed - treat as completing one character
-                totalLettersTyped++;
-                currentLevelLettersTyped++;
-                previousWasLigatureStart = false; // Clear the flag - ligature completed
-
-                // Check if the ligature matches the expected position
-                if (ligaturePosition < wordChars.length &&
-                    inputChars[ligaturePosition] === wordChars[ligaturePosition]) {
-                    correctLetters++;
-                    currentLevelCorrectLetters++;
-                    isInErrorState = false; // Clear error state on successful ligature
-                } else {
-                    isInErrorState = true;
-                }
-            } else if (inputChars.length > prevInputChars.length) {
-                // User typed new character(s)
-                const numNewChars = inputChars.length - prevInputChars.length;
-                const currentIndex = prevInputChars.length;
-
-                // Check if this is the first component of a ligature (and we should wait)
-                const isLigatureStartChar = useLigatures && currentIndex < wordChars.length &&
-                    LIGATURES[wordChars[currentIndex]] &&
-                    LIGATURES[wordChars[currentIndex]][0] === inputChars[currentIndex];
-
-                if (isLigatureStartChar) {
-                    // This could form a ligature - wait for next character
-                    previousWasLigatureStart = true;
-                    // Don't count yet, don't set error state
-                } else {
-                    // Not a ligature start - count it normally
-                    totalLettersTyped += numNewChars;
-                    currentLevelLettersTyped += numNewChars;
-                    previousWasLigatureStart = false;
-
-                    // Check if correct
+                    // Check correctness
                     let allCorrect = true;
-                    for (let i = 0; i < numNewChars; i++) {
-                        const idx = currentIndex + i;
-                        if (idx >= wordChars.length || inputChars[idx] !== wordChars[idx]) {
+                    for (let i = maxEffectiveLength; i < effectiveLength; i++) {
+                        if (i >= wordChars.length || inputChars[i] !== wordChars[i]) {
                             allCorrect = false;
-                            isInErrorState = true;
                             break;
                         }
                     }
 
                     if (allCorrect) {
-                        correctLetters += numNewChars;
-                        currentLevelCorrectLetters += numNewChars;
+                        correctLetters += numNew;
+                        currentLevelCorrectLetters += numNew;
+                        isInErrorState = false;
+                    } else {
+                        isInErrorState = true;
                     }
+
+                    maxEffectiveLength = effectiveLength;
                 }
+
+                previousInput = typingInput.value;
             }
 
-            // Update previous input for next comparison
-            previousInput = typingInput.value;
-
-            // POSTCONDITION: Log final state (when debugging enabled)
+            // Debug: log final state
             if (window.debugTyping) {
-                console.log('📊 POSTCONDITION: word=' + JSON.stringify(currentWord) +
-                           ', input=' + JSON.stringify(typingInput.value) +
-                           ', totalCorrect=' + correctLetters + '/' + totalLettersTyped +
-                           ', levelCorrect=' + currentLevelCorrectLetters + '/' + currentLevelLettersTyped +
-                           ', wordsCompleted=' + wordsCompleted +
-                           ', wordsInLevel=' + wordsInCurrentLevel + '/' + currentLevelWordCount +
-                           ', errorState=' + isInErrorState);
+                console.log('📊 POSTCONDITION: input=' + JSON.stringify(typingInput.value) +
+                           ', correct=' + correctLetters + '/' + totalLettersTyped +
+                           ', maxEffectiveLength=' + maxEffectiveLength +
+                           ', isInErrorState=' + isInErrorState);
             }
 
             updateWordDisplay();
