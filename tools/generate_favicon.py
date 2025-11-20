@@ -41,7 +41,7 @@ def generate_favicon_size(size, font_path, shaw_char='𐑖', tee_char='𐑑'):
     shadow_layer = Image.new('RGBA', (size, size), (0, 0, 0, 0))
     shadow_draw = ImageDraw.Draw(shadow_layer)
 
-    shadow_offset = max(2, size // 20)
+    shadow_offset = max(1, size // 40)  # More subtle offset for contrast
 
     # Draw shadows (same font for both)
     shadow_draw.text((shaw_x + shadow_offset, shaw_y + shadow_offset),
