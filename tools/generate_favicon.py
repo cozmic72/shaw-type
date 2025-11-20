@@ -14,7 +14,7 @@ def generate_favicon_size(size, font_path, shaw_char='𐑖', tee_char='𐑑'):
     # Draw rounded rectangle with white fill and blue border
     draw = ImageDraw.Draw(img)
     corner_radius = size // 5  # 20% corner radius
-    border_width = max(2, size // 32)  # Moderately thin border
+    border_width = max(3, int(size / 32 * 1.5))  # 50% thicker border
 
     # Colors
     blue_border = (85, 95, 220)  # #555fdc
@@ -52,10 +52,13 @@ def generate_favicon_size(size, font_path, shaw_char='𐑖', tee_char='𐑑'):
     tee_bottom_margin = int(size * 0.08)  # 8% margin from bottom
     tee_y = size - tee_bottom_margin - tee_bbox[3]
 
-    # Draw black shaw and black tee (same font size, no shadow needed)
+    # Draw black shaw and black tee (same font size, with stroke for boldness)
     draw = ImageDraw.Draw(img)
-    draw.text((shaw_x, shaw_y), shaw_char, font=font, fill='black')
-    draw.text((tee_x, tee_y), tee_char, font=font, fill='black')
+    stroke_width = max(1, size // 40)  # Bold effect with stroke
+    draw.text((shaw_x, shaw_y), shaw_char, font=font, fill='black',
+              stroke_width=stroke_width, stroke_fill='black')
+    draw.text((tee_x, tee_y), tee_char, font=font, fill='black',
+              stroke_width=stroke_width, stroke_fill='black')
 
     return img
 
