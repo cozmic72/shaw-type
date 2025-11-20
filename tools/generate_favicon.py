@@ -48,8 +48,8 @@ def generate_favicon_size(size, font_path, shaw_char='𐑖', tee_char='𐑑'):
 
     # Position tee to nestle in shaw's curve, with baseline clear of bottom
     tee_x = shaw_x + int(shaw_width * 0.7)  # Nudged further right (was 0.6)
-    # Position tee so its bottom clears the icon bottom comfortably
-    tee_bottom_margin = int(size * 0.08)  # 8% margin from bottom
+    # Position tee moved up to match shaw's upward nudge
+    tee_bottom_margin = int(size * 0.16)  # Increased from 8% to 16% to move up with shaw
     tee_y = size - tee_bottom_margin - tee_bbox[3]
 
     # Draw black shaw and black tee (same font size, with stroke for boldness)
