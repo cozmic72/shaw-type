@@ -2207,9 +2207,14 @@
             document.getElementById('finalAccuracy').textContent = accuracyFormatted;
             document.getElementById('finalAccuracy').parentElement.style.display = 'block';
 
-            // Show "Continue" and "Choose Different Lesson" buttons
+            // Show lesson completion buttons
+            const learnWords = getLearnWords();
+            const maxLesson = learnWords ? Object.keys(learnWords).length : 6;
+            const hasNextLesson = parseInt(selectedLevel) < maxLesson;
+
             document.getElementById('completionButtons').innerHTML = `
-                <button onclick="continueLesson()">Continue</button>
+                <button onclick="continueLesson()">Keep practicing this lesson</button>
+                ${hasNextLesson ? '<button onclick="nextLesson()" style="margin-left: 10px;">Next lesson</button>' : ''}
                 <button onclick="chooseDifferentLesson()" style="margin-left: 10px; background: white; color: #667eea; border: 2px solid #667eea;">Choose Different Lesson</button>
             `;
 
@@ -2357,6 +2362,39 @@
             // Restart current level/lesson with same word pool
             startLevel(currentLevelWordPool, currentLevelWordCount, currentLevelType, currentLevelTitle, currentLevelTypeLabel, currentLevelCompletionCallback);
             typingInput.focus();
+        }
+
+        function nextLesson() {
+            // Advance to next lesson
+            const nextLessonNum = parseInt(selectedLevel) + 1;
+            const learnWords = getLearnWords();
+            const maxLesson = learnWords ? Object.keys(learnWords).length : 6;
+
+            if (nextLessonNum <= maxLesson) {
+                selectedLevel = nextLessonNum.toString();
+
+                // Hide modal
+                document.getElementById('completionModal').classList.remove('show');
+
+                // Reset session stats
+                wordsCompleted = 0;
+                totalLettersTyped = 0;
+                correctLetters = 0;
+                recentWords = [];
+                currentLevelLettersTyped = 0;
+                currentLevelCorrectLetters = 0;
+                updateStats();
+
+                // Start next lesson
+                const lang = useShavianUI ? 'shavian' : 'latin';
+                const t = translations[lang];
+                const levelData = getLearnLessonData(nextLessonNum);
+                if (levelData) {
+                    currentLevelNumber = nextLessonNum;
+                    startLevel(levelData.wordPool, levelData.wordCount, 'lesson', levelData.title, t.lesson_label, showLessonCompletionDialog);
+                    typingInput.focus();
+                }
+            }
         }
 
         function chooseDifferentLesson() {
