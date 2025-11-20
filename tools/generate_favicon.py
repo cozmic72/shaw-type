@@ -12,8 +12,17 @@ def generate_favicon_size(size, font_path, shaw_char='𐑖', tee_char='𐑑'):
     bg_color = (102, 126, 234)  # #667eea
     img = Image.new('RGBA', (size, size), bg_color + (255,))
 
-    # Calculate font size - increased to use full space (100% of size)
-    font_size = int(size * 1.0)
+    # Add rounded corners with transparency
+    mask = Image.new('L', (size, size), 0)
+    mask_draw = ImageDraw.Draw(mask)
+    corner_radius = size // 5  # 20% corner radius
+    mask_draw.rounded_rectangle([(0, 0), (size, size)], radius=corner_radius, fill=255)
+
+    # Apply mask to create rounded corners
+    img.putalpha(mask)
+
+    # Calculate font size - increased by 15% (115% of size)
+    font_size = int(size * 1.15)
     font = ImageFont.truetype(font_path, font_size)
 
     # Get bounding boxes for both characters (same font size)
