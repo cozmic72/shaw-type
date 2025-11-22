@@ -2474,14 +2474,7 @@
             openLessonSelector();
         }
 
-        // Debug flag - set in console for testing
-        window.debugTyping = false;
-
-        // Expose settings for console access (for quick testing)
-        window.setWordCount = function(n) { currentLevelWordCount = n; };
-        window.getWordCount = function() { return currentLevelWordCount; };
-        window.setLevel = function(n) { currentLevelNumber = n; };
-        window.getLevel = function() { return currentLevelNumber; };
+        // Expose helper functions for console testing
         // Helper function to set the current word (for testing)
         // Usage: loadWord("𐑕𐑩𐑥𐑢𐑻𐑛")
         window.loadWord = function(word) {
