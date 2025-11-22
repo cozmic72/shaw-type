@@ -2063,17 +2063,21 @@
                     let html = '';
                     const wordChars = Array.from(currentWord);
                     const inputChars = Array.from(userInput);
+
+                    // Normalize arrays to treat char+VS1 as single units for comparison
+                    const normalizedWordChars = normalizeCharArray(wordChars);
+                    const normalizedInputChars = normalizeCharArray(inputChars);
                     const isPending = isPendingLigatureStart(inputChars, wordChars);
 
-                    for (let j = 0; j < wordChars.length; j++) {
-                        const char = wordChars[j];
+                    for (let j = 0; j < normalizedWordChars.length; j++) {
+                        const char = normalizedWordChars[j];
                         let className = '';
 
-                        if (j < inputChars.length) {
+                        if (j < normalizedInputChars.length) {
                             // User has typed this position
-                            if (inputChars[j] === char) {
+                            if (normalizedInputChars[j] === char) {
                                 className = 'correct';
-                            } else if (isPending && j === inputChars.length - 1) {
+                            } else if (isPending && j === normalizedInputChars.length - 1) {
                                 // Waiting for ligature completion - don't mark as wrong yet
                                 className = '';
                             } else {
@@ -2559,15 +2563,36 @@
             return input;
         }
 
+        // Helper: Normalize character array to merge VS1 with preceding character
+        // Converts ['𐑻', '︀', '𐑮'] to ['𐑻︀', '𐑮']
+        function normalizeCharArray(chars) {
+            const result = [];
+            for (let i = 0; i < chars.length; i++) {
+                const char = chars[i];
+                // Check if this is VS1 and we have a previous character
+                if (char === VS1 && result.length > 0) {
+                    // Merge VS1 with the previous character
+                    result[result.length - 1] = result[result.length - 1] + VS1;
+                } else {
+                    result.push(char);
+                }
+            }
+            return result;
+        }
+
         // Helper: Check if last character is a pending ligature start
         function isPendingLigatureStart(inputChars, wordChars) {
             if (!useLigatures || inputChars.length === 0) return false;
 
-            const lastIdx = inputChars.length - 1;
-            if (lastIdx >= wordChars.length) return false;
+            // Normalize arrays to treat char+VS1 as single units
+            const normalizedInput = normalizeCharArray(inputChars);
+            const normalizedWord = normalizeCharArray(wordChars);
 
-            const expectedChar = wordChars[lastIdx];
-            const lastChar = inputChars[lastIdx];
+            const lastIdx = normalizedInput.length - 1;
+            if (lastIdx >= normalizedWord.length) return false;
+
+            const expectedChar = normalizedWord[lastIdx];
+            const lastChar = normalizedInput[lastIdx];
 
             // Check if the last character is the first of any pair that forms the expected ligature
             if (LIGATURES[expectedChar]) {
@@ -2735,12 +2760,16 @@
             const inputChars = Array.from(userInput);
             const wordChars = Array.from(currentWord);
 
+            // Normalize to treat char+VS1 as single units
+            const normalizedInputChars = normalizeCharArray(inputChars);
+            const normalizedWordChars = normalizeCharArray(wordChars);
+
             // Calculate effective length (excludes pending ligature start)
             const pendingLigature = isPendingLigatureStart(inputChars, wordChars);
-            const effectiveLength = pendingLigature ? inputChars.length - 1 : inputChars.length;
+            const effectiveLength = pendingLigature ? normalizedInputChars.length - 1 : normalizedInputChars.length;
 
             // Update statistics and handle blocked input
-            const result = updateInputStatistics(effectiveLength, inputChars, wordChars);
+            const result = updateInputStatistics(effectiveLength, normalizedInputChars, normalizedWordChars);
             if (result === 'blocked') {
                 // Revert input and flash red
                 typingInput.value = previousInput;
