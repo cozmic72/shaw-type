@@ -96,6 +96,20 @@ function updateKeyboardLabels() {
     const keyboardMap = KEYBOARD_MAPS[currentLayout];
     if (!keyboardMap) return;
 
+    // Update title to show keyboard name
+    const titleElement = document.querySelector('.keyboard-title');
+    if (titleElement) {
+        const layoutNames = {
+            'imperial': 'Shaw Imperial',
+            'new-imperial': 'New Shaw Imperial',
+            'qwerty': 'Shaw QWERTY',
+            '2layer': 'Shaw 2-layer',
+            'jafl': 'Shaw-JAFL'
+        };
+        titleElement.textContent = layoutNames[currentLayout] || 'Virtual Keyboard';
+    }
+
+    // Update key labels
     const keys = document.querySelectorAll('.key[data-key]');
     keys.forEach(key => {
         const keyValue = key.getAttribute('data-key');
@@ -106,8 +120,19 @@ function updateKeyboardLabels() {
             key.innerHTML = shavianChar;
             key.setAttribute('data-shavian', shavianChar);
         } else {
-            // For keys without mappings (Tab, Enter, etc.), keep original label
-            // Already set in HTML
+            // For keys without mappings (Tab, Enter, etc.), restore special symbols
+            const specialKeys = {
+                'Backspace': '⌫',
+                'Tab': '⇥',
+                'CapsLock': '⇪',
+                'Enter': '⏎',
+                'Shift': '⇧',
+                ' ': 'Space'
+            };
+            if (specialKeys[keyValue]) {
+                key.innerHTML = specialKeys[keyValue];
+            }
+            key.removeAttribute('data-shavian');
         }
     });
 }
