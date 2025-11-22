@@ -1625,7 +1625,10 @@
 
             // Update virtual keyboard labels
             if (typeof updateKeyboardLabels === 'function') {
+                debug('Updating virtual keyboard labels for layout: ' + currentLayout);
                 updateKeyboardLabels();
+            } else {
+                debug('updateKeyboardLabels function not available');
             }
         }
 
