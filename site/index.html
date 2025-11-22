@@ -2623,17 +2623,33 @@
             return 'ok';
         }
 
+        // Helper: Convert UTF-16 code unit position to character index
+        function codeUnitPosToCharIndex(str, codeUnitPos) {
+            let charIndex = 0;
+            let codeUnitIndex = 0;
+            for (const char of str) {
+                if (codeUnitIndex >= codeUnitPos) break;
+                codeUnitIndex += char.length; // Shavian chars are 2 code units
+                charIndex++;
+            }
+            return charIndex;
+        }
+
         // Capture target ranges before input is processed (for insertReplacementText)
         typingInput.addEventListener('beforeinput', (e) => {
             if (e.inputType === 'insertReplacementText') {
-                // Get the selection/range being replaced
-                const start = typingInput.selectionStart;
-                const end = typingInput.selectionEnd;
-                pendingReplacementStart = start;
-                pendingReplacementEnd = end;
+                // Get the selection/range being replaced (in UTF-16 code units)
+                const startCodeUnit = typingInput.selectionStart;
+                const endCodeUnit = typingInput.selectionEnd;
+
+                // Convert to character positions for shadow input
+                const currentValue = typingInput.value;
+                pendingReplacementStart = codeUnitPosToCharIndex(currentValue, startCodeUnit);
+                pendingReplacementEnd = codeUnitPosToCharIndex(currentValue, endCodeUnit);
 
                 if (debugMode) {
-                    console.log('🔍 BEFOREINPUT: replacing chars ' + start + '-' + end +
+                    console.log('🔍 BEFOREINPUT: replacing code units ' + startCodeUnit + '-' + endCodeUnit +
+                               ' (chars ' + pendingReplacementStart + '-' + pendingReplacementEnd + ')' +
                                ' with "' + (e.data || '') + '" [' + toCodePoints(e.data || '') + ']');
                 }
             }
