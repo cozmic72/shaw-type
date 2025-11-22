@@ -2508,22 +2508,35 @@
             debug(`[loadWord] Font size will be: ${getFontSizeForMaxLength(wordLength)}px`);
         };
 
-        // Helper function to set the next word (for testing)
+        // Helper function to advance to next word with a specific word (for testing)
         // Usage: setNextWord("𐑕𐑩𐑥𐑢𐑻𐑛")
         window.setNextWord = function(word) {
-            // Set the next word (in slot after current)
-            const nextSlot = (carouselOffset + 1) % 4;
-            words[nextSlot] = word;
+            // Advance carousel as if completing current word
+            carouselOffset = (carouselOffset + 1) % 4;
+
+            // Set the new "next-next" word (slot that will become next after this rotation)
+            const nextNextSlot = (carouselOffset + 2) % 4;
+            words[nextNextSlot] = word;
+
+            // Update currentWord to the new current slot
+            currentWord = words[carouselOffset];
+
+            // Clear input and reset state for new word
+            typingInput.value = '';
+            shadowInput = '';
+            previousInput = '';
+            maxEffectiveLength = 0;
+            isInErrorState = false;
 
             // Temporarily modify word pool to include this word at max length for font sizing test
             const wordLength = Array.from(word).length;
             const tempPool = [...(currentLevelWordPool || []), word];
             currentLevelWordPool = tempPool;
 
-            // Update display to show the word and apply font sizing
+            // Update display to show the rotated carousel and apply font sizing
             updateWordDisplay();
 
-            debug(`[setNextWord] Next word set to: "${word}" (length: ${wordLength})`);
+            debug(`[setNextWord] Advanced carousel, current="${currentWord}", queued="${word}" (length: ${wordLength})`);
             debug(`[setNextWord] Font size will be: ${getFontSizeForMaxLength(wordLength)}px`);
         };
 
