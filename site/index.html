@@ -1052,6 +1052,7 @@
         let selectedLevel = 1; // Level selection: 1-7
         let useShavianUI = false; // Toggle for Shavian UI
         let currentDialect = 'gb'; // 'gb' or 'us' - English dialect for word lists
+        let debugMode = false; // Toggle for debug logging
 
         // UI text translations
         const translations = {
@@ -2631,7 +2632,7 @@
                 pendingReplacementStart = start;
                 pendingReplacementEnd = end;
 
-                if (window.debug) {
+                if (debugMode) {
                     console.log('🔍 BEFOREINPUT: replacing chars ' + start + '-' + end +
                                ' with "' + (e.data || '') + '" [' + toCodePoints(e.data || '') + ']');
                 }
@@ -2646,7 +2647,7 @@
             shadowInput = updateShadowInput(e.inputType, eventData, shadowInput, browserInput);
 
             // Debug: log raw input with Unicode code points
-            if (window.debug) {
+            if (debugMode) {
                 console.log('📥 INPUT: browser="' + browserInput + '" [' + toCodePoints(browserInput) + ']' +
                            ' | inputType=' + e.inputType +
                            ' | event.data="' + eventData + '" [' + toCodePoints(eventData) + ']' +
@@ -2693,7 +2694,7 @@
             }
 
             // Debug: log final state
-            if (window.debug) {
+            if (debugMode) {
                 console.log('📊 POSTCONDITION: input=' + JSON.stringify(typingInput.value) +
                            ', correct=' + correctLetters + '/' + totalLettersTyped +
                            ', maxEffectiveLength=' + maxEffectiveLength +
@@ -3144,7 +3145,27 @@
             if (savedBestTime !== null) {
                 bestTime = parseFloat(savedBestTime);
             }
+
+            // Load debug mode preference
+            const savedDebugMode = localStorage.getItem('debugMode');
+            if (savedDebugMode !== null) {
+                debugMode = savedDebugMode === 'true';
+            }
         }
+
+        // Helper function to toggle debug mode (can be called from console)
+        window.setDebug = function(enabled) {
+            debugMode = !!enabled;
+            localStorage.setItem('debugMode', debugMode);
+            console.log('Debug mode ' + (debugMode ? 'enabled' : 'disabled') + ' and saved to localStorage');
+            return debugMode;
+        };
+
+        // Getter for debug mode (for console convenience)
+        Object.defineProperty(window, 'debug', {
+            get: () => debugMode,
+            set: (value) => window.setDebug(value)
+        });
 
         // Keyboard support for dialogs
         document.addEventListener('keydown', (e) => {
