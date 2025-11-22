@@ -1054,6 +1054,15 @@
         let currentDialect = 'gb'; // 'gb' or 'us' - English dialect for word lists
         let debugMode = false; // Toggle for debug logging
 
+        // Helper function to toggle debug mode (can be called from console immediately)
+        // Usage: setDebug(true) or setDebug(false)
+        window.setDebug = function(enabled) {
+            debugMode = !!enabled;
+            localStorage.setItem('debugMode', debugMode);
+            console.log('Debug mode ' + (debugMode ? 'enabled' : 'disabled') + ' and saved to localStorage');
+            return debugMode;
+        };
+
         // UI text translations
         const translations = {
             latin: {
@@ -3168,15 +3177,6 @@
                 debugMode = savedDebugMode === 'true';
             }
         }
-
-        // Helper function to toggle debug mode (can be called from console)
-        // Usage: setDebug(true) or setDebug(false)
-        window.setDebug = function(enabled) {
-            debugMode = !!enabled;
-            localStorage.setItem('debugMode', debugMode);
-            console.log('Debug mode ' + (debugMode ? 'enabled' : 'disabled') + ' and saved to localStorage');
-            return debugMode;
-        };
 
         // Keyboard support for dialogs
         document.addEventListener('keydown', (e) => {
