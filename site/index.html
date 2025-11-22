@@ -1847,7 +1847,6 @@
         // Start a new level/lesson with given word pool, count, and metadata
         function startLevel(wordPool, wordCount, type, title, typeLabel, completionCallback) {
             console.log(`[startLevel] Starting ${type}: "${title}" (${wordCount} words from pool of ${wordPool.length})`);
-            console.trace('[startLevel] Call stack:');
 
             // Set level state
             currentLevelWordPool = wordPool;
@@ -2855,10 +2854,10 @@
 
         function closeWelcomeModal() {
             document.getElementById('welcomeModal').classList.remove('show');
-            // Ensure Play mode is active when starting fresh
-            setMode('play');
-            initializeGame();
-            // Don't auto-focus on mobile - let user tap when ready
+            // Just set the mode preference, don't start a game
+            currentMode = 'play';
+            localStorage.setItem('currentMode', currentMode);
+            // User will click Play or Practice button to actually start
         }
 
         function showWelcomeIfNeeded() {
