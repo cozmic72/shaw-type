@@ -1815,6 +1815,11 @@
         function updateLevelSelector() {
             const levelSelect = document.getElementById('levelSelect');
 
+            // Level selector only exists in the main UI, not in settings
+            if (!levelSelect) {
+                return;
+            }
+
             // Get the appropriate word list for current settings
             const learnWords = getLearnWords();
 
