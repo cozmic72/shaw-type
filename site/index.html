@@ -2482,6 +2482,34 @@
         window.getWordCount = function() { return currentLevelWordCount; };
         window.setLevel = function(n) { currentLevelNumber = n; };
         window.getLevel = function() { return currentLevelNumber; };
+        // Helper function to set the current word (for testing)
+        // Usage: loadWord("𐑕𐑩𐑥𐑢𐑻𐑛")
+        window.loadWord = function(word) {
+            const currentSlot = carouselOffset;
+            words[currentSlot] = word;
+            currentWord = word;
+
+            // Clear input and reset state
+            typingInput.value = '';
+            shadowInput = '';
+            previousInput = '';
+            maxEffectiveLength = 0;
+            isInErrorState = false;
+
+            // Temporarily modify word pool to include this word at max length for font sizing test
+            const wordLength = Array.from(word).length;
+            const tempPool = [...(currentLevelWordPool || []), word];
+            currentLevelWordPool = tempPool;
+
+            // Update display to show the word and apply font sizing
+            updateWordDisplay();
+
+            debug(`[loadWord] Current word set to: "${word}" (length: ${wordLength})`);
+            debug(`[loadWord] Font size will be: ${getFontSizeForMaxLength(wordLength)}px`);
+        };
+
+        // Helper function to set the next word (for testing)
+        // Usage: setNextWord("𐑕𐑩𐑥𐑢𐑻𐑛")
         window.setNextWord = function(word) {
             // Set the next word (in slot after current)
             const nextSlot = (carouselOffset + 1) % 4;
