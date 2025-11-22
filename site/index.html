@@ -2498,7 +2498,6 @@
             updateWordDisplay();
 
             debug(`[loadWord] Current word set to: "${word}" (length: ${wordLength})`);
-            debug(`[loadWord] Font size will be: ${getFontSizeForMaxLength(wordLength)}px`);
         };
 
         // Helper function to advance to next word with a specific word (for testing)
@@ -2530,7 +2529,6 @@
             updateWordDisplay();
 
             debug(`[setNextWord] Advanced carousel, current="${currentWord}", queued="${word}" (length: ${wordLength})`);
-            debug(`[setNextWord] Font size will be: ${getFontSizeForMaxLength(wordLength)}px`);
         };
 
         // Event listeners
