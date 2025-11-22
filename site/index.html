@@ -1848,6 +1848,13 @@
             // Initialize game (loads words)
             initializeGame();
 
+            // Clear input and shadow
+            typingInput.value = '';
+            shadowInput = '';
+            previousInput = '';
+            maxEffectiveLength = 0;
+            isInErrorState = false;
+
             // Start timer only for play mode at level 1 (beginning of game)
             if (currentMode === 'play' && currentLevelNumber === 1 && wordsCompleted === 0) {
                 startTime = Date.now();
@@ -1963,6 +1970,7 @@
             words[carouselOffset] = currentWord;
 
             typingInput.value = '';
+            shadowInput = '';
             previousInput = '';
             maxEffectiveLength = 0;
             isInErrorState = false;
@@ -2517,6 +2525,50 @@
             return false;
         }
 
+        // Helper: Update shadow input based on InputEvent
+        // Returns the updated shadow input string
+        function updateShadowInput(inputType, eventData, currentShadow) {
+            switch (inputType) {
+                case 'insertText':
+                    // Normal typing - append what was actually typed (preserves VS1)
+                    return currentShadow + (eventData || '');
+
+                case 'deleteContentBackward':
+                    // Backspace - remove last character
+                    const chars = Array.from(currentShadow);
+                    return chars.slice(0, -1).join('');
+
+                case 'deleteContentForward':
+                    // Delete key - remove first character (shouldn't happen in our UI)
+                    const charsForward = Array.from(currentShadow);
+                    return charsForward.slice(1).join('');
+
+                case 'insertReplacementText':
+                    // Safari uses this for ligature formation from virtual keyboard
+                    // Trust the event data if available, otherwise fall back to browser value
+                    return eventData || currentShadow;
+
+                case 'insertFromPaste':
+                case 'insertFromDrop':
+                    // Paste or drop - replace entire content
+                    return eventData || '';
+
+                case 'deleteWordBackward':
+                case 'deleteWordForward':
+                case 'deleteByCut':
+                    // Word deletion or cut - can't reliably reconstruct, reset
+                    return '';
+
+                case 'insertCompositionText':
+                    // IME composition - trust event data
+                    return eventData || currentShadow;
+
+                default:
+                    // Unknown or null inputType - return current shadow unchanged
+                    return currentShadow;
+            }
+        }
+
         // Helper: Update statistics based on new input length
         function updateInputStatistics(effectiveLength, inputChars, wordChars) {
             if (effectiveLength < maxEffectiveLength) {
@@ -2555,25 +2607,36 @@
         }
 
         typingInput.addEventListener('input', (e) => {
-            let userInput = e.target.value;
+            const browserInput = e.target.value;
+            const eventData = e.data || '';
+
+            // Update shadow input based on what was actually typed
+            shadowInput = updateShadowInput(e.inputType, eventData, shadowInput);
 
             // Debug: log raw input with Unicode code points
             if (window.debugTyping) {
-                const eventData = e.data || '';
-                console.log('📥 INPUT: "' + userInput + '" [' + toCodePoints(userInput) + '] len=' + Array.from(userInput).length +
+                console.log('📥 INPUT: browser="' + browserInput + '" [' + toCodePoints(browserInput) + ']' +
                            ' | inputType=' + e.inputType +
                            ' | event.data="' + eventData + '" [' + toCodePoints(eventData) + ']' +
+                           ' | shadow="' + shadowInput + '" [' + toCodePoints(shadowInput) + ']' +
                            ' | expected="' + currentWord + '" [' + toCodePoints(currentWord) + ']');
             }
 
+            // Use shadow input as source of truth
+            let userInput = shadowInput;
+
             // Ignore leading spaces at the start of the level
             if (maxEffectiveLength === 0 && userInput.trim() === '') {
+                shadowInput = '';
                 typingInput.value = '';
                 return;
             }
 
             // Form ligatures if enabled (for keyboards that don't do it themselves)
             userInput = formLigatures(userInput);
+
+            // Update both shadow and display to match formed ligatures
+            shadowInput = userInput;
             typingInput.value = userInput;
 
             // Get character arrays for comparison
