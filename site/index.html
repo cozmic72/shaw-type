@@ -2527,7 +2527,8 @@
 
         // Helper: Update shadow input based on InputEvent
         // Returns the updated shadow input string
-        function updateShadowInput(inputType, eventData, currentShadow) {
+        // browserValue is what the browser's input field currently shows (after the event)
+        function updateShadowInput(inputType, eventData, currentShadow, browserValue) {
             switch (inputType) {
                 case 'insertText':
                     // Normal typing - append what was actually typed (preserves VS1)
@@ -2545,27 +2546,28 @@
 
                 case 'insertReplacementText':
                     // Safari uses this for ligature formation from virtual keyboard
-                    // Trust the event data if available, otherwise fall back to browser value
-                    return eventData || currentShadow;
+                    // The browser has already replaced some characters with the ligature
+                    // Trust the browser's value as it has done the replacement correctly
+                    return browserValue;
 
                 case 'insertFromPaste':
                 case 'insertFromDrop':
                     // Paste or drop - replace entire content
-                    return eventData || '';
+                    return eventData || browserValue;
 
                 case 'deleteWordBackward':
                 case 'deleteWordForward':
                 case 'deleteByCut':
-                    // Word deletion or cut - can't reliably reconstruct, reset
-                    return '';
+                    // Word deletion or cut - use browser's resulting value
+                    return browserValue;
 
                 case 'insertCompositionText':
-                    // IME composition - trust event data
-                    return eventData || currentShadow;
+                    // IME composition - trust browser value
+                    return browserValue;
 
                 default:
-                    // Unknown or null inputType - return current shadow unchanged
-                    return currentShadow;
+                    // Unknown or null inputType - trust browser value
+                    return browserValue;
             }
         }
 
@@ -2611,7 +2613,7 @@
             const eventData = e.data || '';
 
             // Update shadow input based on what was actually typed
-            shadowInput = updateShadowInput(e.inputType, eventData, shadowInput);
+            shadowInput = updateShadowInput(e.inputType, eventData, shadowInput, browserInput);
 
             // Debug: log raw input with Unicode code points
             if (window.debug) {
