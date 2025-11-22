@@ -2495,8 +2495,8 @@
             // Update display to show the word and apply font sizing
             updateWordDisplay();
 
-            console.log(`Next word set to: "${word}" (length: ${wordLength})`);
-            console.log(`Font size will be: ${getFontSizeForMaxLength(wordLength)}px`);
+            debug(`[setNextWord] Next word set to: "${word}" (length: ${wordLength})`);
+            debug(`[setNextWord] Font size will be: ${getFontSizeForMaxLength(wordLength)}px`);
         };
 
         // Event listeners
