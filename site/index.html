@@ -995,6 +995,10 @@
         // Shadow input: faithful representation of what user typed (browsers may strip combining chars)
         let shadowInput = '';
 
+        // Track replacement info from beforeinput event (for insertReplacementText)
+        let pendingReplacementStart = -1;
+        let pendingReplacementEnd = -1;
+
         // Ligature mappings - each ligature can have multiple 2-character input sequences
         const VS1 = '\uFE00';
         const LIGATURES = {
@@ -2546,8 +2550,18 @@
 
                 case 'insertReplacementText':
                     // Safari uses this for ligature formation from virtual keyboard
-                    // The browser has already replaced some characters with the ligature
-                    // Trust the browser's value as it has done the replacement correctly
+                    // Use the replacement range captured from beforeinput event
+                    if (pendingReplacementStart >= 0 && pendingReplacementEnd >= 0) {
+                        const chars = Array.from(currentShadow);
+                        const before = chars.slice(0, pendingReplacementStart).join('');
+                        const after = chars.slice(pendingReplacementEnd).join('');
+                        const result = before + (eventData || '') + after;
+                        // Reset pending replacement
+                        pendingReplacementStart = -1;
+                        pendingReplacementEnd = -1;
+                        return result;
+                    }
+                    // Fallback if we didn't capture the range
                     return browserValue;
 
                 case 'insertFromPaste':
@@ -2607,6 +2621,22 @@
             }
             return 'ok';
         }
+
+        // Capture target ranges before input is processed (for insertReplacementText)
+        typingInput.addEventListener('beforeinput', (e) => {
+            if (e.inputType === 'insertReplacementText') {
+                // Get the selection/range being replaced
+                const start = typingInput.selectionStart;
+                const end = typingInput.selectionEnd;
+                pendingReplacementStart = start;
+                pendingReplacementEnd = end;
+
+                if (window.debug) {
+                    console.log('🔍 BEFOREINPUT: replacing chars ' + start + '-' + end +
+                               ' with "' + (e.data || '') + '" [' + toCodePoints(e.data || '') + ']');
+                }
+            }
+        });
 
         typingInput.addEventListener('input', (e) => {
             const browserInput = e.target.value;
