@@ -3170,18 +3170,13 @@
         }
 
         // Helper function to toggle debug mode (can be called from console)
+        // Usage: setDebug(true) or setDebug(false)
         window.setDebug = function(enabled) {
             debugMode = !!enabled;
             localStorage.setItem('debugMode', debugMode);
             console.log('Debug mode ' + (debugMode ? 'enabled' : 'disabled') + ' and saved to localStorage');
             return debugMode;
         };
-
-        // Getter for debug mode (for console convenience)
-        Object.defineProperty(window, 'debug', {
-            get: () => debugMode,
-            set: (value) => window.setDebug(value)
-        });
 
         // Keyboard support for dialogs
         document.addEventListener('keydown', (e) => {
