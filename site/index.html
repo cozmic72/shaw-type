@@ -1156,12 +1156,21 @@
             return layoutNames[layout] || 'Virtual Keyboard';
         }
 
-        function updateVirtualKeyboardLabels() {
-            if (typeof updateKeyboardLabels === 'function') {
+        function updateVirtualKeyboardLabels(retryCount = 0) {
+            if (typeof updateKeyboardLabels === 'function' && typeof makeKeysClickable === 'function') {
                 const keyboardMap = KEYBOARD_MAPS[currentLayout];
+                if (!keyboardMap) {
+                    console.log('No keyboard map available for layout: ' + currentLayout);
+                    return; // Can't update labels if no map exists
+                }
                 const layoutName = getLayoutName(currentLayout);
                 updateKeyboardLabels(keyboardMap, layoutName);
                 makeKeysClickable(keyboardMap);
+            } else if (retryCount < 20) {
+                // Functions not loaded yet, try again soon
+                setTimeout(() => updateVirtualKeyboardLabels(retryCount + 1), 50);
+            } else {
+                console.error('Virtual keyboard functions not available after retries');
             }
         }
 
@@ -2913,10 +2922,10 @@
         typingInput.addEventListener('keydown', (e) => {
             if (!useVirtualKeyboard) return;
 
-            // Get the keyboard map for current layout
+            // Get the keyboard map for current layout (if available)
             const keyboardMap = KEYBOARD_MAPS[currentLayout];
             if (!keyboardMap) {
-                debug('⌨️  No keyboard map for layout: ' + currentLayout);
+                // No QWERTY mapping for this layout, allow normal typing
                 return;
             }
 
