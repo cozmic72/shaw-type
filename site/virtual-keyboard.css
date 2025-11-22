@@ -11,6 +11,24 @@
     cursor: move;
     user-select: none;
     font-family: 'Inter-Alia', sans-serif;
+    transform-origin: bottom right;
+}
+
+/* Resize handle in bottom-right corner */
+.resize-handle {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 20px;
+    height: 20px;
+    cursor: nwse-resize;
+    background: linear-gradient(135deg, transparent 50%, #555fdc 50%);
+    border-bottom-right-radius: 6px;
+    opacity: 0.5;
+}
+
+.resize-handle:hover {
+    opacity: 0.8;
 }
 
 .keyboard-header {

@@ -968,7 +968,7 @@
     <div id="virtualKeyboard" class="virtual-keyboard" style="display: none;">
         <div class="keyboard-header">
             <span class="keyboard-title">Virtual Keyboard</span>
-            <span class="keyboard-close" onclick="hideVirtualKeyboard()">&times;</span>
+            <span class="keyboard-close" onclick="toggleVirtualKeyboard()">&times;</span>
         </div>
         <div class="keyboard-body">
             <!-- Number row -->
@@ -1143,6 +1143,53 @@
             }
             // TODO: Add other layouts (qwerty, 2layer, jafl) as needed
         };
+
+        // Virtual keyboard control functions
+        function getLayoutName(layout) {
+            const layoutNames = {
+                'imperial': 'Shaw Imperial',
+                'new-imperial': 'New Shaw Imperial',
+                'qwerty': 'Shaw QWERTY',
+                '2layer': 'Shaw 2-layer',
+                'jafl': 'Shaw-JAFL'
+            };
+            return layoutNames[layout] || 'Virtual Keyboard';
+        }
+
+        function updateVirtualKeyboardLabels() {
+            if (typeof updateKeyboardLabels === 'function') {
+                const keyboardMap = KEYBOARD_MAPS[currentLayout];
+                const layoutName = getLayoutName(currentLayout);
+                updateKeyboardLabels(keyboardMap, layoutName);
+                makeKeysClickable(keyboardMap);
+            }
+        }
+
+        function toggleVirtualKeyboard() {
+            const keyboard = document.getElementById('virtualKeyboard');
+            const toggle = document.getElementById('virtualKeyboardToggle');
+
+            if (keyboard.style.display === 'none') {
+                // Show keyboard
+                const typingInput = document.getElementById('typingInput');
+                if (!typingInput || typingInput.style.display === 'none') {
+                    // No active game, don't show keyboard
+                    if (toggle) toggle.checked = false;
+                    localStorage.setItem('showVirtualKeyboard', 'false');
+                    return;
+                }
+
+                showVirtualKeyboard();
+                updateVirtualKeyboardLabels();
+                if (toggle) toggle.checked = true;
+                localStorage.setItem('showVirtualKeyboard', 'true');
+            } else {
+                // Hide keyboard
+                hideVirtualKeyboard();
+                if (toggle) toggle.checked = false;
+                localStorage.setItem('showVirtualKeyboard', 'false');
+            }
+        }
 
         // Form ligatures in a word by replacing component pairs with ligatures
         function formLigaturesInWord(word) {
@@ -1624,12 +1671,7 @@
             initializeGame();
 
             // Update virtual keyboard labels
-            if (typeof updateKeyboardLabels === 'function') {
-                debug('Updating virtual keyboard labels for layout: ' + currentLayout);
-                updateKeyboardLabels();
-            } else {
-                debug('updateKeyboardLabels function not available');
-            }
+            updateVirtualKeyboardLabels();
         }
 
         function onLigatureToggleSettings() {
@@ -2017,6 +2059,13 @@
 
             // Focus input
             typingInput.focus();
+
+            // Show virtual keyboard if setting is enabled
+            const savedShowKeyboard = localStorage.getItem('showVirtualKeyboard');
+            if (savedShowKeyboard === 'true') {
+                showVirtualKeyboard();
+                updateVirtualKeyboardLabels();
+            }
         }
 
         function pickRandomWord() {
@@ -3053,9 +3102,7 @@
             document.getElementById('ligatureWelcomeOption').style.display = supportsLigatures ? 'block' : 'none';
 
             // Update virtual keyboard labels
-            if (typeof updateKeyboardLabels === 'function') {
-                updateKeyboardLabels();
-            }
+            updateVirtualKeyboardLabels();
         }
 
         function onLigatureToggleWelcome() {

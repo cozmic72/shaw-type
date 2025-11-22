@@ -68,85 +68,28 @@ function makeKeyboardDraggable() {
     }
 }
 
-// Show/hide keyboard
+// Show/hide keyboard - these are now just UI helpers called from main script
 function showVirtualKeyboard() {
     const keyboard = document.getElementById('virtualKeyboard');
-
-    // Only show if a game is in progress (typingInput exists and is visible)
-    const typingInput = document.getElementById('typingInput');
-    if (!typingInput || typingInput.style.display === 'none') {
-        console.log('Not showing keyboard - no active game');
-        return;
-    }
-
     keyboard.style.display = 'block';
-    updateKeyboardLabels();
-    makeKeysClickable(); // Rebind click handlers after labels are updated
-    localStorage.setItem('showVirtualKeyboard', 'true');
-
-    // Update the settings checkbox
-    const toggle = document.getElementById('virtualKeyboardToggle');
-    if (toggle) {
-        toggle.checked = true;
-    }
 }
 
 function hideVirtualKeyboard() {
     const keyboard = document.getElementById('virtualKeyboard');
     keyboard.style.display = 'none';
-    localStorage.setItem('showVirtualKeyboard', 'false');
-
-    // Update the settings checkbox
-    const toggle = document.getElementById('virtualKeyboardToggle');
-    if (toggle) {
-        toggle.checked = false;
-    }
-}
-
-function toggleVirtualKeyboard() {
-    const keyboard = document.getElementById('virtualKeyboard');
-    if (keyboard.style.display === 'none') {
-        showVirtualKeyboard();
-    } else {
-        hideVirtualKeyboard();
-    }
 }
 
 // Update keyboard labels with Shavian characters based on current layout
-function updateKeyboardLabels() {
-    console.log('updateKeyboardLabels called, currentLayout:', typeof currentLayout !== 'undefined' ? currentLayout : 'UNDEFINED');
-    console.log('KEYBOARD_MAPS available:', typeof KEYBOARD_MAPS !== 'undefined');
-
-    if (typeof currentLayout === 'undefined' || typeof KEYBOARD_MAPS === 'undefined') {
-        console.log('Waiting for main script to load...');
-        setTimeout(updateKeyboardLabels, 100);
-        return;
-    }
-
-    const keyboardMap = KEYBOARD_MAPS[currentLayout];
-    if (!keyboardMap) {
-        console.log('No keyboard map found for layout:', currentLayout);
-        return;
-    }
-
-    console.log('Updating keyboard labels for layout:', currentLayout);
-
+// Parameters passed from main script to avoid timing issues
+function updateKeyboardLabels(keyboardMap, layoutName) {
     // Update title to show keyboard name
     const titleElement = document.querySelector('.keyboard-title');
     if (titleElement) {
-        const layoutNames = {
-            'imperial': 'Shaw Imperial',
-            'new-imperial': 'New Shaw Imperial',
-            'qwerty': 'Shaw QWERTY',
-            '2layer': 'Shaw 2-layer',
-            'jafl': 'Shaw-JAFL'
-        };
-        titleElement.textContent = layoutNames[currentLayout] || 'Virtual Keyboard';
+        titleElement.textContent = layoutName;
     }
 
     // Update key labels
     const keys = document.querySelectorAll('.key[data-key]');
-    console.log('Found', keys.length, 'keys to update');
     keys.forEach(key => {
         const keyValue = key.getAttribute('data-key');
         const shavianChar = keyboardMap[keyValue];
@@ -171,8 +114,6 @@ function updateKeyboardLabels() {
             key.removeAttribute('data-shavian');
         }
     });
-
-    console.log('Keyboard labels updated');
 }
 
 // Highlight key when pressed
@@ -254,7 +195,8 @@ function makeKeyboardResizable() {
 }
 
 // Handle key clicks to type characters
-function makeKeysClickable() {
+// keyboardMap passed from main script
+function makeKeysClickable(keyboardMap) {
     const keys = document.querySelectorAll('.key[data-key]');
     keys.forEach(key => {
         key.addEventListener('click', (e) => {
@@ -268,7 +210,6 @@ function makeKeysClickable() {
             highlightKey(keyValue);
 
             // Get the Shavian character for this key
-            const keyboardMap = KEYBOARD_MAPS[currentLayout];
             const shavianChar = keyboardMap ? keyboardMap[keyValue] : null;
 
             if (shavianChar) {
@@ -324,16 +265,10 @@ function makeKeysClickable() {
     });
 }
 
-// Initialize keyboard on page load
+// Initialize keyboard UI on page load - main script handles showing/hiding
 document.addEventListener('DOMContentLoaded', () => {
     makeKeyboardDraggable();
     makeKeyboardResizable();
-
-    // Load saved preference
-    const showKeyboard = localStorage.getItem('showVirtualKeyboard');
-    if (showKeyboard === 'true') {
-        showVirtualKeyboard();
-    }
 
     // Listen for keydown events to highlight keys
     document.addEventListener('keydown', (e) => {
