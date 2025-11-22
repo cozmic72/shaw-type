@@ -1020,6 +1020,42 @@
             });
         });
 
+        // QWERTY to Shavian keyboard mappings for virtual keyboard mode
+        const KEYBOARD_MAPS = {
+            'imperial': {
+                // Number row (1-0)
+                '1': '𐑶', '2': '𐑬', '3': '𐑫', '4': '𐑜', '5': '𐑖',
+                '6': '𐑗', '7': '𐑙', '8': '𐑘', '9': '𐑡', '0': '𐑔',
+                // QWERTY row (q-])
+                'q': '𐑭', 'w': '𐑷', 'e': '𐑵', 'r': '𐑱', 't': '𐑳',
+                'y': '𐑓', 'u': '𐑞', 'i': '𐑤', 'o': '𐑥', 'p': '𐑒',
+                '[': '𐑢', ']': '𐑣', '\\': '𐑠',
+                // Home row (a-;)
+                'a': '𐑪', 's': '𐑨', 'd': '𐑦', 'f': '𐑩', 'g': '𐑧',
+                'h': '𐑐', 'j': '𐑯', 'k': '𐑑', 'l': '𐑮', ';': '𐑕', '\'': '𐑛',
+                // Bottom row (z-/)
+                'z': '𐑾', 'x': '𐑲', 'c': '𐑴', 'v': '𐑰', 'b': '𐑚',
+                'n': '𐑝', 'm': '𐑟', ',': '', '.': '', '/': ''
+            },
+            'new-imperial': {
+                // Number row (1-0 plus - =)
+                '1': '𐑶', '2': '𐑬', '3': '𐑻' + VS1, '4': '𐑫', '5': '𐑺' + VS1,
+                '6': '𐑜', '7': '𐑖', '8': '𐑗', '9': '𐑙', '0': '𐑘',
+                '-': '𐑡', '=': '𐑔',
+                // QWERTY row (q-])
+                'q': '𐑭', 'w': '𐑷', 'e': '𐑵', 'r': '𐑱', 't': '𐑳',
+                'y': '𐑓', 'u': '𐑞', 'i': '𐑤', 'o': '𐑥', 'p': '𐑒',
+                '[': '𐑢', ']': '𐑣', '\\': '𐑠',
+                // Home row (a-;)
+                'a': '𐑪', 's': '𐑨', 'd': '𐑦', 'f': '𐑩', 'g': '𐑧',
+                'h': '𐑐', 'j': '𐑯', 'k': '𐑑', 'l': '𐑮', ';': '𐑕', '\'': '𐑛',
+                // Bottom row (z-/)
+                'z': '𐑾', 'x': '𐑲', 'c': '𐑴', 'v': '𐑰', 'b': '𐑚',
+                'n': '𐑝', 'm': '𐑟'
+            }
+            // TODO: Add other layouts (qwerty, 2layer, jafl) as needed
+        };
+
         // Form ligatures in a word by replacing component pairs with ligatures
         function formLigaturesInWord(word) {
             let result = word;
@@ -1053,6 +1089,7 @@
         let useShavianUI = false; // Toggle for Shavian UI
         let currentDialect = 'gb'; // 'gb' or 'us' - English dialect for word lists
         let debugMode = false; // Toggle for debug logging
+        let useVirtualKeyboard = false; // Toggle for QWERTY virtual keyboard - OFF by default
 
         // Debug logging function - only logs when debugMode is true
         function debug(...args) {
@@ -2722,6 +2759,49 @@
                 debug('🔍 BEFOREINPUT: replacing code units ' + startCodeUnit + '-' + endCodeUnit +
                       ' (chars ' + pendingReplacementStart + '-' + pendingReplacementEnd + ')' +
                       ' with "' + (e.data || '') + '" [' + toCodePoints(e.data || '') + ']');
+            }
+        });
+
+        // Virtual keyboard: translate QWERTY keys to Shavian characters
+        typingInput.addEventListener('keydown', (e) => {
+            if (!useVirtualKeyboard) return;
+
+            // Get the keyboard map for current layout
+            const keyboardMap = KEYBOARD_MAPS[currentLayout];
+            if (!keyboardMap) {
+                debug('⌨️  No keyboard map for layout: ' + currentLayout);
+                return;
+            }
+
+            // Check if this key has a mapping
+            const shavianChar = keyboardMap[e.key];
+            if (shavianChar) {
+                // Prevent default key input
+                e.preventDefault();
+
+                // Insert the Shavian character instead
+                const start = typingInput.selectionStart;
+                const end = typingInput.selectionEnd;
+                const currentValue = typingInput.value;
+
+                // Replace selected text (if any) with the Shavian character
+                const newValue = currentValue.substring(0, start) + shavianChar + currentValue.substring(end);
+                typingInput.value = newValue;
+
+                // Move cursor after inserted character
+                const newCursorPos = start + shavianChar.length;
+                typingInput.setSelectionRange(newCursorPos, newCursorPos);
+
+                // Trigger input event manually so the game logic processes it
+                const inputEvent = new InputEvent('input', {
+                    bubbles: true,
+                    cancelable: true,
+                    inputType: 'insertText',
+                    data: shavianChar
+                });
+                typingInput.dispatchEvent(inputEvent);
+
+                debug('⌨️  Virtual keyboard: ' + e.key + ' → ' + shavianChar + ' [' + toCodePoints(shavianChar) + ']');
             }
         });
 
