@@ -992,6 +992,9 @@
         let currentLevelLettersTyped = 0; // Letters typed in current level
         let currentLevelCorrectLetters = 0; // Correct letters in current level
 
+        // Shadow input: faithful representation of what user typed (browsers may strip combining chars)
+        let shadowInput = '';
+
         // Ligature mappings - each ligature can have multiple 2-character input sequences
         const VS1 = '\uFE00';
         const LIGATURES = {
@@ -2514,6 +2517,43 @@
             return false;
         }
 
+        // Helper: Update statistics based on new input length
+        function updateInputStatistics(effectiveLength, inputChars, wordChars) {
+            if (effectiveLength < maxEffectiveLength) {
+                // Backspace or deletion - clear error state
+                isInErrorState = false;
+                maxEffectiveLength = effectiveLength;
+            } else if (isInErrorState && effectiveLength > maxEffectiveLength) {
+                // Blocked - user is in error state, revert not handled here
+                return 'blocked';
+            } else if (effectiveLength > maxEffectiveLength) {
+                // New characters to count
+                const numNew = effectiveLength - maxEffectiveLength;
+                totalLettersTyped += numNew;
+                currentLevelLettersTyped += numNew;
+
+                // Check correctness
+                let allCorrect = true;
+                for (let i = maxEffectiveLength; i < effectiveLength; i++) {
+                    if (i >= wordChars.length || inputChars[i] !== wordChars[i]) {
+                        allCorrect = false;
+                        break;
+                    }
+                }
+
+                if (allCorrect) {
+                    correctLetters += numNew;
+                    currentLevelCorrectLetters += numNew;
+                    isInErrorState = false;
+                } else {
+                    isInErrorState = true;
+                }
+
+                maxEffectiveLength = effectiveLength;
+            }
+            return 'ok';
+        }
+
         typingInput.addEventListener('input', (e) => {
             let userInput = e.target.value;
 
@@ -2529,57 +2569,31 @@
             // Ignore leading spaces at the start of the level
             if (maxEffectiveLength === 0 && userInput.trim() === '') {
                 typingInput.value = '';
+                return;
+            }
+
+            // Form ligatures if enabled (for keyboards that don't do it themselves)
+            userInput = formLigatures(userInput);
+            typingInput.value = userInput;
+
+            // Get character arrays for comparison
+            const inputChars = Array.from(userInput);
+            const wordChars = Array.from(currentWord);
+
+            // Calculate effective length (excludes pending ligature start)
+            const pendingLigature = isPendingLigatureStart(inputChars, wordChars);
+            const effectiveLength = pendingLigature ? inputChars.length - 1 : inputChars.length;
+
+            // Update statistics and handle blocked input
+            const result = updateInputStatistics(effectiveLength, inputChars, wordChars);
+            if (result === 'blocked') {
+                // Revert input and flash red
+                typingInput.value = previousInput;
+                typingInput.style.animation = 'none';
+                setTimeout(() => {
+                    typingInput.style.animation = 'error-flash 0.4s ease-out';
+                }, 10);
             } else {
-                // Form ligatures if enabled (for keyboards that don't do it themselves)
-                userInput = formLigatures(userInput);
-                typingInput.value = userInput;
-
-                // Get character arrays for comparison
-                const inputChars = Array.from(userInput);
-                const wordChars = Array.from(currentWord);
-
-                // Calculate effective length (excludes pending ligature start)
-                const pendingLigature = isPendingLigatureStart(inputChars, wordChars);
-                const effectiveLength = pendingLigature ? inputChars.length - 1 : inputChars.length;
-
-                // Process based on effective length change
-                if (effectiveLength < maxEffectiveLength) {
-                    // Backspace or deletion - clear error state
-                    isInErrorState = false;
-                    maxEffectiveLength = effectiveLength;
-                } else if (isInErrorState && effectiveLength > maxEffectiveLength) {
-                    // Blocked - revert input and flash red
-                    typingInput.value = previousInput;
-                    typingInput.style.animation = 'none';
-                    setTimeout(() => {
-                        typingInput.style.animation = 'error-flash 0.4s ease-out';
-                    }, 10);
-                } else if (effectiveLength > maxEffectiveLength) {
-                    // New characters to count
-                    const numNew = effectiveLength - maxEffectiveLength;
-                    totalLettersTyped += numNew;
-                    currentLevelLettersTyped += numNew;
-
-                    // Check correctness
-                    let allCorrect = true;
-                    for (let i = maxEffectiveLength; i < effectiveLength; i++) {
-                        if (i >= wordChars.length || inputChars[i] !== wordChars[i]) {
-                            allCorrect = false;
-                            break;
-                        }
-                    }
-
-                    if (allCorrect) {
-                        correctLetters += numNew;
-                        currentLevelCorrectLetters += numNew;
-                        isInErrorState = false;
-                    } else {
-                        isInErrorState = true;
-                    }
-
-                    maxEffectiveLength = effectiveLength;
-                }
-
                 previousInput = typingInput.value;
             }
 
