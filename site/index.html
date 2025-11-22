@@ -2614,7 +2614,7 @@
             shadowInput = updateShadowInput(e.inputType, eventData, shadowInput);
 
             // Debug: log raw input with Unicode code points
-            if (window.debugTyping) {
+            if (window.debug) {
                 console.log('📥 INPUT: browser="' + browserInput + '" [' + toCodePoints(browserInput) + ']' +
                            ' | inputType=' + e.inputType +
                            ' | event.data="' + eventData + '" [' + toCodePoints(eventData) + ']' +
@@ -2661,7 +2661,7 @@
             }
 
             // Debug: log final state
-            if (window.debugTyping) {
+            if (window.debug) {
                 console.log('📊 POSTCONDITION: input=' + JSON.stringify(typingInput.value) +
                            ', correct=' + correctLetters + '/' + totalLettersTyped +
                            ', maxEffectiveLength=' + maxEffectiveLength +
