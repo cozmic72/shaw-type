@@ -71,15 +71,36 @@ function makeKeyboardDraggable() {
 // Show/hide keyboard
 function showVirtualKeyboard() {
     const keyboard = document.getElementById('virtualKeyboard');
+
+    // Only show if a game is in progress (typingInput exists and is visible)
+    const typingInput = document.getElementById('typingInput');
+    if (!typingInput || typingInput.style.display === 'none') {
+        console.log('Not showing keyboard - no active game');
+        return;
+    }
+
     keyboard.style.display = 'block';
     updateKeyboardLabels();
+    makeKeysClickable(); // Rebind click handlers after labels are updated
     localStorage.setItem('showVirtualKeyboard', 'true');
+
+    // Update the settings checkbox
+    const toggle = document.getElementById('virtualKeyboardToggle');
+    if (toggle) {
+        toggle.checked = true;
+    }
 }
 
 function hideVirtualKeyboard() {
     const keyboard = document.getElementById('virtualKeyboard');
     keyboard.style.display = 'none';
     localStorage.setItem('showVirtualKeyboard', 'false');
+
+    // Update the settings checkbox
+    const toggle = document.getElementById('virtualKeyboardToggle');
+    if (toggle) {
+        toggle.checked = false;
+    }
 }
 
 function toggleVirtualKeyboard() {
@@ -93,8 +114,22 @@ function toggleVirtualKeyboard() {
 
 // Update keyboard labels with Shavian characters based on current layout
 function updateKeyboardLabels() {
+    console.log('updateKeyboardLabels called, currentLayout:', typeof currentLayout !== 'undefined' ? currentLayout : 'UNDEFINED');
+    console.log('KEYBOARD_MAPS available:', typeof KEYBOARD_MAPS !== 'undefined');
+
+    if (typeof currentLayout === 'undefined' || typeof KEYBOARD_MAPS === 'undefined') {
+        console.log('Waiting for main script to load...');
+        setTimeout(updateKeyboardLabels, 100);
+        return;
+    }
+
     const keyboardMap = KEYBOARD_MAPS[currentLayout];
-    if (!keyboardMap) return;
+    if (!keyboardMap) {
+        console.log('No keyboard map found for layout:', currentLayout);
+        return;
+    }
+
+    console.log('Updating keyboard labels for layout:', currentLayout);
 
     // Update title to show keyboard name
     const titleElement = document.querySelector('.keyboard-title');
@@ -111,6 +146,7 @@ function updateKeyboardLabels() {
 
     // Update key labels
     const keys = document.querySelectorAll('.key[data-key]');
+    console.log('Found', keys.length, 'keys to update');
     keys.forEach(key => {
         const keyValue = key.getAttribute('data-key');
         const shavianChar = keyboardMap[keyValue];
@@ -135,6 +171,8 @@ function updateKeyboardLabels() {
             key.removeAttribute('data-shavian');
         }
     });
+
+    console.log('Keyboard labels updated');
 }
 
 // Highlight key when pressed
@@ -148,9 +186,148 @@ function highlightKey(keyValue) {
     }
 }
 
+// Make keyboard resizable with corner drag
+function makeKeyboardResizable() {
+    const keyboard = document.getElementById('virtualKeyboard');
+    const resizeHandle = document.createElement('div');
+    resizeHandle.className = 'resize-handle';
+    keyboard.appendChild(resizeHandle);
+
+    let isResizing = false;
+    let startWidth, startHeight, startX, startY;
+
+    resizeHandle.addEventListener('mousedown', startResize);
+    resizeHandle.addEventListener('touchstart', startResize);
+
+    function startResize(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        isResizing = true;
+
+        const rect = keyboard.getBoundingClientRect();
+        startWidth = rect.width;
+        startHeight = rect.height;
+
+        if (e.type === 'touchstart') {
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+        } else {
+            startX = e.clientX;
+            startY = e.clientY;
+        }
+
+        document.addEventListener('mousemove', resize);
+        document.addEventListener('mouseup', stopResize);
+        document.addEventListener('touchmove', resize);
+        document.addEventListener('touchend', stopResize);
+    }
+
+    function resize(e) {
+        if (!isResizing) return;
+
+        let currentX, currentY;
+        if (e.type === 'touchmove') {
+            currentX = e.touches[0].clientX;
+            currentY = e.touches[0].clientY;
+        } else {
+            currentX = e.clientX;
+            currentY = e.clientY;
+        }
+
+        const deltaX = currentX - startX;
+        const deltaY = currentY - startY;
+
+        // Calculate new scale based on diagonal resize
+        const diagonal = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+        const scaleFactor = 1 + (diagonal / 500);
+
+        keyboard.style.transform = keyboard.style.transform.replace(/scale\([^)]*\)/, '') + ` scale(${scaleFactor})`;
+    }
+
+    function stopResize() {
+        isResizing = false;
+        document.removeEventListener('mousemove', resize);
+        document.removeEventListener('mouseup', stopResize);
+        document.removeEventListener('touchmove', resize);
+        document.removeEventListener('touchend', stopResize);
+    }
+}
+
+// Handle key clicks to type characters
+function makeKeysClickable() {
+    const keys = document.querySelectorAll('.key[data-key]');
+    keys.forEach(key => {
+        key.addEventListener('click', (e) => {
+            e.preventDefault();
+            const keyValue = key.getAttribute('data-key');
+            const typingInput = document.getElementById('typingInput');
+
+            if (!typingInput) return;
+
+            // Highlight the key
+            highlightKey(keyValue);
+
+            // Get the Shavian character for this key
+            const keyboardMap = KEYBOARD_MAPS[currentLayout];
+            const shavianChar = keyboardMap ? keyboardMap[keyValue] : null;
+
+            if (shavianChar) {
+                // Insert the Shavian character
+                const start = typingInput.selectionStart;
+                const end = typingInput.selectionEnd;
+                const currentValue = typingInput.value;
+
+                const newValue = currentValue.substring(0, start) + shavianChar + currentValue.substring(end);
+                typingInput.value = newValue;
+
+                // Move cursor after inserted character
+                const newCursorPos = start + shavianChar.length;
+                typingInput.setSelectionRange(newCursorPos, newCursorPos);
+
+                // Trigger input event so the game logic processes it
+                const inputEvent = new InputEvent('input', {
+                    bubbles: true,
+                    cancelable: true,
+                    inputType: 'insertText',
+                    data: shavianChar
+                });
+                typingInput.dispatchEvent(inputEvent);
+            } else if (keyValue === 'Backspace') {
+                // Handle backspace
+                const start = typingInput.selectionStart;
+                const end = typingInput.selectionEnd;
+
+                if (start !== end) {
+                    // Delete selection
+                    typingInput.value = typingInput.value.substring(0, start) + typingInput.value.substring(end);
+                    typingInput.setSelectionRange(start, start);
+                } else if (start > 0) {
+                    // Delete one character before cursor
+                    const chars = Array.from(typingInput.value);
+                    const before = chars.slice(0, start - 1).join('');
+                    const after = chars.slice(start).join('');
+                    typingInput.value = before + after;
+                    typingInput.setSelectionRange(start - 1, start - 1);
+                }
+
+                const inputEvent = new InputEvent('input', {
+                    bubbles: true,
+                    cancelable: true,
+                    inputType: 'deleteContentBackward'
+                });
+                typingInput.dispatchEvent(inputEvent);
+            }
+
+            // Focus the input
+            typingInput.focus();
+        });
+    });
+}
+
 // Initialize keyboard on page load
 document.addEventListener('DOMContentLoaded', () => {
     makeKeyboardDraggable();
+    makeKeyboardResizable();
 
     // Load saved preference
     const showKeyboard = localStorage.getItem('showVirtualKeyboard');
