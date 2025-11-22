@@ -2594,9 +2594,18 @@
             const expectedChar = normalizedWord[lastIdx];
             const lastChar = normalizedInput[lastIdx];
 
+            debug('🔍 isPendingLigatureStart: lastChar=' + JSON.stringify(lastChar) +
+                  ' [' + toCodePoints(lastChar) + '], expectedChar=' + JSON.stringify(expectedChar) +
+                  ' [' + toCodePoints(expectedChar) + ']');
+
             // Check if the last character is the first of any pair that forms the expected ligature
             if (LIGATURES[expectedChar]) {
-                return LIGATURES[expectedChar].some(pair => pair[0] === lastChar);
+                const result = LIGATURES[expectedChar].some(pair => {
+                    debug('  Checking pair[0]=' + JSON.stringify(pair[0]) + ' [' + toCodePoints(pair[0]) + '] === lastChar');
+                    return pair[0] === lastChar;
+                });
+                debug('  Result: ' + result);
+                return result;
             }
 
             return false;
