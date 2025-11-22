@@ -1054,6 +1054,13 @@
         let currentDialect = 'gb'; // 'gb' or 'us' - English dialect for word lists
         let debugMode = false; // Toggle for debug logging
 
+        // Debug logging function - only logs when debugMode is true
+        function debug(...args) {
+            if (debugMode) {
+                console.log(...args);
+            }
+        }
+
         // Helper function to toggle debug mode (can be called from console immediately)
         // Usage: setDebug(true) or setDebug(false)
         window.setDebug = function(enabled) {
@@ -1062,7 +1069,6 @@
             console.log('Debug mode ' + (debugMode ? 'enabled' : 'disabled') + ' and saved to localStorage');
             return debugMode;
         };
-        console.log('setDebug function defined, available as window.setDebug() or setDebug()');
 
         // UI text translations
         const translations = {
@@ -1790,8 +1796,7 @@
 
         // Countdown animation before starting level
         function showCountdown(wordPool, wordCount, type, title, typeLabel, completionCallback) {
-            console.log('[showCountdown] CALLED - this should NOT happen on page load!');
-            console.trace(); // Show the call stack
+            debug('[showCountdown] Starting countdown');
 
             // Clear any existing countdown
             cancelCountdown();
@@ -1846,7 +1851,7 @@
 
         // Start a new level/lesson with given word pool, count, and metadata
         function startLevel(wordPool, wordCount, type, title, typeLabel, completionCallback) {
-            console.log(`[startLevel] Starting ${type}: "${title}" (${wordCount} words from pool of ${wordPool.length})`);
+            debug(`[startLevel] Starting ${type}: "${title}" (${wordCount} words from pool of ${wordPool.length})`);
 
             // Set level state
             currentLevelWordPool = wordPool;
@@ -1909,7 +1914,7 @@
             // Check if this is the last word of the level
             const isLastWordOfLevel = (wordsInCurrentLevel === currentLevelWordCount - 1);
 
-            console.log(`[loadNewWord] wordsInCurrentLevel=${wordsInCurrentLevel}, wordCount=${currentLevelWordCount}, isLastWord=${isLastWordOfLevel}`);
+            debug(`[loadNewWord] wordsInCurrentLevel=${wordsInCurrentLevel}, wordCount=${currentLevelWordCount}, isLastWord=${isLastWordOfLevel}`);
 
             // BEFORE advancing: update the slot that will become "next" after rotation
             // The slot at prev-prev position will rotate to next position
@@ -1920,7 +1925,7 @@
             const newWord = isLastWordOfLevel ? '' : pickRandomWord();
             words[prevPrevSlot] = newWord;
 
-            console.log(`[loadNewWord] newWord="${newWord}", slot=${prevPrevSlot}`);
+            debug(`[loadNewWord] newWord="${newWord}", slot=${prevPrevSlot}`);
 
             if (newWord) {
                 // Load a new word normally
@@ -1961,7 +1966,7 @@
                 slot.style.transition = '';
             } else {
                 // Empty slot for after last word
-                console.log('[loadNewWord] Last word - empty next slot');
+                debug('[loadNewWord] Last word - empty next slot');
                 slot.innerHTML = '';
             }
 
@@ -1995,7 +2000,7 @@
         }
 
         function initializeGame() {
-            console.log(`[initializeGame] wordPool length: ${currentLevelWordPool.length}, wordCount: ${currentLevelWordCount}`);
+            debug(`[initializeGame] wordPool length: ${currentLevelWordPool.length}, wordCount: ${currentLevelWordCount}`);
             // Reset carousel completely
             words = ['', '', '', ''];
             carouselOffset = 2; // Will advance to 3, then 0
@@ -2154,7 +2159,7 @@
                 // Word completed correctly
                 wordsCompleted++;
                 wordsInCurrentLevel++;
-                console.log(`[checkCompletion] Word ${wordsInCurrentLevel} of level completed (total: ${wordsCompleted})`);
+                debug(`[checkCompletion] Word ${wordsInCurrentLevel} of level completed (total: ${wordsCompleted})`);
                 updateStats();
 
                 // After first word, update subtitle with level/lesson info
@@ -2166,7 +2171,7 @@
                 // Check if level is complete
                 if (wordsInCurrentLevel === currentLevelWordCount) {
                     // Level completed - transition to next level
-                    console.log(`[checkCompletion] ${currentLevelType.toUpperCase()} COMPLETED`);
+                    debug(`[checkCompletion] ${currentLevelType.toUpperCase()} COMPLETED`);
                     transitionToNextLevel();
                 } else {
                     // Advance to next word
@@ -2657,11 +2662,9 @@
                 pendingReplacementStart = codeUnitPosToCharIndex(currentValue, startCodeUnit);
                 pendingReplacementEnd = codeUnitPosToCharIndex(currentValue, endCodeUnit);
 
-                if (debugMode) {
-                    console.log('🔍 BEFOREINPUT: replacing code units ' + startCodeUnit + '-' + endCodeUnit +
-                               ' (chars ' + pendingReplacementStart + '-' + pendingReplacementEnd + ')' +
-                               ' with "' + (e.data || '') + '" [' + toCodePoints(e.data || '') + ']');
-                }
+                debug('🔍 BEFOREINPUT: replacing code units ' + startCodeUnit + '-' + endCodeUnit +
+                      ' (chars ' + pendingReplacementStart + '-' + pendingReplacementEnd + ')' +
+                      ' with "' + (e.data || '') + '" [' + toCodePoints(e.data || '') + ']');
             }
         });
 
@@ -2673,13 +2676,11 @@
             shadowInput = updateShadowInput(e.inputType, eventData, shadowInput, browserInput);
 
             // Debug: log raw input with Unicode code points
-            if (debugMode) {
-                console.log('📥 INPUT: browser="' + browserInput + '" [' + toCodePoints(browserInput) + ']' +
-                           ' | inputType=' + e.inputType +
-                           ' | event.data="' + eventData + '" [' + toCodePoints(eventData) + ']' +
-                           ' | shadow="' + shadowInput + '" [' + toCodePoints(shadowInput) + ']' +
-                           ' | expected="' + currentWord + '" [' + toCodePoints(currentWord) + ']');
-            }
+            debug('📥 INPUT: browser="' + browserInput + '" [' + toCodePoints(browserInput) + ']' +
+                  ' | inputType=' + e.inputType +
+                  ' | event.data="' + eventData + '" [' + toCodePoints(eventData) + ']' +
+                  ' | shadow="' + shadowInput + '" [' + toCodePoints(shadowInput) + ']' +
+                  ' | expected="' + currentWord + '" [' + toCodePoints(currentWord) + ']');
 
             // Use shadow input as source of truth
             let userInput = shadowInput;
@@ -2720,12 +2721,10 @@
             }
 
             // Debug: log final state
-            if (debugMode) {
-                console.log('📊 POSTCONDITION: input=' + JSON.stringify(typingInput.value) +
-                           ', correct=' + correctLetters + '/' + totalLettersTyped +
-                           ', maxEffectiveLength=' + maxEffectiveLength +
-                           ', isInErrorState=' + isInErrorState);
-            }
+            debug('📊 POSTCONDITION: input=' + JSON.stringify(typingInput.value) +
+                  ', correct=' + correctLetters + '/' + totalLettersTyped +
+                  ', maxEffectiveLength=' + maxEffectiveLength +
+                  ', isInErrorState=' + isInErrorState);
 
             updateWordDisplay();
             updateStats();
