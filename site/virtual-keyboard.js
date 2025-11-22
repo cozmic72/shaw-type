@@ -1,5 +1,8 @@
 // Virtual Keyboard Functionality
 
+// Track shift state
+let isShiftActive = false;
+
 // Make keyboard draggable
 function makeKeyboardDraggable() {
     const keyboard = document.getElementById('virtualKeyboard');
@@ -82,27 +85,36 @@ function hideVirtualKeyboard() {
 // Update keyboard labels with Shavian characters based on current layout
 // Parameters passed from main script to avoid timing issues
 function updateKeyboardLabels(keyboardMap, layoutName) {
-    console.log('updateKeyboardLabels called with:', layoutName, 'keyboardMap:', keyboardMap);
+    console.log('updateKeyboardLabels called with:', layoutName, 'keyboardMap:', keyboardMap, 'shift:', isShiftActive);
 
     // Update title to show keyboard name
     const titleElement = document.querySelector('.keyboard-title');
     if (titleElement) {
-        titleElement.textContent = layoutName;
-        console.log('Title updated to:', layoutName);
+        const shiftIndicator = isShiftActive ? ' (Shift)' : '';
+        titleElement.textContent = layoutName + shiftIndicator;
+        console.log('Title updated to:', layoutName + shiftIndicator);
     }
 
     // Update key labels
     const keys = document.querySelectorAll('.key[data-key]');
     console.log('Found', keys.length, 'keys to update');
     keys.forEach(key => {
-        const keyValue = key.getAttribute('data-key');
-        const shavianChar = keyboardMap[keyValue];
+        let keyValue = key.getAttribute('data-key');
+
+        // If shift is active, try to get the shifted version
+        let actualKey = keyValue;
+        if (isShiftActive && keyValue.length === 1 && keyValue.match(/[a-z]/)) {
+            actualKey = keyValue.toUpperCase();
+        }
+
+        const shavianChar = keyboardMap[actualKey];
         if (shavianChar) {
             // Set the Shavian character as the key's content
             // Use innerHTML to preserve VS1 (U+FE00) characters
             key.innerHTML = shavianChar;
             key.setAttribute('data-shavian', shavianChar);
-            console.log('Set key', keyValue, 'to', shavianChar);
+            key.setAttribute('data-actual-key', actualKey);
+            console.log('Set key', keyValue, '(actual:', actualKey, ') to', shavianChar);
         } else {
             // For keys without mappings (Tab, Enter, etc.), restore special symbols
             const specialKeys = {
@@ -118,6 +130,7 @@ function updateKeyboardLabels(keyboardMap, layoutName) {
                 console.log('Set special key', keyValue, 'to', specialKeys[keyValue]);
             }
             key.removeAttribute('data-shavian');
+            key.removeAttribute('data-actual-key');
         }
     });
     console.log('updateKeyboardLabels complete');
@@ -201,23 +214,56 @@ function makeKeyboardResizable() {
     }
 }
 
+// Toggle shift state
+function toggleShift() {
+    isShiftActive = !isShiftActive;
+
+    // Update shift key visual state
+    const shiftKeys = document.querySelectorAll('.key[data-key="Shift"]');
+    shiftKeys.forEach(key => {
+        if (isShiftActive) {
+            key.classList.add('shift-active');
+        } else {
+            key.classList.remove('shift-active');
+        }
+    });
+
+    // Trigger a label update from the main script
+    if (typeof updateVirtualKeyboardLabels === 'function') {
+        updateVirtualKeyboardLabels();
+    }
+}
+
 // Handle key clicks to type characters
 // keyboardMap passed from main script
 function makeKeysClickable(keyboardMap) {
     const keys = document.querySelectorAll('.key[data-key]');
     keys.forEach(key => {
-        key.addEventListener('click', (e) => {
-            e.preventDefault();
-            const keyValue = key.getAttribute('data-key');
-            const typingInput = document.getElementById('typingInput');
+        // Remove existing click listeners
+        const newKey = key.cloneNode(true);
+        key.parentNode.replaceChild(newKey, key);
 
+        newKey.addEventListener('click', (e) => {
+            e.preventDefault();
+            const keyValue = newKey.getAttribute('data-key');
+
+            // Handle shift key specially
+            if (keyValue === 'Shift') {
+                toggleShift();
+                return;
+            }
+
+            const typingInput = document.getElementById('typingInput');
             if (!typingInput) return;
 
             // Highlight the key
             highlightKey(keyValue);
 
+            // Get the actual key (considering shift state)
+            const actualKey = newKey.getAttribute('data-actual-key') || keyValue;
+
             // Get the Shavian character for this key
-            const shavianChar = keyboardMap ? keyboardMap[keyValue] : null;
+            const shavianChar = keyboardMap ? keyboardMap[actualKey] : null;
 
             if (shavianChar) {
                 // Insert the Shavian character

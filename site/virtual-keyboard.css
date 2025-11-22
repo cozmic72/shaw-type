@@ -108,6 +108,12 @@
     box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
 }
 
+/* Shift key active state */
+.key[data-key="Shift"].shift-active {
+    background: #555fdc;
+    color: white;
+}
+
 /* Key size variations */
 .key-wide {
     min-width: 50px;
