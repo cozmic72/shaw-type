@@ -1157,6 +1157,10 @@
         }
 
         function updateVirtualKeyboardLabels(retryCount = 0) {
+            console.log('updateVirtualKeyboardLabels called, retry:', retryCount);
+            console.log('updateKeyboardLabels available:', typeof updateKeyboardLabels);
+            console.log('makeKeysClickable available:', typeof makeKeysClickable);
+
             if (typeof updateKeyboardLabels === 'function' && typeof makeKeysClickable === 'function') {
                 const keyboardMap = KEYBOARD_MAPS[currentLayout];
                 if (!keyboardMap) {
@@ -1164,10 +1168,13 @@
                     return; // Can't update labels if no map exists
                 }
                 const layoutName = getLayoutName(currentLayout);
+                console.log('Calling updateKeyboardLabels with layoutName:', layoutName);
                 updateKeyboardLabels(keyboardMap, layoutName);
+                console.log('Calling makeKeysClickable');
                 makeKeysClickable(keyboardMap);
             } else if (retryCount < 20) {
                 // Functions not loaded yet, try again soon
+                console.log('Functions not ready, retrying in 50ms');
                 setTimeout(() => updateVirtualKeyboardLabels(retryCount + 1), 50);
             } else {
                 console.error('Virtual keyboard functions not available after retries');
@@ -2920,17 +2927,24 @@
 
         // Virtual keyboard: translate QWERTY keys to Shavian characters
         typingInput.addEventListener('keydown', (e) => {
-            if (!useVirtualKeyboard) return;
+            console.log('KEYDOWN:', e.key, 'useVirtualKeyboard:', useVirtualKeyboard, 'currentLayout:', currentLayout);
+
+            if (!useVirtualKeyboard) {
+                console.log('Virtual keyboard disabled, skipping');
+                return;
+            }
 
             // Get the keyboard map for current layout (if available)
             const keyboardMap = KEYBOARD_MAPS[currentLayout];
             if (!keyboardMap) {
                 // No QWERTY mapping for this layout, allow normal typing
+                console.log('No keyboard map for', currentLayout, 'allowing normal typing');
                 return;
             }
 
             // Check if this key has a mapping
             const shavianChar = keyboardMap[e.key];
+            console.log('Key mapping:', e.key, '->', shavianChar);
             if (shavianChar) {
                 // Prevent default key input
                 e.preventDefault();
