@@ -104,9 +104,9 @@
     min-width: 300px;
 }
 
-/* Show Shavian character on hover */
+/* Show QWERTY key hint on hover */
 .key::after {
-    content: attr(data-shavian);
+    content: attr(data-key);
     position: absolute;
     bottom: 100%;
     left: 50%;
@@ -115,12 +115,13 @@
     color: white;
     padding: 4px 8px;
     border-radius: 4px;
-    font-size: 16px;
+    font-size: 12px;
     white-space: nowrap;
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.2s;
     margin-bottom: 4px;
+    font-family: monospace;
 }
 
 .key:hover::after {

@@ -101,9 +101,12 @@ function updateKeyboardLabels() {
         const keyValue = key.getAttribute('data-key');
         const shavianChar = keyboardMap[keyValue];
         if (shavianChar) {
+            // Set the Shavian character as the key's text content
+            key.textContent = shavianChar;
             key.setAttribute('data-shavian', shavianChar);
         } else {
-            key.removeAttribute('data-shavian');
+            // For keys without mappings (Tab, Enter, etc.), keep original label
+            // Already set in HTML
         }
     });
 }
