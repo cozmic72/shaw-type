@@ -1847,6 +1847,7 @@
         // Start a new level/lesson with given word pool, count, and metadata
         function startLevel(wordPool, wordCount, type, title, typeLabel, completionCallback) {
             console.log(`[startLevel] Starting ${type}: "${title}" (${wordCount} words from pool of ${wordPool.length})`);
+            console.trace('[startLevel] Call stack:');
 
             // Set level state
             currentLevelWordPool = wordPool;
