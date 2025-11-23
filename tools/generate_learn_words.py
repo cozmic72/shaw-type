@@ -311,6 +311,19 @@ LEARN_LEVELS_JAFL = {
 }
 
 
+def is_shavian_only(word):
+    """
+    Check if a word contains only Shavian characters (U+10450 to U+1047F).
+    Returns True if the word is purely Shavian, False otherwise.
+    """
+    for char in word:
+        code_point = ord(char)
+        # Check if character is in Shavian Unicode range
+        if not (0x10450 <= code_point <= 0x1047F):
+            return False
+    return True
+
+
 def expand_ligatures(word):
     """
     Expand ligatures in a word to their component characters.
@@ -369,11 +382,16 @@ def generate_learn_word_lists(word_freq_file, learn_levels, output_file, layout_
     """
     # Load all words with frequency info
     all_words = []
+    filtered_count = 0
     with open(word_freq_file, 'r', encoding='utf-8') as f:
         for line_num, line in enumerate(f, 1):
             parts = line.strip().split()
             if len(parts) >= 2:
                 word = parts[0]
+                # Skip words with non-Shavian characters
+                if not is_shavian_only(word):
+                    filtered_count += 1
+                    continue
                 try:
                     freq = int(parts[1])
                     all_words.append((word, freq))
@@ -382,7 +400,7 @@ def generate_learn_word_lists(word_freq_file, learn_levels, output_file, layout_
                     continue
 
     print(f"\n{layout_name} Layout ({dialect.upper()}):")
-    print(f"Loaded {len(all_words)} words from frequency file")
+    print(f"Loaded {len(all_words)} words from frequency file (filtered {filtered_count} non-Shavian words)")
     if use_ligatures:
         print(f"  Using ligature expansion")
     else:
