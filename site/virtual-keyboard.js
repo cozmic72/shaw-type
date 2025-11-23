@@ -206,16 +206,6 @@ function highlightKey(keyValue) {
 function toggleShift() {
     isShiftActive = !isShiftActive;
 
-    // Update shift key visuals manually since we don't have an event object
-    const shiftKeys = document.querySelectorAll('.key[data-key="Shift"]');
-    shiftKeys.forEach(key => {
-        if (isShiftActive) {
-            key.classList.add('shift-active');
-        } else {
-            key.classList.remove('shift-active');
-        }
-    });
-
     // Trigger a label update from the main script
     if (typeof updateVirtualKeyboardLabels === 'function') {
         updateVirtualKeyboardLabels();
@@ -324,9 +314,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateVirtualKeyboardLabels();
             }
         }
-
-        // Update shift and caps lock key highlighting
-        updateModifierKeyVisuals(e);
     });
 
     document.addEventListener('keyup', (e) => {
@@ -339,31 +326,5 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateVirtualKeyboardLabels();
             }
         }
-
-        // Update shift and caps lock key highlighting
-        updateModifierKeyVisuals(e);
     });
 });
-
-// Helper to update shift and caps lock key visuals based on actual modifier state
-function updateModifierKeyVisuals(e) {
-    // Update Shift keys
-    const shiftKeys = document.querySelectorAll('.key[data-key="Shift"]');
-    shiftKeys.forEach(key => {
-        if (e.shiftKey) {
-            key.classList.add('shift-active');
-        } else {
-            key.classList.remove('shift-active');
-        }
-    });
-
-    // Update CapsLock key
-    const capsLockKey = document.querySelector('.key[data-key="CapsLock"]');
-    if (capsLockKey) {
-        if (e.getModifierState('CapsLock')) {
-            capsLockKey.classList.add('shift-active');
-        } else {
-            capsLockKey.classList.remove('shift-active');
-        }
-    }
-}
