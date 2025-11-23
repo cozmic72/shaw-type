@@ -97,10 +97,10 @@ def transliterate_csv(input_file, output_latin, output_british, output_american,
     # Batch transliterate all values at once (much faster!)
     all_values_text = '\n'.join(values)
 
-    # Get path to namer dots correction script
-    fix_script = SCRIPT_DIR / "fix-namer-dots.py"
+    # Get path to Shavian correction script
+    fix_script = SCRIPT_DIR / "fix-shavian.py"
 
-    # British - pipe through namer dots correction
+    # British - pipe through correction filter
     shave_proc = subprocess.Popen(
         [shave_cmd, "--readlex-british", str(DICT_FILE_BRITISH)],
         stdin=subprocess.PIPE,
@@ -118,7 +118,7 @@ def transliterate_csv(input_file, output_latin, output_british, output_american,
     british_output, _ = fix_proc.communicate()
     british_values = british_output.strip().split('\n')
 
-    # American - pipe through namer dots correction
+    # American - pipe through correction filter
     shave_proc = subprocess.Popen(
         [shave_cmd, "--readlex-american", str(DICT_FILE_AMERICAN)],
         stdin=subprocess.PIPE,
@@ -166,10 +166,10 @@ def transliterate_html(input_file, output_british, output_american, shave_cmd):
     with open(input_file, 'r', encoding='utf-8') as f:
         content = f.read()
 
-    # Get path to namer dots correction script
-    fix_script = SCRIPT_DIR / "fix-namer-dots.py"
+    # Get path to Shavian correction script
+    fix_script = SCRIPT_DIR / "fix-shavian.py"
 
-    # British - pipe through namer dots correction
+    # British - pipe through correction filter
     shave_proc = subprocess.Popen(
         [shave_cmd, "--readlex-british", str(DICT_FILE_BRITISH)],
         stdin=subprocess.PIPE,
@@ -189,7 +189,7 @@ def transliterate_html(input_file, output_british, output_american, shave_cmd):
         f.write(british_output)
     print(f"    ✓ Saved {output_british.name}")
 
-    # American - pipe through namer dots correction
+    # American - pipe through correction filter
     shave_proc = subprocess.Popen(
         [shave_cmd, "--readlex-american", str(DICT_FILE_AMERICAN)],
         stdin=subprocess.PIPE,

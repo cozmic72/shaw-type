@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
 """
-Post-transliteration correction tool for Shavian namer dots.
-Reads from stdin, applies corrections from a mapping file, writes to stdout.
+Post-transliteration correction tool for Shavian text.
+Reads from stdin, applies word-level corrections from a mapping file, writes to stdout.
+
+Corrections can include:
+- Fixing incorrect namer dots (common nouns should not have them)
+- Correcting any systematic transliteration errors
+- Applying custom preferences for specific words
 """
 import sys
 import re
@@ -46,7 +51,7 @@ def apply_corrections(text, corrections):
 
 def main():
     script_dir = Path(__file__).parent
-    corrections_file = script_dir / "namer-dots.txt"
+    corrections_file = script_dir / "shavian-corrections.txt"
     
     corrections = load_corrections(corrections_file)
     

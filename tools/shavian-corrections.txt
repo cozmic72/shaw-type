@@ -1,6 +1,11 @@
-# Namer dots corrections
-# Format: wrong correct
+# Shavian word-level corrections
+# Format: wrong correct (space-separated)
 # Lines starting with # are comments
+#
+# Use cases:
+# - Fix incorrect namer dots (common nouns shouldn't have them)
+# - Correct systematic transliteration errors
+# - Apply custom preferences for specific words
 
 # Common nouns that shouldn't have namer dots
 ·𐑢𐑻𐑛 𐑢𐑻𐑛
