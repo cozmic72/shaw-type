@@ -907,7 +907,7 @@
             <div class="settings-option" id="ligatureSettingOption">
                 <label>
                     <input type="checkbox" id="ligatureToggleSettings" onchange="onLigatureToggleSettings()">
-                    <span>Automatic ligatures (𐑩+𐑮→𐑼, 𐑘+𐑵→𐑿)</span>
+                    <span id="ligatureLabel">Automatic ligatures (𐑩+𐑮→𐑼, 𐑘+𐑵→𐑿)</span>
                 </label>
             </div>
 
@@ -1198,24 +1198,32 @@
 
             const ligatureOption = document.getElementById('ligatureSettingOption');
             const ligatureToggle = document.getElementById('ligatureToggleSettings');
+            const ligatureLabel = document.getElementById('ligatureLabel');
             const autoLigatures = KEYBOARD_MAPS[currentLayout].autoLigatures;
 
+            // Always show the option
+            ligatureOption.style.display = 'block';
+
             if (autoLigatures === 'never') {
-                // Hide toggle completely for layouts that don't support ligatures
-                ligatureOption.style.display = 'none';
+                // Grey out and show "not supported" for layouts without ligatures
+                ligatureToggle.checked = false;
+                ligatureToggle.disabled = true;
+                ligatureToggle.style.opacity = '0.5';
+                ligatureToggle.style.cursor = 'not-allowed';
+                ligatureLabel.textContent = 'Ligatures not supported';
             } else if (autoLigatures === 'always') {
-                // Show but disable toggle for layouts with forced ligatures
-                ligatureOption.style.display = 'block';
+                // Grey out and show "built in" for layouts with forced ligatures
                 ligatureToggle.checked = true;
                 ligatureToggle.disabled = true;
                 ligatureToggle.style.opacity = '0.5';
                 ligatureToggle.style.cursor = 'not-allowed';
+                ligatureLabel.textContent = 'Ligatures built in';
             } else {
-                // 'optional' - show and enable toggle
-                ligatureOption.style.display = 'block';
+                // 'optional' - show and enable toggle with normal label
                 ligatureToggle.disabled = false;
                 ligatureToggle.style.opacity = '1';
                 ligatureToggle.style.cursor = 'pointer';
+                ligatureLabel.textContent = 'Automatic ligatures (𐑩+𐑮→𐑼, 𐑘+𐑵→𐑿)';
             }
         }
 
