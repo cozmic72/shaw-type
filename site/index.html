@@ -2697,9 +2697,14 @@
                 const type = currentMode === 'learn' ? 'lesson' : 'level';
                 const typeLabel = type === 'lesson' ? t.lesson_label : t.level_label;
 
-                // Set instructions in subtitle for practice mode
+                // Set subtitle based on mode
                 if (type === 'lesson') {
+                    // For lessons, show instructions initially (will update after first word)
                     document.getElementById('mainSubtitle').textContent = t.gameInstructions;
+                } else {
+                    // For play mode, immediately show the level info
+                    document.getElementById('mainSubtitle').textContent =
+                        `${typeLabel} ${currentLevelNumber}: ${nextLevelData.title}`;
                 }
 
                 // Just start the level directly (both play and practice)
