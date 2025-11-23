@@ -1394,8 +1394,47 @@
             }
         });
 
-        // UI text translations
-        const translations = {
+        // UI text translations - loaded dynamically from JSON files
+        let translations = {
+            latin: null,
+            shavian_british: null,
+            shavian_american: null
+        };
+
+        // Load translation files
+        async function loadTranslations() {
+            try {
+                const [latinResp, britishResp, americanResp] = await Promise.all([
+                    fetch('translations_latin.json'),
+                    fetch('translations_british.json'),
+                    fetch('translations_american.json')
+                ]);
+
+                translations.latin = await latinResp.json();
+                translations.shavian_british = await britishResp.json();
+                translations.shavian_american = await americanResp.json();
+
+                console.log('Translations loaded successfully');
+                return true;
+            } catch (error) {
+                console.error('Error loading translations:', error);
+                return false;
+            }
+        }
+
+        // Get current translations based on settings
+        function getCurrentTranslations() {
+            if (!useShavianUI) {
+                return translations.latin || {};
+            }
+
+            // Use dialect-specific Shavian translations
+            const dialectKey = currentDialect === 'gb' ? 'shavian_british' : 'shavian_american';
+            return translations[dialectKey] || {};
+        }
+
+        // Temporary: Keep old hardcoded translations as fallback until we finish migration
+        const translationsOLD = {
             latin: {
                 title: 'Shaw Type',
                 subtitle: '𐑖𐑱𐑝𐑾𐑯 𐑑𐑲𐑐𐑦𐑙 𐑐𐑮𐑨𐑒𐑑𐑦𐑕',
@@ -1854,6 +1893,8 @@
             if (selected) {
                 currentDialect = selected.value;
                 localStorage.setItem('dialect', currentDialect);
+                // Update UI translations for new dialect
+                updateUILanguage();
                 // Reload words with new dialect
                 loadWords().then(() => {
                     updateLevelSelector();
@@ -3380,9 +3421,8 @@
             const titleEl = document.getElementById('contentModalTitle');
             const bodyEl = document.getElementById('contentModalBody');
 
-            // Set title using translations
-            const lang = useShavianUI ? 'shavian' : 'latin';
-            const t = translations[lang];
+            // Set title using current translations
+            const t = getCurrentTranslations();
             const titleKey = 'title' + page.charAt(0).toUpperCase() + page.slice(1);
             titleEl.textContent = t[titleKey] || page.charAt(0).toUpperCase() + page.slice(1);
             bodyEl.innerHTML = 'Loading...';
@@ -3390,8 +3430,16 @@
             // Show modal
             modal.classList.add('show');
 
-            // Load content based on current language
-            const filename = `${page}_${lang}.html`;
+            // Load content based on current dialect (for Shavian) or use latin
+            let filename;
+            if (useShavianUI) {
+                // Use dialect-specific Shavian content
+                const dialect = currentDialect === 'gb' ? 'british' : 'american';
+                filename = `${page}_${dialect}.html`;
+            } else {
+                // Use Latin content (no dialect variation needed)
+                filename = `${page}_latin.html`;
+            }
 
             try {
                 const response = await fetch(filename);
@@ -3423,6 +3471,8 @@
             if (selected) {
                 currentDialect = selected.value;
                 localStorage.setItem('dialect', currentDialect);
+                // Update UI translations for new dialect
+                updateUILanguage();
                 // Reload words with new dialect
                 loadWords().then(() => {
                     updateLevelSelector();
@@ -3749,8 +3799,23 @@
         }
 
         function updateUILanguage() {
-            const lang = useShavianUI ? 'shavian' : 'latin';
-            const t = translations[lang];
+            const t = getCurrentTranslations();
+
+            // Fallback to old translations if new ones haven't loaded yet
+            if (!t || Object.keys(t).length === 0) {
+                const lang = useShavianUI ? 'shavian' : 'latin';
+                const fallback = translationsOLD[lang];
+                if (fallback) {
+                    console.warn('Using fallback translations');
+                    updateUIWithTranslations(fallback);
+                    return;
+                }
+            }
+
+            updateUIWithTranslations(t);
+        }
+
+        function updateUIWithTranslations(t) {
 
             // Update title
             document.getElementById('mainTitle').textContent = t.title;
@@ -4097,8 +4162,12 @@
         // Start the app
         applyPatches();
         loadPreferences();
-        init();
-        updateUILanguage();
+
+        // Load translations then initialize UI
+        loadTranslations().then(() => {
+            init();
+            updateUILanguage();
+        });
     </script>
     <script src="virtual-keyboard.js"></script>
 </body>

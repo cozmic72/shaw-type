@@ -64,13 +64,14 @@ def transliterate_text(text, dialect, shave_cmd):
         return text  # Return original on error
 
 
-def transliterate_csv(input_file, output_british, output_american, shave_cmd):
+def transliterate_csv(input_file, output_latin, output_british, output_american, shave_cmd):
     """
     Transliterate a CSV file, preserving keys and transliterating values.
-    Creates both British and American JSON output files.
+    Creates Latin, British, and American JSON output files.
 
     Args:
         input_file: Path to input CSV file
+        output_latin: Path to Latin JSON output file
         output_british: Path to British JSON output file
         output_american: Path to American JSON output file
         shave_cmd: Path to shave executable
@@ -86,6 +87,12 @@ def transliterate_csv(input_file, output_british, output_american, shave_cmd):
         for row in reader:
             keys.append(row['key'])
             values.append(row['value'])
+
+    # Save Latin translations (original values)
+    translations_latin = dict(zip(keys, values))
+    with open(output_latin, 'w', encoding='utf-8') as f:
+        json.dump(translations_latin, f, ensure_ascii=False, indent=2)
+    print(f"    ✓ Saved {output_latin.name}")
 
     # Batch transliterate all values at once (much faster!)
     all_values_text = '\n'.join(values)
@@ -182,6 +189,7 @@ def main():
     if csv_file.exists():
         transliterate_csv(
             csv_file,
+            SITE_DIR / "translations_latin.json",
             SITE_DIR / "translations_british.json",
             SITE_DIR / "translations_american.json",
             shave_cmd
@@ -211,6 +219,7 @@ def main():
 
     print("\n✅ Translation generation complete!")
     print("Generated files:")
+    print(f"  - {SITE_DIR / 'translations_latin.json'}")
     print(f"  - {SITE_DIR / 'translations_british.json'}")
     print(f"  - {SITE_DIR / 'translations_american.json'}")
 
