@@ -325,6 +325,18 @@ def is_shavian_only(word):
     return True
 
 
+def is_shavian_only_with_namer_dot(word):
+    """
+    Check if a word contains only Shavian characters and optionally a namer dot (·).
+    Returns True if the word is purely Shavian (with optional namer dot), False otherwise.
+    """
+    for char in word:
+        code_point = ord(char)
+        # Check if character is in Shavian Unicode range or is namer dot (U+00B7)
+        if not ((0x10450 <= code_point <= 0x1047F) or code_point == 0x00B7):
+            return False
+    return True
+
 
 def load_readlex_words(readlex_file, dialect='gb'):
     """
@@ -367,9 +379,14 @@ def load_readlex_words(readlex_file, dialect='gb'):
         if selected_entry:
             shaw_word = selected_entry.get('Shaw', '')
             freq = selected_entry.get('freq', 0)
+            pos = selected_entry.get('pos', '')
             
-            # Only include if it's purely Shavian
-            if shaw_word and is_shavian_only(shaw_word):
+            # Add namer dot for proper nouns (NP0, NP0+...)
+            if pos.startswith('NP0') and shaw_word and not shaw_word.startswith('·'):
+                shaw_word = '·' + shaw_word
+            
+            # Only include if it's purely Shavian (namer dot U+00B7 is allowed)
+            if shaw_word and is_shavian_only_with_namer_dot(shaw_word):
                 words.append((shaw_word, freq))
     
     return words
