@@ -2930,16 +2930,16 @@
 
                 case 'deleteContentBackward':
                     // Backspace - remove last character (treating base+VS1 as single unit)
-                    // Check if shadow ends with a VS1 sequence (base char + U+FE00)
-                    if (currentShadow.length >= 2) {
-                        const lastCodePoint = currentShadow.codePointAt(currentShadow.length - 1);
-                        if (lastCodePoint === 0xFE00) {
-                            // Last character is VS1, delete both base and VS1
-                            return currentShadow.slice(0, -2);
-                        }
+                    const chars = Array.from(currentShadow); // Split into code points
+                    if (chars.length === 0) return '';
+
+                    // Check if last code point is VS1 (U+FE00)
+                    if (chars.length >= 2 && chars[chars.length - 1].codePointAt(0) === 0xFE00) {
+                        // Last code point is VS1, delete both base character and VS1
+                        return chars.slice(0, -2).join('');
                     }
+
                     // Normal deletion - remove last code point
-                    const chars = Array.from(currentShadow);
                     return chars.slice(0, -1).join('');
 
                 case 'deleteContentForward':
