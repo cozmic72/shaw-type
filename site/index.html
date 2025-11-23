@@ -2734,7 +2734,7 @@
             const accuracyFormatted = accuracy.toFixed(1) + '%';
 
             // Set modal content for lesson completion
-            const t = translations[useShavianUI ? 'shavian' : 'latin'];
+            const t = getCurrentTranslations();
             document.getElementById('completionTitle').textContent = t.lessonComplete;
             document.getElementById('completionMessage').textContent = t.completedWords.replace('{n}', wordsCompleted);
 
@@ -2822,7 +2822,7 @@
             }
 
             // Get translations
-            const t = translations[useShavianUI ? 'shavian' : 'latin'];
+            const t = getCurrentTranslations();
 
             // Customize modal based on mode
             if (currentMode === 'learn') {
@@ -2845,7 +2845,6 @@
                 document.getElementById('finalLevel').textContent = currentLevelNumber;
 
                 // Generate per-level stats HTML
-                const t = getCurrentTranslations();
                 let levelStatsHTML = '';
                 levelStats.forEach(stat => {
                     const levelAccuracyFormatted = stat.accuracy.toFixed(1);
@@ -3648,7 +3647,7 @@
                 pauseTimer();
             }
             // Get current translations
-            const t = translations[useShavianUI ? 'shavian' : 'latin'];
+            const t = getCurrentTranslations();
 
             // Populate high scores content
             let html = '';
