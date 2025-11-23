@@ -825,9 +825,12 @@
     <div class="settings-modal" id="highScoresModal">
         <div class="settings-content">
             <span class="modal-close" onclick="closeHighScores()">&times;</span>
-            <h2 id="highScoresTitle">High Scores</h2>
+            <h2 id="highScoresTitle">Scores</h2>
             <div id="highScoresContent" style="margin-top: 20px;">
                 <!-- High scores will be populated here -->
+            </div>
+            <div style="margin-top: 20px; text-align: center;">
+                <button class="home-btn" id="highScoresCloseBtn" onclick="closeHighScores()" style="padding: 12px 40px; font-size: 16px;">Close</button>
             </div>
         </div>
     </div>
@@ -1453,6 +1456,7 @@
                 accuracy_final: 'Accuracy:',
                 levelReached: 'Level Reached:',
                 practiceAgain: 'Practice Again',
+                scoresTitle: 'Scores',
                 settingsTitle: 'Settings',
                 displayShavian: 'Display UI in Shavian',
                 displayShavianDesc: 'Show labels and text in Shavian alphabet instead of Latin',
@@ -1579,6 +1583,7 @@
                 accuracy_final: '𐑨𐑒𐑘𐑼𐑩𐑕𐑦:',
                 levelReached: '𐑤𐑧𐑝𐑩𐑤 𐑮𐑰𐑗𐑑:',
                 practiceAgain: '𐑐𐑮𐑨𐑒𐑑𐑦𐑕 𐑩𐑜𐑧𐑯',
+                scoresTitle: '𐑕𐑒𐑹𐑟',
                 settingsTitle: '𐑕𐑧𐑑𐑦𐑙𐑟',
                 displayShavian: '𐑛𐑦𐑕𐑐𐑤𐑱 UI 𐑦𐑯 ·𐑖𐑱𐑝𐑾𐑯',
                 displayShavianDesc: '𐑖𐑴 𐑤𐑱𐑚𐑩𐑤𐑟 𐑯 𐑑𐑧𐑒𐑕𐑑 𐑦𐑯 ·𐑖𐑱𐑝𐑾𐑯 𐑨𐑤𐑓𐑩𐑚𐑧𐑑 𐑦𐑯𐑕𐑑𐑧𐑛 𐑝 ·𐑤𐑨𐑑𐑦𐑯',
@@ -3748,6 +3753,10 @@
             document.querySelectorAll('.stat-row')[4].childNodes[0].textContent = t.levelReached + ' ';
             document.querySelector('#completionModal button').textContent = t.practiceAgain;
 
+            // Update high scores modal
+            document.getElementById('highScoresTitle').textContent = t.scoresTitle;
+            document.getElementById('highScoresCloseBtn').textContent = t.close;
+
             // Update settings modal
             document.querySelector('#settingsModal h2').textContent = t.settingsTitle;
             document.querySelector('#shavianUIToggle + span').textContent = t.displayShavian;
@@ -3764,6 +3773,7 @@
             document.getElementById('menuAbout').textContent = t.menuAbout;
             document.getElementById('menuKeyboards').textContent = t.menuKeyboards;
             document.getElementById('menuResources').textContent = t.menuResources;
+            document.getElementById('menuHighScores').textContent = t.scoresTitle;
             document.getElementById('menuSettings').textContent = t.menuSettings;
 
             // Update settings dialog labels
