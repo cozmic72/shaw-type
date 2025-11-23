@@ -13,6 +13,44 @@ fetch('keyboard_layouts.json')
         console.error('Failed to load keyboard layouts:', error);
     });
 
+// Translate input event data from Latin to Shavian if needed
+// This is a decorator function that index.html can use
+// Returns: { eventData: string, browserInput: string }
+function translateInputEvent(e, browserInput, currentLayout, useVirtualKeyboard, debugFn) {
+    let eventData = e.data || '';
+
+    // Virtual keyboard: translate QWERTY input to Shavian if needed
+    if (useVirtualKeyboard && e.inputType === 'insertText' && eventData.length > 0) {
+        const keyboardMap = KEYBOARD_MAPS[currentLayout];
+        if (keyboardMap) {
+            // Check if the input data is a Latin character that needs translation
+            const codePoint = eventData.codePointAt(0);
+            const isShavian = codePoint >= 0x10450 && codePoint <= 0x1047F;
+
+            if (!isShavian && keyboardMap[eventData]) {
+                // Input is Latin and has a mapping - translate it
+                const translatedChar = keyboardMap[eventData];
+                if (debugFn) {
+                    debugFn('⌨️  Translating: "' + eventData + '" → "' + translatedChar + '" [' +
+                           eventData.split('').map(c => 'U+' + c.codePointAt(0).toString(16).toUpperCase().padStart(4, '0')).join(' ') +
+                           ' → ' + translatedChar.split('').map(c => 'U+' + c.codePointAt(0).toString(16).toUpperCase().padStart(4, '0')).join(' ') + ']');
+                }
+
+                // Remove the Latin character that was inserted and replace with Shavian
+                const originalLength = eventData.length;
+                const selectionPos = e.target.selectionStart;
+                const before = browserInput.substring(0, selectionPos - originalLength);
+                const after = browserInput.substring(selectionPos);
+                browserInput = before + after; // Remove the original character
+
+                eventData = translatedChar;
+            }
+        }
+    }
+
+    return { eventData, browserInput };
+}
+
 // Track shift state
 let isShiftActive = false;
 
