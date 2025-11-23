@@ -1,34 +1,43 @@
-# Shavian word-level corrections
-# Format: wrong correct (space-separated)
+# Shavian corrections
+# Format: wrong_text<TAB>correct_text (tab-separated)
 # Lines starting with # are comments
 #
 # Use cases:
 # - Fix incorrect namer dots (common nouns shouldn't have them)
 # - Correct systematic transliteration errors
 # - Apply custom preferences for specific words
+# - Resolve ambiguous word choices from transliteration
 
 # Common nouns that shouldn't have namer dots
-·𐑢𐑻𐑛 𐑢𐑻𐑛
-·𐑝𐑬𐑩𐑤 𐑝𐑬𐑩𐑤
-·𐑒𐑪𐑥𐑐𐑬𐑯𐑛 𐑒𐑪𐑥𐑐𐑬𐑯𐑛
-·𐑒𐑪𐑯𐑕𐑩𐑯𐑩𐑯𐑑 𐑒𐑪𐑯𐑕𐑩𐑯𐑩𐑯𐑑
-·𐑦𐑯𐑛𐑧𐑒𐑕 𐑦𐑯𐑛𐑧𐑒𐑕
-·𐑥𐑰𐑯 𐑥𐑰𐑯
-·𐑤𐑧𐑕𐑩𐑯 𐑤𐑧𐑕𐑩𐑯
-·𐑨𐑒𐑘𐑼𐑩𐑕𐑦 𐑨𐑒𐑘𐑼𐑩𐑕𐑦
-·𐑒𐑩𐑯𐑜𐑮𐑨𐑗𐑩𐑤𐑱𐑖𐑩𐑯𐑟 𐑒𐑩𐑯𐑜𐑮𐑨𐑗𐑩𐑤𐑱𐑖𐑩𐑯𐑟
-·𐑯𐑿 𐑯𐑿
-·𐑐𐑤𐑱 𐑐𐑤𐑱
-·𐑢𐑻𐑛𐑟 𐑢𐑻𐑛𐑟
-·𐑒𐑨𐑯𐑕𐑩𐑤 𐑒𐑨𐑯𐑕𐑩𐑤
-·𐑐𐑮𐑨𐑒𐑑𐑦𐑕 𐑐𐑮𐑨𐑒𐑑𐑦𐑕
-·𐑤𐑬𐑼 𐑤𐑬𐑼
+·𐑢𐑻𐑛	𐑢𐑻𐑛
+·𐑝𐑬𐑩𐑤	𐑝𐑬𐑩𐑤
+·𐑒𐑪𐑥𐑐𐑬𐑯𐑛	𐑒𐑪𐑥𐑐𐑬𐑯𐑛
+·𐑒𐑪𐑯𐑕𐑩𐑯𐑩𐑯𐑑	𐑒𐑪𐑯𐑕𐑩𐑯𐑩𐑯𐑑
+·𐑦𐑯𐑛𐑧𐑒𐑕	𐑦𐑯𐑛𐑧𐑒𐑕
+·𐑥𐑰𐑯	𐑥𐑰𐑯
+·𐑤𐑧𐑕𐑩𐑯	𐑤𐑧𐑕𐑩𐑯
+·𐑨𐑒𐑘𐑼𐑩𐑕𐑦	𐑨𐑒𐑘𐑼𐑩𐑕𐑦
+·𐑒𐑩𐑯𐑜𐑮𐑨𐑗𐑩𐑤𐑱𐑖𐑩𐑯𐑟	𐑒𐑩𐑯𐑜𐑮𐑨𐑗𐑩𐑤𐑱𐑖𐑩𐑯𐑟
+·𐑯𐑿	𐑯𐑿
+·𐑐𐑤𐑱	𐑐𐑤𐑱
+·𐑢𐑻𐑛𐑟	𐑢𐑻𐑛𐑟
+·𐑒𐑨𐑯𐑕𐑩𐑤	𐑒𐑨𐑯𐑕𐑩𐑤
+·𐑐𐑮𐑨𐑒𐑑𐑦𐑕	𐑐𐑮𐑨𐑒𐑑𐑦𐑕
+·𐑤𐑬𐑼	𐑤𐑬𐑼
 
 # American variants
-·𐑯𐑵 𐑯𐑵
-·𐑤𐑱𐑚𐑩𐑤 𐑤𐑱𐑚𐑩𐑤
-·𐑤𐑱𐑚𐑩𐑤𐑟 𐑤𐑱𐑚𐑩𐑤𐑟
-·𐑥𐑭𐑕𐑑𐑼 𐑥𐑭𐑕𐑑𐑼
-·𐑥𐑨𐑕𐑑𐑼 𐑥𐑨𐑕𐑑𐑼
-·𐑤𐑧𐑝𐑩𐑤 𐑤𐑧𐑝𐑩𐑤
-·𐑤𐑧𐑝𐑩𐑤𐑟 𐑤𐑧𐑝𐑩𐑤𐑟
+·𐑯𐑵	𐑯𐑵
+·𐑤𐑱𐑚𐑩𐑤	𐑤𐑱𐑚𐑩𐑤
+·𐑤𐑱𐑚𐑩𐑤𐑟	𐑤𐑱𐑚𐑩𐑤𐑟
+·𐑥𐑭𐑕𐑑𐑼	𐑥𐑭𐑕𐑑𐑼
+·𐑥𐑨𐑕𐑑𐑼	𐑥𐑨𐑕𐑑𐑼
+·𐑤𐑧𐑝𐑩𐑤	𐑤𐑧𐑝𐑩𐑤
+·𐑤𐑧𐑝𐑩𐑤𐑟	𐑤𐑧𐑝𐑩𐑤𐑟
+
+# Disambiguation corrections
+[𐑮𐑬 / 𐑮𐑴]	𐑮𐑴
+[𐑮𐑬𐑟 / 𐑮𐑴𐑟]	𐑮𐑴𐑟
+[𐑤𐑴𐑼 / 𐑤𐑬𐑼]	𐑤𐑬𐑼
+[𐑒𐑪𐑥𐑐𐑬𐑯𐑛 / 𐑒𐑩𐑥𐑐𐑬𐑯𐑛]	𐑒𐑪𐑥𐑐𐑬𐑯𐑛
+[𐑐𐑫𐑑𐑦𐑙 / 𐑐𐑳𐑑𐑦𐑙]	𐑐𐑳𐑑𐑦𐑙
+[𐑮𐑰𐑛 / 𐑮𐑧𐑛]	𐑮𐑰𐑛

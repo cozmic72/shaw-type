@@ -13,21 +13,21 @@ import re
 from pathlib import Path
 
 def load_corrections(corrections_file):
-    """Load corrections from a space-separated file."""
+    """Load corrections from a tab-separated file."""
     corrections = {}
     if not corrections_file.exists():
         return corrections
-    
+
     with open(corrections_file, 'r', encoding='utf-8') as f:
         for line in f:
-            line = line.strip()
-            if not line or line.startswith('#'):
+            line = line.rstrip('\n')  # Keep tabs, only remove newline
+            if not line.strip() or line.strip().startswith('#'):
                 continue
-            parts = line.split(None, 1)  # Split on first whitespace
+            parts = line.split('\t')  # Split on tab
             if len(parts) == 2:
                 wrong, correct = parts
                 corrections[wrong] = correct
-    
+
     return corrections
 
 def apply_corrections(text, corrections):
