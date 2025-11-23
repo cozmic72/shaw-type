@@ -896,12 +896,7 @@
         <div class="settings-content" style="max-width: 600px;">
             <h2 id="splashTitle">Welcome to Shaw Type!</h2>
             <div id="splashContent" style="margin: 20px 0;">
-                <h3 id="splashWhatsNew" style="color: #555fdc; margin-top: 0;">What's New</h3>
-                <ul style="line-height: 1.8; color: #666;">
-                    <li>Virtual keyboard support - see your keyboard layout on screen!</li>
-                    <li>Click shift on the virtual keyboard to see shifted characters</li>
-                    <li>All 5 keyboard layouts now supported with QWERTY translation</li>
-                </ul>
+                Loading...
             </div>
 
             <button id="splashContinueBtn" class="settings-close-btn" onclick="closeSplashModal()" style="margin-top: 15px; width: 100%;">Continue</button>
@@ -3281,13 +3276,32 @@
             document.getElementById('splashModal').classList.remove('show');
         }
 
-        function showSplashIfNeeded() {
+        async function showSplashIfNeeded() {
             const lastSeenVersion = localStorage.getItem('splashVersion');
             const hasSeenKeyboard = localStorage.getItem('keyboardLayout');
 
             // Show splash if it's a new version and user has already set up
             if (lastSeenVersion !== APP_VERSION && hasSeenKeyboard) {
                 document.getElementById('splashModal').classList.add('show');
+
+                // Load content based on current language
+                const lang = useShavianUI ? 'shavian' : 'latin';
+                const filename = `whats_new_${lang}.html`;
+                const contentEl = document.getElementById('splashContent');
+
+                try {
+                    const response = await fetch(filename);
+                    if (response.ok) {
+                        const html = await response.text();
+                        contentEl.innerHTML = html;
+                    } else {
+                        contentEl.innerHTML = '<p>Content not found.</p>';
+                    }
+                } catch (error) {
+                    contentEl.innerHTML = '<p>Error loading content.</p>';
+                    console.error('Error loading splash content:', error);
+                }
+
                 // Set focus on Continue button
                 setTimeout(() => {
                     document.getElementById('splashContinueBtn').focus();
@@ -3483,9 +3497,22 @@
 
             // Update splash screen
             document.getElementById('splashTitle').textContent = t.splashTitle;
-            document.getElementById('splashWhatsNew').textContent = t.whatsNew;
             document.getElementById('splashContinueBtn').textContent = t.continueButton;
             document.getElementById('splashDontShowAgain').textContent = t.dontShowAgain;
+
+            // Reload splash content in current language if modal is showing
+            const splashModal = document.getElementById('splashModal');
+            if (splashModal.classList.contains('show')) {
+                const filename = `whats_new_${lang}.html`;
+                const contentEl = document.getElementById('splashContent');
+                fetch(filename)
+                    .then(response => response.ok ? response.text() : '<p>Content not found.</p>')
+                    .then(html => contentEl.innerHTML = html)
+                    .catch(error => {
+                        contentEl.innerHTML = '<p>Error loading content.</p>';
+                        console.error('Error loading splash content:', error);
+                    });
+            }
 
             // Update setup dialog
             document.getElementById('setupTitle').textContent = t.setupTitle;
