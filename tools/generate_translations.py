@@ -204,7 +204,8 @@ def main():
     html_files = [
         ("about_latin.html", "about_british.html", "about_american.html"),
         ("keyboards_latin.html", "keyboards_british.html", "keyboards_american.html"),
-        ("resources_latin.html", "resources_british.html", "resources_american.html")
+        ("resources_latin.html", "resources_british.html", "resources_american.html"),
+        ("whats_new_latin.html", "whats_new_british.html", "whats_new_american.html")
     ]
 
     for latin_name, british_name, american_name in html_files:
