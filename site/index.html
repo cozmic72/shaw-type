@@ -897,32 +897,41 @@
     </div>
 
     <!-- Welcome Modal -->
-    <div class="settings-modal" id="welcomeModal">
+    <!-- Splash Screen (What's New) -->
+    <div class="settings-modal" id="splashModal">
         <div class="settings-content" style="max-width: 600px;">
-            <h2 id="welcomeTitle">Welcome to Shaw Type!</h2>
-            <p id="welcomeSubtitle" style="margin: 15px 0; color: #666;">Choose your preferences to get started:</p>
-
-            <div class="settings-option">
-                <label id="welcomeDialectLabel" style="display: block; margin-bottom: 10px; color: #666; font-weight: normal;">
-                    Choose spelling
-                </label>
-                <div style="display: flex; gap: 20px;">
-                    <label style="cursor: pointer;">
-                        <input type="radio" name="dialectWelcome" value="gb" checked onchange="onDialectChangeWelcome()" style="margin-right: 8px;">
-                        <span id="welcomeDialectBritish">British</span>
-                    </label>
-                    <label style="cursor: pointer;">
-                        <input type="radio" name="dialectWelcome" value="us" onchange="onDialectChangeWelcome()" style="margin-right: 8px;">
-                        <span id="welcomeDialectAmerican">American</span>
-                    </label>
-                </div>
+            <h2 id="splashTitle">Welcome to Shaw Type!</h2>
+            <div id="splashContent" style="margin: 20px 0;">
+                <h3 style="color: #555fdc; margin-top: 0;">What's New</h3>
+                <ul style="line-height: 1.8; color: #666;">
+                    <li>Virtual keyboard support - see your keyboard layout on screen!</li>
+                    <li>Click shift on the virtual keyboard to see shifted characters</li>
+                    <li>All 5 keyboard layouts now supported with QWERTY translation</li>
+                </ul>
             </div>
 
+            <div style="margin: 20px 0;">
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <input type="checkbox" id="dontShowSplash" style="cursor: pointer;">
+                    <span style="color: #666; font-size: 14px;">Don't show this again</span>
+                </label>
+            </div>
+
+            <button class="settings-close-btn" onclick="closeSplashModal()" style="margin-top: 15px; width: 100%;">Continue</button>
+        </div>
+    </div>
+
+    <!-- First-Time Setup Dialog -->
+    <div class="settings-modal" id="setupModal">
+        <div class="settings-content" style="max-width: 500px;">
+            <h2>Get Started</h2>
+            <p style="margin: 15px 0; color: #666;">Choose your keyboard layout and spelling preference:</p>
+
             <div class="settings-option">
-                <label id="welcomeLayoutLabel" style="display: block; margin-bottom: 10px; color: #666; font-weight: normal;">
+                <label style="display: block; margin-bottom: 10px; color: #666; font-weight: normal;">
                     Keyboard Layout
                 </label>
-                <select id="layoutSelectWelcome" onchange="onLayoutChangeWelcome()" style="width: 100%; padding: 8px; font-size: 16px; border: 2px solid #e0e0e0; border-radius: 8px;">
+                <select id="layoutSelectSetup" onchange="onLayoutChangeSetup()" style="width: 100%; padding: 8px; font-size: 16px; border: 2px solid #e0e0e0; border-radius: 8px;">
                     <option value="imperial">Shaw Imperial</option>
                     <option value="new-imperial">New Shaw Imperial</option>
                     <option value="qwerty">Shaw QWERTY</option>
@@ -931,21 +940,27 @@
                 </select>
             </div>
 
-            <div class="settings-option" id="ligatureWelcomeOption">
-                <label>
-                    <input type="checkbox" id="ligatureToggleWelcome" onchange="onLigatureToggleWelcome()">
-                    <span id="welcomeLigatureLabel">Automatic ligatures (𐑩+𐑮→𐑼, 𐑘+𐑵→𐑿)</span>
-                </label>
-            </div>
-
             <div class="settings-option">
-                <label>
-                    <input type="checkbox" id="shavianUIToggleWelcome" onchange="toggleShavianUIWelcome()">
-                    <span id="welcomeShavianUILabel">Display UI in Shavian</span>
+                <label style="display: block; margin-bottom: 10px; color: #666; font-weight: normal;">
+                    Choose spelling
                 </label>
+                <div style="display: flex; gap: 20px;">
+                    <label style="cursor: pointer;">
+                        <input type="radio" name="dialectSetup" value="gb" checked onchange="onDialectChangeSetup()" style="margin-right: 8px;">
+                        <span>British</span>
+                    </label>
+                    <label style="cursor: pointer;">
+                        <input type="radio" name="dialectSetup" value="us" onchange="onDialectChangeSetup()" style="margin-right: 8px;">
+                        <span>American</span>
+                    </label>
+                </div>
             </div>
 
-            <button id="welcomeStartButton" class="settings-close-btn" onclick="closeWelcomeModal()" style="margin-top: 25px; width: 100%;">Start</button>
+            <p style="margin: 20px 0; color: #999; font-size: 14px; font-style: italic;">
+                Don't worry too much. This choice, and more besides, can be changed later in settings.
+            </p>
+
+            <button class="settings-close-btn" onclick="closeSetupModal()" style="margin-top: 15px; width: 100%;">Start Practicing!</button>
         </div>
     </div>
 
@@ -2066,10 +2081,10 @@
         async function init() {
             await loadWords();
             if (wordsLoaded) {
-                // Check if we should show welcome screen
-                const hideWelcome = localStorage.getItem('hideWelcome');
-                if (hideWelcome !== 'true') {
-                    showWelcomeIfNeeded();
+                // Show setup dialog for first-time users, then splash for returning users
+                const isFirstTime = showSetupIfNeeded();
+                if (!isFirstTime) {
+                    showSplashIfNeeded();
                 }
                 // Start on home screen - don't auto-load game
                 // User will click Play or Practice to start
@@ -3196,8 +3211,9 @@
         }
 
         // Welcome modal functions
-        function onDialectChangeWelcome() {
-            const selected = document.querySelector('input[name="dialectWelcome"]:checked');
+        // Setup dialog functions
+        function onDialectChangeSetup() {
+            const selected = document.querySelector('input[name="dialectSetup"]:checked');
             if (selected) {
                 currentDialect = selected.value;
                 localStorage.setItem('dialect', currentDialect);
@@ -3209,27 +3225,9 @@
             }
         }
 
-        function onLayoutChangeWelcome() {
-            currentLayout = document.getElementById('layoutSelectWelcome').value;
+        function onLayoutChangeSetup() {
+            currentLayout = document.getElementById('layoutSelectSetup').value;
             localStorage.setItem('keyboardLayout', currentLayout);
-
-            // Show/hide ligature toggle
-            const supportsLigatures = currentLayout === 'imperial' || currentLayout === 'new-imperial' || currentLayout === 'qwerty' || currentLayout === 'jafl';
-            document.getElementById('ligatureWelcomeOption').style.display = supportsLigatures ? 'block' : 'none';
-
-            // Update virtual keyboard labels
-            updateVirtualKeyboardLabels();
-        }
-
-        function onLigatureToggleWelcome() {
-            useLigatures = document.getElementById('ligatureToggleWelcome').checked;
-            localStorage.setItem('useLigatures', useLigatures);
-        }
-
-        function toggleShavianUIWelcome() {
-            useShavianUI = document.getElementById('shavianUIToggleWelcome').checked;
-            localStorage.setItem('useShavianUI', useShavianUI);
-            updateWelcomeLanguage();
         }
 
         function updateWelcomeLanguage() {
@@ -3258,34 +3256,46 @@
             }
         }
 
-        function closeWelcomeModal() {
-            document.getElementById('welcomeModal').classList.remove('show');
-            // Just set the mode preference, don't start a game
-            currentMode = 'play';
-            localStorage.setItem('currentMode', currentMode);
-            // User will click Play or Practice button to actually start
+        // Splash screen functions
+        const APP_VERSION = '1.1.0'; // Increment this when you want to show splash again
+
+        function closeSplashModal() {
+            const dontShow = document.getElementById('dontShowSplash').checked;
+            if (dontShow) {
+                localStorage.setItem('splashVersion', APP_VERSION);
+            }
+            document.getElementById('splashModal').classList.remove('show');
         }
 
-        function showWelcomeIfNeeded() {
-            const hideWelcome = localStorage.getItem('hideWelcome');
-            if (hideWelcome !== 'true') {
-                // Sync welcome modal with current settings
-                const dialectRadio = document.querySelector(`input[name="dialectWelcome"][value="${currentDialect}"]`);
-                if (dialectRadio) dialectRadio.checked = true;
+        function showSplashIfNeeded() {
+            const lastSeenVersion = localStorage.getItem('splashVersion');
+            const hasSeenKeyboard = localStorage.getItem('keyboardLayout');
 
-                document.getElementById('layoutSelectWelcome').value = currentLayout;
-                document.getElementById('ligatureToggleWelcome').checked = useLigatures;
-                document.getElementById('shavianUIToggleWelcome').checked = useShavianUI;
-
-                // Show/hide ligature option
-                const supportsLigatures = currentLayout === 'imperial' || currentLayout === 'new-imperial' || currentLayout === 'qwerty' || currentLayout === 'jafl';
-                document.getElementById('ligatureWelcomeOption').style.display = supportsLigatures ? 'block' : 'none';
-
-                // Update welcome language
-                updateWelcomeLanguage();
-
-                document.getElementById('welcomeModal').classList.add('show');
+            // Show splash if it's a new version and user has already set up
+            if (lastSeenVersion !== APP_VERSION && hasSeenKeyboard) {
+                document.getElementById('splashModal').classList.add('show');
             }
+        }
+
+        // First-time setup dialog functions
+        function closeSetupModal() {
+            document.getElementById('setupModal').classList.remove('show');
+            currentMode = 'play';
+            localStorage.setItem('currentMode', currentMode);
+        }
+
+        function showSetupIfNeeded() {
+            const hasKeyboard = localStorage.getItem('keyboardLayout');
+            if (!hasKeyboard) {
+                // First-time user - sync setup modal with defaults
+                const dialectRadio = document.querySelector(`input[name="dialectSetup"][value="${currentDialect}"]`);
+                if (dialectRadio) dialectRadio.checked = true;
+                document.getElementById('layoutSelectSetup').value = currentLayout;
+
+                document.getElementById('setupModal').classList.add('show');
+                return true;
+            }
+            return false;
         }
 
         function toggleHideWelcome() {
