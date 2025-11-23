@@ -33,8 +33,8 @@
 ·𐑥𐑨𐑕𐑑𐑼	𐑥𐑨𐑕𐑑𐑼
 ·𐑤𐑧𐑝𐑩𐑤	𐑤𐑧𐑝𐑩𐑤
 ·𐑤𐑧𐑝𐑩𐑤𐑟	𐑤𐑧𐑝𐑩𐑤𐑟
-·𐑮𐑦𐑟𐑷𐑹𐑕𐑩𐑟   𐑮𐑦𐑟𐑷𐑹𐑕𐑩𐑟
-·𐑒𐑰𐑚𐑹𐑛𐑟 𐑒𐑰𐑚𐑹𐑛𐑟
+·𐑮𐑦𐑟𐑹𐑕𐑩𐑟	𐑮𐑦𐑟𐑹𐑕𐑩𐑟
+·𐑒𐑰𐑚𐑹𐑛𐑟	𐑒𐑰𐑚𐑹𐑛𐑟
 
 # Disambiguation corrections
 [𐑮𐑬 / 𐑮𐑴]	𐑮𐑴
