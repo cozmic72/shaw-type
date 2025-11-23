@@ -12,7 +12,8 @@ from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).parent
 SITE_DIR = SCRIPT_DIR.parent / "site"
-DICT_FILE = SCRIPT_DIR / "shaw-type.dict"
+DICT_FILE_BRITISH = SCRIPT_DIR / "shaw-type-british.dict"
+DICT_FILE_AMERICAN = SCRIPT_DIR / "shaw-type-american.dict"
 
 
 def check_dependencies():
@@ -46,10 +47,11 @@ def transliterate_text(text, dialect, shave_cmd):
         The transliterated text
     """
     flag = "--readlex-british" if dialect == "british" else "--readlex-american"
+    dict_file = DICT_FILE_BRITISH if dialect == "british" else DICT_FILE_AMERICAN
 
     try:
         result = subprocess.run(
-            [shave_cmd, flag, str(DICT_FILE)],
+            [shave_cmd, flag, str(dict_file)],
             input=text,
             capture_output=True,
             text=True,
@@ -90,7 +92,7 @@ def transliterate_csv(input_file, output_british, output_american, shave_cmd):
 
     # British
     result = subprocess.run(
-        [shave_cmd, "--readlex-british", str(DICT_FILE)],
+        [shave_cmd, "--readlex-british", str(DICT_FILE_BRITISH)],
         input=all_values_text,
         capture_output=True,
         text=True
@@ -99,7 +101,7 @@ def transliterate_csv(input_file, output_british, output_american, shave_cmd):
 
     # American
     result = subprocess.run(
-        [shave_cmd, "--readlex-american", str(DICT_FILE)],
+        [shave_cmd, "--readlex-american", str(DICT_FILE_AMERICAN)],
         input=all_values_text,
         capture_output=True,
         text=True
@@ -138,7 +140,7 @@ def transliterate_html(input_file, output_british, output_american, shave_cmd):
 
     # British
     result = subprocess.run(
-        [shave_cmd, "--readlex-british", str(DICT_FILE)],
+        [shave_cmd, "--readlex-british", str(DICT_FILE_BRITISH)],
         input=content,
         capture_output=True,
         text=True
@@ -149,7 +151,7 @@ def transliterate_html(input_file, output_british, output_american, shave_cmd):
 
     # American
     result = subprocess.run(
-        [shave_cmd, "--readlex-american", str(DICT_FILE)],
+        [shave_cmd, "--readlex-american", str(DICT_FILE_AMERICAN)],
         input=content,
         capture_output=True,
         text=True
@@ -165,8 +167,12 @@ def main():
 
     shave_cmd = check_dependencies()
 
-    if not DICT_FILE.exists():
-        print(f"Error: Dictionary file not found at {DICT_FILE}")
+    if not DICT_FILE_BRITISH.exists():
+        print(f"Error: British dictionary file not found at {DICT_FILE_BRITISH}")
+        sys.exit(1)
+
+    if not DICT_FILE_AMERICAN.exists():
+        print(f"Error: American dictionary file not found at {DICT_FILE_AMERICAN}")
         sys.exit(1)
 
     # Process CSV translations
