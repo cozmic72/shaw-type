@@ -741,7 +741,7 @@
                     <a id="menuAbout" href="#" onclick="openContentModal('about'); return false;">About</a>
                     <a id="menuKeyboards" href="#" onclick="openContentModal('keyboards'); return false;">Keyboards</a>
                     <a id="menuResources" href="#" onclick="openContentModal('resources'); return false;">Resources</a>
-                    <a id="menuHighScores" href="#" onclick="openHighScores(); closeBurgerMenu(); return false;">High Scores</a>
+                    <a id="menuHighScores" href="#" onclick="openHighScores(); closeBurgerMenu(); return false;">Scores</a>
                     <a id="menuSettings" href="#" onclick="openSettings(); closeBurgerMenu(); return false;">Settings</a>
                 </div>
             </div>
@@ -1100,6 +1100,8 @@
         let correctLetters = 0;
         let recentWords = []; // Track recent words to avoid repeats
         let startTime = null; // Session start time
+        let pauseStartTime = null; // When timer was paused
+        let totalPausedTime = 0; // Cumulative paused time in milliseconds
         let bestTime = null; // Legacy - migrated to highScores
         let highScores = {}; // High scores keyed by level count: { '3': {time, wpm, accuracy}, '6': {...}, '10': {...} }
         let levelStats = []; // Per-level statistics
@@ -1721,6 +1723,8 @@
             currentLevelNumber = 1;
             recentWords = [];
             levelStats = [];
+            pauseStartTime = null;
+            totalPausedTime = 0;
 
             // Update display
             updateStats();
@@ -1751,6 +1755,8 @@
             currentLevelNumber = 1;
             recentWords = [];
             levelStats = [];
+            pauseStartTime = null;
+            totalPausedTime = 0;
 
             // Update display
             updateStats();
@@ -1820,7 +1826,11 @@
                 // Reload words with new dialect
                 loadWords().then(() => {
                     updateLevelSelector();
-                    initializeGame();
+                    // Only reinitialize if not in an active game
+                    const isGameActive = !document.getElementById('gameContent').classList.contains('hidden');
+                    if (!isGameActive) {
+                        initializeGame();
+                    }
                 });
             }
         }
@@ -1837,7 +1847,12 @@
             document.getElementById('ligatureSettingOption').style.display =
                 supportsLigatures ? 'block' : 'none';
             updateLevelSelector();
-            initializeGame();
+
+            // Only reinitialize if not in an active game
+            const isGameActive = !document.getElementById('gameContent').classList.contains('hidden');
+            if (!isGameActive) {
+                initializeGame();
+            }
 
             // Update virtual keyboard labels
             updateVirtualKeyboardLabels();
@@ -1847,7 +1862,12 @@
             useLigatures = document.getElementById('ligatureToggleSettings').checked;
             localStorage.setItem('useLigatures', useLigatures);
             updateLevelSelector();
-            initializeGame();
+
+            // Only reinitialize if not in an active game
+            const isGameActive = !document.getElementById('gameContent').classList.contains('hidden');
+            if (!isGameActive) {
+                initializeGame();
+            }
         }
 
         function onLevelCountChange() {
@@ -2681,9 +2701,10 @@
             const accuracy = totalLettersTyped === 0 ? 100.0 : ((correctLetters / totalLettersTyped) * 100);
             const accuracyFormatted = accuracy.toFixed(1) + '%';
 
-            // Calculate time-based metrics
+            // Calculate time-based metrics (excluding paused time)
             const endTime = Date.now();
-            const elapsedSeconds = (endTime - startTime) / 1000;
+            const elapsedMilliseconds = (endTime - startTime) - totalPausedTime;
+            const elapsedSeconds = elapsedMilliseconds / 1000;
             const elapsedMinutes = elapsedSeconds / 60;
             const wpm = wordsCompleted / elapsedMinutes;
             const lettersPerMinute = totalLettersTyped / elapsedMinutes;
@@ -3315,6 +3336,11 @@
         async function openContentModal(page) {
             closeBurgerMenu();
 
+            // Pause timer if in play mode
+            if (currentMode === 'play') {
+                pauseTimer();
+            }
+
             const modal = document.getElementById('contentModal');
             const titleEl = document.getElementById('contentModalTitle');
             const bodyEl = document.getElementById('contentModalBody');
@@ -3348,6 +3374,11 @@
 
         function closeContentModal() {
             document.getElementById('contentModal').classList.remove('show');
+
+            // Resume timer if in play mode
+            if (currentMode === 'play') {
+                resumeTimer();
+            }
         }
 
         // Welcome modal functions
@@ -3491,7 +3522,25 @@
         }
 
         // Settings functions
+        function pauseTimer() {
+            if (startTime !== null && pauseStartTime === null) {
+                pauseStartTime = Date.now();
+            }
+        }
+
+        function resumeTimer() {
+            if (pauseStartTime !== null) {
+                totalPausedTime += Date.now() - pauseStartTime;
+                pauseStartTime = null;
+            }
+        }
+
         function openSettings() {
+            // Pause timer if in play mode
+            if (currentMode === 'play') {
+                pauseTimer();
+            }
+
             // Sync settings with current state
             const dialectRadio = document.querySelector(`input[name="dialectSettings"][value="${currentDialect}"]`);
             if (dialectRadio) dialectRadio.checked = true;
@@ -3513,9 +3562,18 @@
 
         function closeSettings() {
             document.getElementById('settingsModal').classList.remove('show');
+
+            // Resume timer if in play mode
+            if (currentMode === 'play') {
+                resumeTimer();
+            }
         }
 
         function openHighScores() {
+            // Pause timer if in play mode
+            if (currentMode === 'play') {
+                pauseTimer();
+            }
             // Populate high scores content
             let html = '';
 
@@ -3567,6 +3625,11 @@
 
         function closeHighScores() {
             document.getElementById('highScoresModal').classList.remove('show');
+
+            // Resume timer if in play mode
+            if (currentMode === 'play') {
+                resumeTimer();
+            }
         }
 
         // Lesson selector functions
@@ -3796,10 +3859,14 @@
                 // Migrate old bestTime to new highScores structure
                 const oldBestTime = localStorage.getItem('bestTime');
                 if (oldBestTime !== null) {
-                    const highScores = {};
+                    // Load existing high scores or create new object
+                    const highScoresJSON = localStorage.getItem('highScores');
+                    const highScores = highScoresJSON ? JSON.parse(highScoresJSON) : {};
                     const timeValue = parseFloat(oldBestTime);
-                    // Copy the old best time to the 6-level entry
-                    highScores['6'] = { time: timeValue, wpm: null, accuracy: null };
+                    // Copy the old best time to the 6-level entry (only if not already set)
+                    if (!highScores['6'] || highScores['6'].time === null) {
+                        highScores['6'] = { time: timeValue, wpm: null, accuracy: null };
+                    }
                     localStorage.setItem('highScores', JSON.stringify(highScores));
                     localStorage.removeItem('bestTime');
                     console.log('Patch 2: Migrated bestTime to highScores[6]');
