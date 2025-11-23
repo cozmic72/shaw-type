@@ -3,9 +3,8 @@
 // Track shift state
 let isShiftActive = false;
 
-// Track keyboard position and scale
+// Track keyboard position
 let keyboardPosition = { x: 0, y: 0 };
-let keyboardScale = 1;
 
 // Load keyboard state from localStorage
 function loadKeyboardState() {
@@ -14,7 +13,6 @@ function loadKeyboardState() {
         try {
             const state = JSON.parse(saved);
             keyboardPosition = state.position || { x: 0, y: 0 };
-            keyboardScale = state.scale || 1;
         } catch (e) {
             console.error('Failed to load keyboard state:', e);
         }
@@ -24,8 +22,7 @@ function loadKeyboardState() {
 // Save keyboard state to localStorage
 function saveKeyboardState() {
     const state = {
-        position: keyboardPosition,
-        scale: keyboardScale
+        position: keyboardPosition
     };
     localStorage.setItem('virtualKeyboardState', JSON.stringify(state));
 }
@@ -33,7 +30,6 @@ function saveKeyboardState() {
 // Reset keyboard state (called when virtual keyboard is toggled off)
 function resetKeyboardState() {
     keyboardPosition = { x: 0, y: 0 };
-    keyboardScale = 1;
     localStorage.removeItem('virtualKeyboardState');
     const keyboard = document.getElementById('virtualKeyboard');
     if (keyboard) {
@@ -41,10 +37,9 @@ function resetKeyboardState() {
     }
 }
 
-// Update keyboard transform and scale based on current position and scale
+// Update keyboard transform based on current position
 function updateKeyboardTransform(el) {
     el.style.transform = `translate(${keyboardPosition.x}px, ${keyboardPosition.y}px)`;
-    el.style.fontSize = `${keyboardScale * 100}%`;
 }
 
 // Make keyboard draggable
@@ -184,76 +179,6 @@ function highlightKey(keyValue) {
     }
 }
 
-// Make keyboard resizable with corner drag
-function makeKeyboardResizable() {
-    const keyboard = document.getElementById('virtualKeyboard');
-    const resizeHandle = document.createElement('div');
-    resizeHandle.className = 'resize-handle';
-    keyboard.appendChild(resizeHandle);
-
-    let isResizing = false;
-    let startX, startY, startScale;
-
-    resizeHandle.addEventListener('mousedown', startResize);
-    resizeHandle.addEventListener('touchstart', startResize);
-
-    function startResize(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        isResizing = true;
-        startScale = keyboardScale;
-
-        if (e.type === 'touchstart') {
-            startX = e.touches[0].clientX;
-            startY = e.touches[0].clientY;
-        } else {
-            startX = e.clientX;
-            startY = e.clientY;
-        }
-
-        document.addEventListener('mousemove', resize);
-        document.addEventListener('mouseup', stopResize);
-        document.addEventListener('touchmove', resize);
-        document.addEventListener('touchend', stopResize);
-    }
-
-    function resize(e) {
-        if (!isResizing) return;
-
-        let currentX, currentY;
-        if (e.type === 'touchmove') {
-            currentX = e.touches[0].clientX;
-            currentY = e.touches[0].clientY;
-        } else {
-            currentX = e.clientX;
-            currentY = e.clientY;
-        }
-
-        const deltaX = currentX - startX;
-        const deltaY = currentY - startY;
-
-        // Calculate new scale based on diagonal resize
-        const diagonal = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-        const scaleDelta = diagonal / 500;
-
-        // Determine if dragging towards (down-right) or away (up-left) from keyboard
-        const direction = (deltaX > 0 && deltaY > 0) ? 1 : -1;
-        keyboardScale = Math.max(0.5, Math.min(2, startScale + (scaleDelta * direction)));
-
-        updateKeyboardTransform(keyboard);
-    }
-
-    function stopResize() {
-        if (isResizing) {
-            isResizing = false;
-            saveKeyboardState();
-            document.removeEventListener('mousemove', resize);
-            document.removeEventListener('mouseup', stopResize);
-            document.removeEventListener('touchmove', resize);
-            document.removeEventListener('touchend', stopResize);
-        }
-    }
-}
 
 // Toggle shift state
 function toggleShift() {
@@ -362,7 +287,6 @@ function makeKeysClickable(keyboardMap) {
 // Initialize keyboard UI on page load - main script handles showing/hiding
 document.addEventListener('DOMContentLoaded', () => {
     makeKeyboardDraggable();
-    makeKeyboardResizable();
 
     // Listen for keydown events to highlight keys
     document.addEventListener('keydown', (e) => {
