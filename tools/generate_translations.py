@@ -11,7 +11,9 @@ import sys
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).parent
-SITE_DIR = SCRIPT_DIR.parent / "site"
+PROJECT_DIR = SCRIPT_DIR.parent
+CONTENT_DIR = PROJECT_DIR / "content"
+SITE_DIR = PROJECT_DIR / "site"
 DICT_FILE_BRITISH = SCRIPT_DIR / "shaw-type-british.dict"
 DICT_FILE_AMERICAN = SCRIPT_DIR / "shaw-type-american.dict"
 
@@ -240,25 +242,34 @@ def main():
         print(f"  Error: {csv_file} not found!")
         sys.exit(1)
 
-    # Process HTML content files
-    print("\nChecking for HTML content files to transliterate:")
+    # Process HTML content files from content/ directory
+    print("\nProcessing HTML content files:")
 
-    html_files = [
-        ("about_latin.html", "about_british.html", "about_american.html"),
-        ("keyboards_latin.html", "keyboards_british.html", "keyboards_american.html"),
-        ("resources_latin.html", "resources_british.html", "resources_american.html"),
-        ("whats_new_latin.html", "whats_new_british.html", "whats_new_american.html")
+    content_files = [
+        "about.html",
+        "keyboards.html",
+        "resources.html",
+        "whats_new.html"
     ]
 
-    for latin_name, british_name, american_name in html_files:
-        latin_path = SITE_DIR / latin_name
-        british_path = SITE_DIR / british_name
-        american_path = SITE_DIR / american_name
+    import shutil
+    for filename in content_files:
+        source_path = CONTENT_DIR / filename
+        base_name = filename.replace('.html', '')
 
-        if latin_path.exists():
-            transliterate_html(latin_path, british_path, american_path, shave_cmd)
+        latin_output = SITE_DIR / f"{base_name}_latin.html"
+        british_output = SITE_DIR / f"{base_name}_british.html"
+        american_output = SITE_DIR / f"{base_name}_american.html"
+
+        if source_path.exists():
+            print(f"  Processing {filename}...")
+            # Copy source to Latin version
+            shutil.copy2(source_path, latin_output)
+            print(f"    ✓ Copied to {latin_output.name}")
+            # Transliterate to British and American
+            transliterate_html(source_path, british_output, american_output, shave_cmd)
         else:
-            print(f"  {latin_name} not found (skipping)")
+            print(f"  {filename} not found in content/ (skipping)")
 
     print("\n✅ Translation generation complete!")
     print("Generated files:")

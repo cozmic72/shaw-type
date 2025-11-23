@@ -942,7 +942,6 @@
     <div class="settings-modal" id="contentModal">
         <div class="settings-content" style="max-width: 700px; max-height: 80vh; overflow-y: auto;">
             <span class="modal-close" onclick="closeContentModal()">&times;</span>
-            <h2 id="contentModalTitle">Content</h2>
             <div id="contentModalBody" style="margin-top: 20px;">
                 Loading...
             </div>
@@ -3412,13 +3411,8 @@
             }
 
             const modal = document.getElementById('contentModal');
-            const titleEl = document.getElementById('contentModalTitle');
             const bodyEl = document.getElementById('contentModalBody');
 
-            // Set title using current translations
-            const t = getCurrentTranslations();
-            const titleKey = 'title' + page.charAt(0).toUpperCase() + page.slice(1);
-            titleEl.textContent = t[titleKey] || page.charAt(0).toUpperCase() + page.slice(1);
             bodyEl.innerHTML = 'Loading...';
 
             // Show modal
