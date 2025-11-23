@@ -25,7 +25,7 @@ def load_corrections(corrections_file):
                 continue
             parts = line.split(',', 1)  # Split on first comma
             if len(parts) == 2:
-                wrong, correct = parts
+                wrong, correct = parts[0].strip(), parts[1].strip()
                 corrections[wrong] = correct
 
     return corrections
