@@ -2841,14 +2841,40 @@
             }
 
             // Update main display (time is the primary score)
+            const t = getCurrentTranslations();
+            const pbText = ' - ' + (t.personalBest || 'personal best!');
+
             document.getElementById('finalScore').textContent = timeFormatted;
             document.getElementById('finalScore').style.display = 'block';
+            if (isNewTimeRecord) {
+                document.getElementById('finalScore').style.color = '#28a745';
+            } else {
+                document.getElementById('finalScore').style.color = '';
+            }
 
             // Update all stat rows and show them for play mode
+            const accuracyRow = document.getElementById('finalAccuracy').parentElement;
             document.getElementById('finalAccuracy').textContent = accuracyFormatted;
-            document.getElementById('finalAccuracy').parentElement.style.display = 'block';
+            accuracyRow.style.display = 'block';
+            if (isNewAccuracyRecord) {
+                accuracyRow.style.color = '#28a745';
+                document.getElementById('finalAccuracy').textContent = accuracyFormatted + pbText;
+            } else {
+                accuracyRow.style.color = '';
+                document.getElementById('finalAccuracy').textContent = accuracyFormatted;
+            }
+
+            const wpmRow = document.getElementById('finalWPM').parentElement;
             document.getElementById('finalWPM').textContent = wpm.toFixed(1);
-            document.getElementById('finalWPM').parentElement.style.display = 'block';
+            wpmRow.style.display = 'block';
+            if (isNewWPMRecord) {
+                wpmRow.style.color = '#28a745';
+                document.getElementById('finalWPM').textContent = wpm.toFixed(1) + pbText;
+            } else {
+                wpmRow.style.color = '';
+                document.getElementById('finalWPM').textContent = wpm.toFixed(1);
+            }
+
             document.getElementById('finalLPM').textContent = lettersPerMinute.toFixed(0);
             document.getElementById('finalLPM').parentElement.style.display = 'block';
 
