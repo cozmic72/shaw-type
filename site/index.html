@@ -1404,10 +1404,12 @@
         // Load translation files
         async function loadTranslations() {
             try {
+                // Add cache buster to ensure fresh JSON files
+                const cacheBuster = `?v=${APP_VERSION}`;
                 const [latinResp, britishResp, americanResp] = await Promise.all([
-                    fetch('translations_latin.json'),
-                    fetch('translations_british.json'),
-                    fetch('translations_american.json')
+                    fetch(`translations_latin.json${cacheBuster}`),
+                    fetch(`translations_british.json${cacheBuster}`),
+                    fetch(`translations_american.json${cacheBuster}`)
                 ]);
 
                 translations.latin = await latinResp.json();
@@ -3801,15 +3803,9 @@
         function updateUILanguage() {
             const t = getCurrentTranslations();
 
-            // Fallback to old translations if new ones haven't loaded yet
             if (!t || Object.keys(t).length === 0) {
-                const lang = useShavianUI ? 'shavian' : 'latin';
-                const fallback = translationsOLD[lang];
-                if (fallback) {
-                    console.warn('Using fallback translations');
-                    updateUIWithTranslations(fallback);
-                    return;
-                }
+                console.error('Translations not loaded yet!');
+                return;
             }
 
             updateUIWithTranslations(t);
