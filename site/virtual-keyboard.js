@@ -1,5 +1,18 @@
 // Virtual Keyboard Functionality
 
+// Keyboard layouts - loaded from JSON
+let KEYBOARD_MAPS = {};
+
+// Load keyboard layouts from JSON
+fetch('keyboard_layouts.json')
+    .then(response => response.json())
+    .then(data => {
+        KEYBOARD_MAPS = data;
+    })
+    .catch(error => {
+        console.error('Failed to load keyboard layouts:', error);
+    });
+
 // Track shift state
 let isShiftActive = false;
 
