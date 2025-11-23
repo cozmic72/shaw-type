@@ -1153,6 +1153,9 @@
         // Ligature mappings are now loaded from keyboard_layouts.json
         // Each layout specifies its own ligatures and whether they're always on, optional, or never
 
+        // Variation Selector 1 - used in some ligature combinations (especially IGC)
+        const VS1 = '\uFE00';
+
         // Get ligatures for current layout
         function getCurrentLayoutLigatures() {
             if (!KEYBOARD_MAPS || !KEYBOARD_MAPS[currentLayout]) {
