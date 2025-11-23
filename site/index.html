@@ -1980,6 +1980,9 @@
             } else if (levelNum === 6) {
                 pool = [...wordsByLength[6], ...wordsByLength[7]];
                 title = '6+ Letters';
+            } else {
+                // No more levels
+                return null;
             }
 
             return {
