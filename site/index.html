@@ -1150,26 +1150,74 @@
         let pendingReplacementStart = -1;
         let pendingReplacementEnd = -1;
 
-        // Ligature mappings - each ligature can have multiple 2-character input sequences
-        const VS1 = '\uFE00';
-        const LIGATURES = {
-            '𐑼': [['𐑩', '𐑮']],                      // ER: one way
-            '𐑸': [['𐑭', '𐑮']],                      // AR: one way
-            '𐑹': [['𐑷', '𐑮']],                      // OR: one way
-            '𐑿': [['𐑘', '𐑵']],                      // YEW: one way
-            '𐑽': [['𐑾', '𐑮']],                      // AIR (compound): one way
-            '𐑻': [['𐑻', '𐑮'], ['𐑻' + VS1, '𐑮'], ['𐑳', '𐑮']],  // ERR: three ways (err+roar, err+VS1+roar, up+roar JAFL)
-            '𐑺': [['𐑺', '𐑮'], ['𐑺' + VS1, '𐑮']]                // AIR (simple): two ways (air+roar, air+VS1+roar)
-        };
+        // Ligature mappings are now loaded from keyboard_layouts.json
+        // Each layout specifies its own ligatures and whether they're always on, optional, or never
 
-        // Reverse mapping: all component sequences to their compound ligature
-        const COMPONENT_TO_LIGATURE = {};
-        Object.keys(LIGATURES).forEach(compound => {
-            LIGATURES[compound].forEach(sequence => {
-                const key = sequence.join('');
-                COMPONENT_TO_LIGATURE[key] = compound;
+        // Get ligatures for current layout
+        function getCurrentLayoutLigatures() {
+            if (!KEYBOARD_MAPS || !KEYBOARD_MAPS[currentLayout]) {
+                return {};
+            }
+            return KEYBOARD_MAPS[currentLayout].ligatures || {};
+        }
+
+        // Get reverse mapping for current layout
+        function getCurrentComponentToLigature() {
+            const ligatures = getCurrentLayoutLigatures();
+            const mapping = {};
+            Object.keys(ligatures).forEach(compound => {
+                ligatures[compound].forEach(sequence => {
+                    const key = sequence.join('');
+                    mapping[key] = compound;
+                });
             });
-        });
+            return mapping;
+        }
+
+        // Check if ligatures should be active for current layout
+        function areLigaturesActive() {
+            if (!KEYBOARD_MAPS || !KEYBOARD_MAPS[currentLayout]) {
+                return false;
+            }
+            const autoLigatures = KEYBOARD_MAPS[currentLayout].autoLigatures;
+            if (autoLigatures === 'always') {
+                return true;
+            } else if (autoLigatures === 'never') {
+                return false;
+            } else {
+                // 'optional' - respect user setting
+                return useLigatures;
+            }
+        }
+
+        // Update ligature toggle UI based on current layout's policy
+        function updateLigatureToggleState() {
+            if (!KEYBOARD_MAPS || !KEYBOARD_MAPS[currentLayout]) {
+                return;
+            }
+
+            const ligatureOption = document.getElementById('ligatureSettingOption');
+            const ligatureToggle = document.getElementById('ligatureToggleSettings');
+            const autoLigatures = KEYBOARD_MAPS[currentLayout].autoLigatures;
+
+            if (autoLigatures === 'never') {
+                // Hide toggle completely for layouts that don't support ligatures
+                ligatureOption.style.display = 'none';
+            } else if (autoLigatures === 'always') {
+                // Show but disable toggle for layouts with forced ligatures
+                ligatureOption.style.display = 'block';
+                ligatureToggle.checked = true;
+                ligatureToggle.disabled = true;
+                ligatureToggle.style.opacity = '0.5';
+                ligatureToggle.style.cursor = 'not-allowed';
+            } else {
+                // 'optional' - show and enable toggle
+                ligatureOption.style.display = 'block';
+                ligatureToggle.disabled = false;
+                ligatureToggle.style.opacity = '1';
+                ligatureToggle.style.cursor = 'pointer';
+            }
+        }
 
         // QWERTY to Shavian keyboard mappings - loaded from keyboard_layouts.json by virtual-keyboard.js
         // KEYBOARD_MAPS is defined in virtual-keyboard.js
@@ -1188,14 +1236,18 @@
 
         function updateVirtualKeyboardLabels(retryCount = 0) {
             if (typeof updateKeyboardLabels === 'function' && typeof makeKeysClickable === 'function') {
-                const keyboardMap = KEYBOARD_MAPS[currentLayout];
-                if (!keyboardMap) {
+                const layout = KEYBOARD_MAPS[currentLayout];
+                if (!layout || !layout.keys) {
                     debug('No keyboard map available for layout:', currentLayout);
                     return; // Can't update labels if no map exists
                 }
+                const keyboardMap = layout.keys;
                 const layoutName = getLayoutName(currentLayout);
                 updateKeyboardLabels(keyboardMap, layoutName);
                 makeKeysClickable(keyboardMap);
+
+                // Update ligature toggle state when keyboard maps are available
+                updateLigatureToggleState();
             } else if (retryCount < 20) {
                 // Functions not loaded yet, try again soon
                 setTimeout(() => updateVirtualKeyboardLabels(retryCount + 1), 50);
@@ -1235,6 +1287,7 @@
 
         // Form ligatures in a word by replacing component pairs with ligatures
         function formLigaturesInWord(word) {
+            const componentToLigature = getCurrentComponentToLigature();
             let result = word;
             let changed = true;
 
@@ -1244,9 +1297,9 @@
 
                 for (let i = 0; i < chars.length - 1; i++) {
                     const pair = chars[i] + chars[i + 1];
-                    if (COMPONENT_TO_LIGATURE[pair]) {
+                    if (componentToLigature[pair]) {
                         result = chars.slice(0, i).join('') +
-                                COMPONENT_TO_LIGATURE[pair] +
+                                componentToLigature[pair] +
                                 chars.slice(i + 2).join('');
                         changed = true;
                         break;
@@ -1321,7 +1374,7 @@
 
         // Get current level based on words completed (5 words per level)
         function getCurrentLevel() {
-            if (currentMode === 'learn' && currentLayout === 'imperial' && useLigatures) {
+            if (currentMode === 'learn' && currentLayout === 'imperial' && areLigaturesActive()) {
                 // Imperial with ligatures has 7 levels (compound letters at level 5)
                 if (wordsCompleted < 5) return 1;
                 if (wordsCompleted < 10) return 2;
@@ -1497,14 +1550,9 @@
         function onLayoutChangeSettings() {
             currentLayout = document.getElementById('layoutSelectSettings').value;
             localStorage.setItem('keyboardLayout', currentLayout);
-            // Show/hide ligature toggle based on layout
-            // Only show for imperial, igc, qwerty, and jafl
-            const supportsLigatures = currentLayout === 'imperial' ||
-                                     currentLayout === 'igc' ||
-                                     currentLayout === 'qwerty' ||
-                                     currentLayout === 'jafl';
-            document.getElementById('ligatureSettingOption').style.display =
-                supportsLigatures ? 'block' : 'none';
+
+            // Update ligature toggle visibility and state based on layout policy
+            updateLigatureToggleState();
             updateLevelSelector();
 
             // Only reinitialize if not in an active game
@@ -1542,15 +1590,15 @@
         function getLearnWords() {
             // Get the appropriate word list for current layout and ligature settings
             if (currentLayout === 'imperial') {
-                return useLigatures ? learnWordsImperial : learnWordsImperialNoLig;
+                return areLigaturesActive() ? learnWordsImperial : learnWordsImperialNoLig;
             } else if (currentLayout === 'igc') {
-                return useLigatures ? learnWordsNewImperial : learnWordsNewImperialNoLig;
+                return areLigaturesActive() ? learnWordsNewImperial : learnWordsNewImperialNoLig;
             } else if (currentLayout === 'qwerty') {
                 return learnWordsQwerty;
             } else if (currentLayout === '2layer') {
                 return learnWords2layer;
             } else if (currentLayout === 'jafl') {
-                return useLigatures ? learnWordsJafl : learnWordsJaflNoLig;
+                return areLigaturesActive() ? learnWordsJafl : learnWordsJaflNoLig;
             }
             return null;
         }
@@ -1726,15 +1774,15 @@
             let learnWords;
 
             if (currentLayout === 'imperial') {
-                learnWords = useLigatures ? learnWordsImperial : learnWordsImperialNoLig;
+                learnWords = areLigaturesActive() ? learnWordsImperial : learnWordsImperialNoLig;
             } else if (currentLayout === 'igc') {
-                learnWords = useLigatures ? learnWordsNewImperial : learnWordsNewImperialNoLig;
+                learnWords = areLigaturesActive() ? learnWordsNewImperial : learnWordsNewImperialNoLig;
             } else if (currentLayout === 'qwerty') {
                 learnWords = learnWordsQwerty;
             } else if (currentLayout === '2layer') {
                 learnWords = learnWords2layer;
             } else if (currentLayout === 'jafl') {
-                learnWords = useLigatures ? learnWordsJafl : learnWordsJaflNoLig;
+                learnWords = areLigaturesActive() ? learnWordsJafl : learnWordsJaflNoLig;
             }
 
             const levelData = learnWords[lessonIndex];
@@ -1995,7 +2043,7 @@
                 slot.style.transition = 'none';
 
                 // Form ligatures in the word if enabled (for display purposes)
-                const displayWord = useLigatures ? formLigaturesInWord(newWord) : newWord;
+                const displayWord = areLigaturesActive() ? formLigaturesInWord(newWord) : newWord;
 
                 // Update the slot's HTML content so offsetWidth is accurate
                 let html = '';
@@ -2039,7 +2087,7 @@
             currentWord = words[carouselOffset];
 
             // If ligatures are enabled, form them in the expected word
-            if (useLigatures) {
+            if (areLigaturesActive()) {
                 currentWord = formLigaturesInWord(currentWord);
             }
 
@@ -2670,7 +2718,8 @@
 
         // Helper: Form ligatures in input string if enabled
         function formLigatures(input) {
-            if (!useLigatures) return input;
+            if (!areLigaturesActive()) return input;
+            const componentToLigature = getCurrentComponentToLigature();
             const chars = Array.from(input);
 
             // Normalize to treat base+VS1 as single units
@@ -2680,9 +2729,9 @@
             if (normalizedChars.length >= 2) {
                 const lastTwo = normalizedChars[normalizedChars.length - 2] + normalizedChars[normalizedChars.length - 1];
                 debug('🔗 LIGATURE CHECK: lastTwo="' + lastTwo + '" [' + toCodePoints(lastTwo) + ']' +
-                      ' | maps to: ' + (COMPONENT_TO_LIGATURE[lastTwo] || 'none'));
-                if (COMPONENT_TO_LIGATURE[lastTwo]) {
-                    const result = normalizedChars.slice(0, -2).join('') + COMPONENT_TO_LIGATURE[lastTwo];
+                      ' | maps to: ' + (componentToLigature[lastTwo] || 'none'));
+                if (componentToLigature[lastTwo]) {
+                    const result = normalizedChars.slice(0, -2).join('') + componentToLigature[lastTwo];
                     debug('✅ LIGATURE FORMED: "' + result + '" [' + toCodePoints(result) + ']');
                     return result;
                 }
@@ -2871,7 +2920,7 @@
 
             // Check if this character would complete a ligature
             let completesLigature = false;
-            if (useLigatures && e.inputType === 'insertText' && eventData) {
+            if (areLigaturesActive() && e.inputType === 'insertText' && eventData) {
                 const chars = Array.from(shadowInput);
                 const normalizedChars = normalizeCharArray(chars);
                 if (normalizedChars.length > 0) {
@@ -3601,6 +3650,7 @@
             if (savedLigatures !== null) {
                 useLigatures = savedLigatures === 'true';
             }
+            document.getElementById('ligatureToggleSettings').checked = useLigatures;
 
             // Load current mode (just restore the value, no UI updates needed on home screen)
             const savedMode = localStorage.getItem('currentMode');

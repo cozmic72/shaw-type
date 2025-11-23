@@ -21,7 +21,8 @@ function translateInputEvent(e, browserInput, currentLayout, useVirtualKeyboard,
 
     // Virtual keyboard: translate QWERTY input to Shavian if needed
     if (useVirtualKeyboard && e.inputType === 'insertText' && eventData.length > 0) {
-        const keyboardMap = KEYBOARD_MAPS[currentLayout];
+        const layout = KEYBOARD_MAPS[currentLayout];
+        const keyboardMap = layout ? layout.keys : null;
         if (keyboardMap) {
             // Check if the input data is a Latin character that needs translation
             const codePoint = eventData.codePointAt(0);
