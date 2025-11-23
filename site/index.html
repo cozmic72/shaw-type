@@ -873,9 +873,9 @@
             <div class="settings-option">
                 <label>
                     <input type="checkbox" id="virtualKeyboardToggle" onchange="toggleVirtualKeyboard()">
-                    <span>Show virtual keyboard</span>
+                    <span id="settingsVirtualKeyboard">Show virtual keyboard</span>
                 </label>
-                <div class="settings-option-desc">Display a draggable on-screen keyboard showing Shavian characters</div>
+                <div class="settings-option-desc" id="settingsVirtualKeyboardDesc">Display a draggable on-screen keyboard showing Shavian characters</div>
             </div>
 
             <div class="settings-option" style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #e0e0e0;">
@@ -1527,6 +1527,8 @@
                 settingsTitle: '𐑕𐑧𐑑𐑦𐑙𐑟',
                 displayShavian: '𐑛𐑦𐑕𐑐𐑤𐑱 UI 𐑦𐑯 ·𐑖𐑱𐑝𐑾𐑯',
                 displayShavianDesc: '𐑖𐑴 𐑤𐑱𐑚𐑩𐑤𐑟 𐑯 𐑑𐑧𐑒𐑕𐑑 𐑦𐑯 ·𐑖𐑱𐑝𐑾𐑯 𐑨𐑤𐑓𐑩𐑚𐑧𐑑 𐑦𐑯𐑕𐑑𐑧𐑛 𐑝 ·𐑤𐑨𐑑𐑦𐑯',
+                showVirtualKeyboard: '𐑖𐑴 𐑝𐑻𐑗𐑵𐑩𐑤 𐑒𐑰𐑚𐑹𐑛',
+                showVirtualKeyboardDesc: '𐑛𐑦𐑕𐑐𐑤𐑱 𐑩 𐑛𐑮𐑨𐑜𐑩𐑚𐑩𐑤 𐑪𐑯-𐑕𐑒𐑮𐑰𐑯 𐑒𐑰𐑚𐑹𐑛 𐑖𐑴𐑦𐑙 ·𐑖𐑱𐑝𐑾𐑯 𐑒𐑨𐑮𐑩𐑒𐑑𐑼𐑟',
                 close: '𐑒𐑤𐑴𐑟',
                 lessonModalTitle: '𐑗𐑵𐑟 𐑩 𐑤𐑧𐑕𐑩𐑯',
                 lessonModalSubtitle: '𐑕𐑦𐑤𐑧𐑒𐑑 𐑩 𐑤𐑧𐑕𐑩𐑯 𐑑 𐑐𐑮𐑨𐑒𐑑𐑦𐑕:',
@@ -3461,6 +3463,8 @@
             document.getElementById('settingsDialectBritish').textContent = t.dialectBritish;
             document.getElementById('settingsDialectAmerican').textContent = t.dialectAmerican;
             document.getElementById('settingsHideWelcome').textContent = t.hideWelcome;
+            document.getElementById('settingsVirtualKeyboard').textContent = t.showVirtualKeyboard;
+            document.getElementById('settingsVirtualKeyboardDesc').textContent = t.showVirtualKeyboardDesc;
 
             // Update layout select options
             updateLayoutSelectOptions();
