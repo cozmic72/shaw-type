@@ -843,7 +843,7 @@
             </div>
 
             <div class="settings-option">
-                <label style="display: block; margin-bottom: 10px; color: #666; font-weight: normal;">
+                <label style="display: block; margin-bottom: 10px; color: #666; font-weight: normal;" id="settingsKeyboardLayoutLabel">
                     Keyboard Layout
                 </label>
                 <select id="layoutSelectSettings" onchange="onLayoutChangeSettings()" style="width: 100%; padding: 8px; font-size: 16px; border: 2px solid #e0e0e0; border-radius: 8px;">
@@ -3442,7 +3442,7 @@
             document.querySelector('#shavianUIToggle + span').textContent = t.displayShavian;
 
             // Update settings labels
-            document.querySelector('.settings-option label').textContent = t.keyboardLayout;
+            document.getElementById('settingsKeyboardLayoutLabel').textContent = t.keyboardLayout;
             document.querySelector('#ligatureToggleSettings + span').textContent = t.ligatures;
 
             // Update lesson modal
