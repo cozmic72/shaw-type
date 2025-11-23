@@ -3056,9 +3056,13 @@
 
             // If key is already a Shavian character (user has Shavian keyboard), don't translate
             // Shavian Unicode range: U+10450 to U+1047F
-            if (e.key.length === 1 && e.key.codePointAt(0) >= 0x10450 && e.key.codePointAt(0) <= 0x1047F) {
-                console.log('Key is already Shavian, skipping translation');
-                return;
+            // Note: e.key.length will be 2 for Shavian chars (surrogate pairs in JavaScript)
+            if (e.key.length > 0) {
+                const codePoint = e.key.codePointAt(0);
+                if (codePoint >= 0x10450 && codePoint <= 0x1047F) {
+                    console.log('Key is already Shavian, skipping translation');
+                    return;
+                }
             }
 
             // Get the keyboard map for current layout (if available)
