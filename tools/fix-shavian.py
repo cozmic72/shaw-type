@@ -13,17 +13,17 @@ import re
 from pathlib import Path
 
 def load_corrections(corrections_file):
-    """Load corrections from a tab-separated file."""
+    """Load corrections from a comma-separated file."""
     corrections = {}
     if not corrections_file.exists():
         return corrections
 
     with open(corrections_file, 'r', encoding='utf-8') as f:
         for line in f:
-            line = line.rstrip('\n')  # Keep tabs, only remove newline
+            line = line.rstrip('\n')
             if not line.strip() or line.strip().startswith('#'):
                 continue
-            parts = line.split('\t')  # Split on tab
+            parts = line.split(',', 1)  # Split on first comma
             if len(parts) == 2:
                 wrong, correct = parts
                 corrections[wrong] = correct
