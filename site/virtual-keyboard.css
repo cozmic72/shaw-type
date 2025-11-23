@@ -3,10 +3,9 @@
     position: fixed;
     bottom: 20px;
     right: 20px;
-    background: white;
-    border: 2px solid #555fdc;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    background: #2a2a2a;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
     z-index: 1000;
     cursor: move;
     user-select: none;
@@ -22,31 +21,30 @@
     width: 20px;
     height: 20px;
     cursor: nwse-resize;
-    background: linear-gradient(135deg, transparent 50%, #555fdc 50%);
-    border-bottom-right-radius: 6px;
-    opacity: 0.5;
+    background: linear-gradient(135deg, transparent 50%, #555 50%);
+    border-bottom-right-radius: 10px;
+    opacity: 0.3;
 }
 
 .resize-handle:hover {
-    opacity: 0.8;
+    opacity: 0.6;
 }
 
 .keyboard-header {
-    background: #e8eafc;
-    color: #555fdc;
-    padding: 4px 8px;
-    border-radius: 6px 6px 0 0;
+    background: #353535;
+    color: #aaa;
+    padding: 6px 10px;
+    border-radius: 12px 12px 0 0;
     display: flex;
     justify-content: space-between;
     align-items: center;
     cursor: move;
-    border-bottom: 1px solid #d0d4f0;
 }
 
 .keyboard-title {
     font-size: 11px;
     font-weight: normal;
-    opacity: 0.7;
+    opacity: 0.8;
 }
 
 .keyboard-close {
@@ -55,22 +53,24 @@
     line-height: 1;
     padding: 0 4px;
     opacity: 0.5;
+    color: #999;
 }
 
 .keyboard-close:hover {
     opacity: 1;
+    color: #fff;
 }
 
 .keyboard-body {
-    padding: 8px;
-    background: #f5f5f5;
-    border-radius: 0 0 6px 6px;
+    padding: 10px;
+    background: #2a2a2a;
+    border-radius: 0 0 12px 12px;
 }
 
 .keyboard-row {
     display: flex;
-    gap: 3px;
-    margin-bottom: 3px;
+    gap: 4px;
+    margin-bottom: 4px;
     justify-content: center;
 }
 
@@ -79,9 +79,9 @@
 }
 
 .key {
-    background: white;
-    border: 1px solid #ccc;
-    border-radius: 3px;
+    background: #3d3d3d;
+    border: 1px solid #4a4a4a;
+    border-radius: 5px;
     padding: 7px;
     min-width: 34px;
     height: 34px;
@@ -89,15 +89,17 @@
     align-items: center;
     justify-content: center;
     font-size: 15px;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    color: #e0e0e0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
     cursor: pointer;
     transition: all 0.1s ease;
     position: relative;
 }
 
 .key:hover {
-    background: #f0f0f0;
+    background: #4a4a4a;
     transform: translateY(-1px);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
 }
 
 .key:active,
@@ -105,13 +107,15 @@
     background: #555fdc;
     color: white;
     transform: translateY(1px);
-    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+    border-color: #555fdc;
 }
 
 /* Shift key active state */
 .key[data-key="Shift"].shift-active {
     background: #555fdc;
     color: white;
+    border-color: #555fdc;
 }
 
 /* Key size variations */

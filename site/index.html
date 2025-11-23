@@ -3251,12 +3251,35 @@
         }
 
         // Splash screen functions
-        const APP_VERSION = '1.1.0'; // Increment this when you want to show splash again
+        const APP_VERSION = '1.4.0';
+
+        // Parse version string into comparable parts
+        function parseVersion(versionStr) {
+            const parts = versionStr.split('.').map(p => parseInt(p, 10));
+            return {
+                major: parts[0] || 0,
+                minor: parts[1] || 0,
+                patch: parts[2] || 0
+            };
+        }
+
+        // Compare two versions: returns 1 if v1 > v2, -1 if v1 < v2, 0 if equal
+        function compareVersions(v1, v2) {
+            const ver1 = parseVersion(v1);
+            const ver2 = parseVersion(v2);
+
+            if (ver1.major !== ver2.major) return ver1.major > ver2.major ? 1 : -1;
+            if (ver1.minor !== ver2.minor) return ver1.minor > ver2.minor ? 1 : -1;
+            if (ver1.patch !== ver2.patch) return ver1.patch > ver2.patch ? 1 : -1;
+            return 0;
+        }
 
         function closeSplashModal() {
             const dontShow = document.getElementById('dontShowSplash').checked;
+
             if (dontShow) {
-                localStorage.setItem('splashVersion', APP_VERSION);
+                // Store the current version so we don't show splash again for this version
+                localStorage.setItem('lastSeenVersion', APP_VERSION);
             }
             document.getElementById('splashModal').classList.remove('show');
 
@@ -3265,10 +3288,14 @@
         }
 
         async function showSplashIfNeeded() {
-            const lastSeenVersion = localStorage.getItem('splashVersion');
+            const lastSeenVersion = localStorage.getItem('lastSeenVersion');
 
-            // Show splash if it's a new version (or first time)
-            if (lastSeenVersion !== APP_VERSION) {
+            // Show splash if:
+            // 1. First time user (no lastSeenVersion), OR
+            // 2. Current version is newer than last seen version
+            const shouldShowSplash = !lastSeenVersion || compareVersions(APP_VERSION, lastSeenVersion) > 0;
+
+            if (shouldShowSplash) {
                 document.getElementById('splashModal').classList.add('show');
 
                 // Load content based on current language
