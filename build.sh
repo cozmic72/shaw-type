@@ -25,7 +25,7 @@ fi
 # Generate keyboard images
 if [ -f "tools/generate_keyboard_images.py" ]; then
     echo "Generating keyboard images..."
-    python3 tools/generate_keyboard_images.py
+    ~/.venv/bin/python3 tools/generate_keyboard_images.py
     echo "✓ Keyboard images generated"
     echo
 fi

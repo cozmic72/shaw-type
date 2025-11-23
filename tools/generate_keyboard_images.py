@@ -27,7 +27,9 @@ async def generate_keyboard_screenshots():
         page = await browser.new_page()
 
         # Load the local site
-        site_path = os.path.join(os.path.dirname(__file__), 'site', 'index.html')
+        script_dir = os.path.dirname(__file__)
+        project_dir = os.path.dirname(script_dir)
+        site_path = os.path.join(project_dir, 'site', 'index.html')
         await page.goto(f'file://{site_path}')
 
         # Wait for page to load
@@ -70,7 +72,7 @@ async def generate_keyboard_screenshots():
             return
 
         # Ensure output directory exists
-        output_dir = os.path.join(os.path.dirname(__file__), 'site', 'keyboard_images')
+        output_dir = os.path.join(project_dir, 'site', 'keyboard_images')
         os.makedirs(output_dir, exist_ok=True)
 
         # Generate screenshots for each layout
