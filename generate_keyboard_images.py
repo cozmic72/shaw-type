@@ -77,12 +77,32 @@ async def generate_keyboard_screenshots():
         for layout in LAYOUTS:
             print(f"Generating screenshots for {layout}...")
 
-            # Change layout using JavaScript
-            await page.evaluate(f'''() => {{
+            # Change layout using JavaScript - directly call updateKeyboardLabels with the correct map
+            result = await page.evaluate(f'''() => {{
                 window.currentLayout = '{layout}';
                 localStorage.setItem('currentLayout', '{layout}');
-                updateVirtualKeyboardLabels();
+
+                const keyboardMap = KEYBOARD_MAPS['{layout}'];
+                const layoutNames = {{
+                    'imperial': 'Shaw Imperial',
+                    'igc': 'Imperial Good Companion',
+                    'qwerty': 'Shaw QWERTY',
+                    '2layer': 'Shaw 2-layer',
+                    'jafl': 'Shaw-JAFL'
+                }};
+                const layoutName = layoutNames['{layout}'] || 'Virtual Keyboard';
+
+                // Directly call the virtual keyboard functions with the correct map
+                if (typeof updateKeyboardLabels === 'function') {{
+                    updateKeyboardLabels(keyboardMap, layoutName);
+                }}
+                if (typeof makeKeysClickable === 'function') {{
+                    makeKeysClickable(keyboardMap);
+                }}
+
+                return '{layout}';
             }}''')
+            print(f"  Layout set to: {result}")
             await asyncio.sleep(0.3)
 
             # Ensure shift is not active
