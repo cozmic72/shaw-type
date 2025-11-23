@@ -3435,9 +3435,13 @@
 
         // First-time setup dialog functions
         function closeSetupModal() {
+            // Save current settings to localStorage (in case user didn't change anything)
+            localStorage.setItem('keyboardLayout', currentLayout);
+            localStorage.setItem('dialect', currentDialect);
+            localStorage.setItem('currentMode', 'play');
+
             document.getElementById('setupModal').classList.remove('show');
             currentMode = 'play';
-            localStorage.setItem('currentMode', currentMode);
         }
 
         function showSetupIfNeeded() {
