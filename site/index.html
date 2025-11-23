@@ -741,6 +741,7 @@
                     <a id="menuAbout" href="#" onclick="openContentModal('about'); return false;">About</a>
                     <a id="menuKeyboards" href="#" onclick="openContentModal('keyboards'); return false;">Keyboards</a>
                     <a id="menuResources" href="#" onclick="openContentModal('resources'); return false;">Resources</a>
+                    <a id="menuHighScores" href="#" onclick="openHighScores(); closeBurgerMenu(); return false;">High Scores</a>
                     <a id="menuSettings" href="#" onclick="openSettings(); closeBurgerMenu(); return false;">Settings</a>
                 </div>
             </div>
@@ -820,6 +821,17 @@
         </div>
     </div>
 
+    <!-- High Scores Modal -->
+    <div class="settings-modal" id="highScoresModal">
+        <div class="settings-content">
+            <span class="modal-close" onclick="closeHighScores()">&times;</span>
+            <h2 id="highScoresTitle">High Scores</h2>
+            <div id="highScoresContent" style="margin-top: 20px;">
+                <!-- High scores will be populated here -->
+            </div>
+        </div>
+    </div>
+
     <!-- Settings Modal -->
     <div class="settings-modal" id="settingsModal">
         <div class="settings-content">
@@ -874,6 +886,17 @@
                     <input type="checkbox" id="shavianUIToggle" onchange="toggleShavianUI()">
                     <span>Display UI in Shavian</span>
                 </label>
+            </div>
+
+            <div class="settings-option">
+                <label style="display: block; margin-bottom: 10px; color: #666; font-weight: normal;" id="settingsLevelCountLabel">
+                    Play Mode Level Count
+                </label>
+                <select id="levelCountSelect" onchange="onLevelCountChange()" style="width: 100%; padding: 8px; font-size: 16px; border: 2px solid #e0e0e0; border-radius: 8px;">
+                    <option value="3">3 levels (15 words)</option>
+                    <option value="6" selected>6 levels (30 words)</option>
+                    <option value="10">10 levels (50 words)</option>
+                </select>
             </div>
 
         </div>
@@ -1077,7 +1100,8 @@
         let correctLetters = 0;
         let recentWords = []; // Track recent words to avoid repeats
         let startTime = null; // Session start time
-        let bestTime = null; // Best completion time from localStorage (in seconds)
+        let bestTime = null; // Legacy - migrated to highScores
+        let highScores = {}; // High scores keyed by level count: { '3': {time, wpm, accuracy}, '6': {...}, '10': {...} }
         let levelStats = []; // Per-level statistics
         let currentLevelLettersTyped = 0; // Letters typed in current level
         let currentLevelCorrectLetters = 0; // Correct letters in current level
@@ -1332,6 +1356,7 @@
         let currentLayout = 'imperial'; // 'imperial' or 'qwerty'
         let useLigatures = true; // Toggle for ligatures - ON by default
         let selectedLevel = 1; // Level selection: 1-7
+        let levelCount = 6; // Number of levels in play mode (configurable: 3, 6, or 10)
         let useShavianUI = false; // Toggle for Shavian UI
         let currentDialect = 'gb'; // 'gb' or 'us' - English dialect for word lists
         let debugMode = false; // Toggle for debug logging
@@ -1825,6 +1850,12 @@
             initializeGame();
         }
 
+        function onLevelCountChange() {
+            levelCount = parseInt(document.getElementById('levelCountSelect').value);
+            localStorage.setItem('levelCount', levelCount.toString());
+            console.log(`Level count changed to ${levelCount}`);
+        }
+
         function onLevelChange() {
             selectedLevel = document.getElementById('levelSelect').value;
             initializeGame();
@@ -1957,38 +1988,61 @@
             levelSelect.value = selectedLevel;
         }
 
+        // Level configuration for different level counts
+        const LEVEL_CONFIGS = {
+            3: [
+                { lengths: [1, 2, 3], title: 'Short Words' },
+                { lengths: [3, 4, 5], title: 'Medium Words' },
+                { lengths: [5, 6, 7], title: 'Long Words' }
+            ],
+            6: [
+                { lengths: [1, 2], title: '1-2 Letters' },
+                { lengths: [2, 3], title: '2-3 Letters' },
+                { lengths: [3, 4], title: '3-4 Letters' },
+                { lengths: [4, 5, 6], title: '4-6 Letters' },
+                { lengths: [5, 6, 7], title: '5+ Letters' },
+                { lengths: [6, 7], title: '6+ Letters' }
+            ],
+            10: [
+                { lengths: [1], title: '1 Letter' },
+                { lengths: [2], title: '2 Letters' },
+                { lengths: [3], title: '3 Letters' },
+                { lengths: [4], title: '4 Letters' },
+                { lengths: [5], title: '5 Letters' },
+                { lengths: [6], title: '6 Letters' },
+                { lengths: [7], title: '7 Letters' },
+                { lengths: [5, 6], title: '5-6 Letters' },
+                { lengths: [6, 7], title: '6-7 Letters' },
+                { lengths: [7], title: '7+ Letters' }
+            ]
+        };
+
         // Get word pool and metadata for a play level
         function getPlayLevelData(levelNum) {
-            let pool = [];
-            let title = '';
-
-            if (levelNum === 1) {
-                pool = [...wordsByLength[1], ...wordsByLength[2]];
-                title = '1-2 Letters';
-            } else if (levelNum === 2) {
-                pool = [...wordsByLength[2], ...wordsByLength[3]];
-                title = '2-3 Letters';
-            } else if (levelNum === 3) {
-                pool = [...wordsByLength[3], ...wordsByLength[4]];
-                title = '3-4 Letters';
-            } else if (levelNum === 4) {
-                pool = [...wordsByLength[4], ...wordsByLength[5], ...wordsByLength[6]];
-                title = '4-6 Letters';
-            } else if (levelNum === 5) {
-                pool = [...wordsByLength[5], ...wordsByLength[6], ...wordsByLength[7]];
-                title = '5+ Letters';
-            } else if (levelNum === 6) {
-                pool = [...wordsByLength[6], ...wordsByLength[7]];
-                title = '6+ Letters';
-            } else {
-                // No more levels
+            // Return null if beyond configured level count
+            if (levelNum > levelCount || levelNum < 1) {
                 return null;
             }
+
+            const config = LEVEL_CONFIGS[levelCount];
+            if (!config || levelNum > config.length) {
+                return null;
+            }
+
+            const levelConfig = config[levelNum - 1];
+            const pool = [];
+
+            // Combine words from all specified lengths
+            levelConfig.lengths.forEach(length => {
+                if (wordsByLength[length]) {
+                    pool.push(...wordsByLength[length]);
+                }
+            });
 
             return {
                 wordPool: pool,
                 wordCount: 5,
-                title: title
+                title: levelConfig.title
             };
         }
 
@@ -2553,12 +2607,12 @@
             } else {
                 const nextLevelNum = currentLevelNumber + 1;
                 console.log(`[transitionToNextLevel] Next level num: ${nextLevelNum}`);
-                if (nextLevelNum <= 6) {
+                if (nextLevelNum <= levelCount) {
                     nextLevelData = getPlayLevelData(nextLevelNum);
                     currentLevelNumber = nextLevelNum;
                     console.log(`[transitionToNextLevel] Got next level data for level ${nextLevelNum}`);
                 } else {
-                    console.log(`[transitionToNextLevel] No more levels (${nextLevelNum} > 6)`);
+                    console.log(`[transitionToNextLevel] No more levels (${nextLevelNum} > ${levelCount})`);
                 }
             }
 
@@ -2639,11 +2693,42 @@
             const seconds = Math.floor(elapsedSeconds % 60);
             const timeFormatted = `${minutes}:${seconds.toString().padStart(2, '0')}`;
 
-            // Update best time if current time is better (lower)
+            // Track high scores per level count
+            const levelCountKey = levelCount.toString();
+            if (!highScores[levelCountKey]) {
+                highScores[levelCountKey] = { time: null, wpm: null, accuracy: null };
+            }
+
+            const currentHighScores = highScores[levelCountKey];
+            let isNewTimeRecord = false;
+            let isNewWPMRecord = false;
+            let isNewAccuracyRecord = false;
+
+            // Check and update time record (lower is better)
+            if (currentHighScores.time === null || elapsedSeconds < currentHighScores.time) {
+                currentHighScores.time = elapsedSeconds;
+                isNewTimeRecord = true;
+            }
+
+            // Check and update WPM record (higher is better)
+            if (currentHighScores.wpm === null || wpm > currentHighScores.wpm) {
+                currentHighScores.wpm = wpm;
+                isNewWPMRecord = true;
+            }
+
+            // Check and update accuracy record (higher is better)
+            if (currentHighScores.accuracy === null || accuracy > currentHighScores.accuracy) {
+                currentHighScores.accuracy = accuracy;
+                isNewAccuracyRecord = true;
+            }
+
+            // Save high scores
+            localStorage.setItem('highScores', JSON.stringify(highScores));
+
+            // Legacy bestTime support
             const isNewBest = bestTime === null || elapsedSeconds < bestTime;
             if (isNewBest) {
                 bestTime = elapsedSeconds;
-                localStorage.setItem('bestTime', bestTime.toString());
             }
 
             // Customize modal based on mode
@@ -2694,17 +2779,34 @@
             document.getElementById('finalLPM').textContent = lettersPerMinute.toFixed(0);
             document.getElementById('finalLPM').parentElement.style.display = 'block';
 
-            // Show/hide best time indicator and display best time
-            if (isNewBest && bestTime !== null) {
-                document.getElementById('bestTimeRow').innerHTML = `<span style="color: #28a745; font-weight: bold;">New Personal Best!</span>`;
-            } else if (bestTime !== null) {
-                const bestMinutes = Math.floor(bestTime / 60);
-                const bestSeconds = Math.floor(bestTime % 60);
-                const bestTimeFormatted = `${bestMinutes}:${bestSeconds.toString().padStart(2, '0')}`;
-                document.getElementById('bestTimeRow').innerHTML = `Personal Best: ${bestTimeFormatted}`;
-            } else {
-                document.getElementById('bestTimeRow').innerHTML = '';
+            // Show personal best records for this level count
+            let recordsHTML = '';
+            const records = [];
+
+            if (isNewTimeRecord) {
+                records.push('Time');
             }
+            if (isNewWPMRecord) {
+                records.push('WPM');
+            }
+            if (isNewAccuracyRecord) {
+                records.push('Accuracy');
+            }
+
+            if (records.length > 0) {
+                const recordsText = records.join(', ');
+                recordsHTML = `<span style="color: #28a745; font-weight: bold;">New Personal Best: ${recordsText}!</span>`;
+            } else if (currentHighScores.time !== null) {
+                // Show current records for this level count
+                const bestMinutes = Math.floor(currentHighScores.time / 60);
+                const bestSeconds = Math.floor(currentHighScores.time % 60);
+                const bestTimeFormatted = `${bestMinutes}:${bestSeconds.toString().padStart(2, '0')}`;
+                const bestWPM = currentHighScores.wpm ? currentHighScores.wpm.toFixed(1) : 'N/A';
+                const bestAccuracy = currentHighScores.accuracy ? currentHighScores.accuracy.toFixed(1) + '%' : 'N/A';
+                recordsHTML = `Personal Bests (${levelCount} levels): Time ${bestTimeFormatted} | WPM ${bestWPM} | Accuracy ${bestAccuracy}`;
+            }
+
+            document.getElementById('bestTimeRow').innerHTML = recordsHTML;
 
             document.getElementById('completionModal').classList.add('show');
         }
@@ -3413,6 +3515,60 @@
             document.getElementById('settingsModal').classList.remove('show');
         }
 
+        function openHighScores() {
+            // Populate high scores content
+            let html = '';
+
+            if (Object.keys(highScores).length === 0) {
+                html = '<p style="text-align: center; color: #999;">No high scores yet. Complete a game in Play mode to set your first records!</p>';
+            } else {
+                html = '<div style="display: flex; flex-direction: column; gap: 20px;">';
+
+                // Show high scores for each level count
+                ['3', '6', '10'].forEach(levelCountKey => {
+                    if (highScores[levelCountKey]) {
+                        const scores = highScores[levelCountKey];
+                        const totalWords = parseInt(levelCountKey) * 5;
+
+                        html += `<div style="border: 2px solid #e0e0e0; border-radius: 8px; padding: 15px;">`;
+                        html += `<h3 style="margin-top: 0; color: #667eea;">${levelCountKey} Levels (${totalWords} words)</h3>`;
+
+                        if (scores.time !== null) {
+                            const minutes = Math.floor(scores.time / 60);
+                            const seconds = Math.floor(scores.time % 60);
+                            const timeFormatted = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                            html += `<div style="margin: 8px 0;"><strong>Best Time:</strong> ${timeFormatted}</div>`;
+                        } else {
+                            html += `<div style="margin: 8px 0;"><strong>Best Time:</strong> N/A</div>`;
+                        }
+
+                        if (scores.wpm !== null) {
+                            html += `<div style="margin: 8px 0;"><strong>Best WPM:</strong> ${scores.wpm.toFixed(1)}</div>`;
+                        } else {
+                            html += `<div style="margin: 8px 0;"><strong>Best WPM:</strong> N/A</div>`;
+                        }
+
+                        if (scores.accuracy !== null) {
+                            html += `<div style="margin: 8px 0;"><strong>Best Accuracy:</strong> ${scores.accuracy.toFixed(1)}%</div>`;
+                        } else {
+                            html += `<div style="margin: 8px 0;"><strong>Best Accuracy:</strong> N/A</div>`;
+                        }
+
+                        html += `</div>`;
+                    }
+                });
+
+                html += '</div>';
+            }
+
+            document.getElementById('highScoresContent').innerHTML = html;
+            document.getElementById('highScoresModal').classList.add('show');
+        }
+
+        function closeHighScores() {
+            document.getElementById('highScoresModal').classList.remove('show');
+        }
+
         // Lesson selector functions
         function openLessonSelector() {
             // Get current translations
@@ -3635,6 +3791,21 @@
                 // Clear best time due to timer bug fix
                 localStorage.removeItem('bestTime');
                 console.log('Patch 1: Cleared bestTime from localStorage');
+            }],
+            [2, function patch2_migrateToHighScores() {
+                // Migrate old bestTime to new highScores structure
+                const oldBestTime = localStorage.getItem('bestTime');
+                if (oldBestTime !== null) {
+                    const highScores = {};
+                    const timeValue = parseFloat(oldBestTime);
+                    // Copy the old best time to the 6-level entry
+                    highScores['6'] = { time: timeValue, wpm: null, accuracy: null };
+                    localStorage.setItem('highScores', JSON.stringify(highScores));
+                    localStorage.removeItem('bestTime');
+                    console.log('Patch 2: Migrated bestTime to highScores[6]');
+                } else {
+                    console.log('Patch 2: No bestTime to migrate');
+                }
             }]
         ];
 
@@ -3697,10 +3868,31 @@
                 currentMode = savedMode;
             }
 
-            // Load best time
+            // Load best time (legacy - now migrated to highScores)
             const savedBestTime = localStorage.getItem('bestTime');
             if (savedBestTime !== null) {
                 bestTime = parseFloat(savedBestTime);
+            }
+
+            // Load high scores
+            const savedHighScores = localStorage.getItem('highScores');
+            if (savedHighScores !== null) {
+                try {
+                    highScores = JSON.parse(savedHighScores);
+                } catch (e) {
+                    console.error('Failed to parse highScores:', e);
+                    highScores = {};
+                }
+            }
+
+            // Load level count preference
+            const savedLevelCount = localStorage.getItem('levelCount');
+            if (savedLevelCount !== null) {
+                const count = parseInt(savedLevelCount);
+                if ([3, 6, 10].includes(count)) {
+                    levelCount = count;
+                    document.getElementById('levelCountSelect').value = count.toString();
+                }
             }
 
             // Load debug mode preference
