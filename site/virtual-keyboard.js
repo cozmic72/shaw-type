@@ -140,29 +140,51 @@ function updateKeyboardLabels(keyboardMap, layoutName) {
         }
 
         const shavianChar = keyboardMap[actualKey];
-        if (shavianChar) {
-            // Set the Shavian character as the key's content
-            // Use innerHTML to preserve VS1 (U+FE00) characters
-            key.innerHTML = shavianChar;
-            key.setAttribute('data-shavian', shavianChar);
-            key.setAttribute('data-actual-key', actualKey);
-            console.log('Set key', keyValue, '(actual:', actualKey, ') to', shavianChar);
-        } else {
-            // For keys without mappings (Tab, Enter, etc.), restore special symbols
-            const specialKeys = {
-                'Backspace': '⌫',
-                'Tab': '⇥',
-                'CapsLock': '⇪',
-                'Enter': '⏎',
-                'Shift': '⇧',
-                ' ': 'Space'
-            };
-            if (specialKeys[keyValue]) {
-                key.innerHTML = specialKeys[keyValue];
-                console.log('Set special key', keyValue, 'to', specialKeys[keyValue]);
+
+        if (isShiftActive) {
+            // When shift is active, ONLY show Shavian characters that have shift mappings
+            // Everything else is blank
+            if (shavianChar) {
+                key.innerHTML = shavianChar;
+                key.setAttribute('data-shavian', shavianChar);
+                key.setAttribute('data-actual-key', actualKey);
+                console.log('Set shift key', keyValue, '(actual:', actualKey, ') to', shavianChar);
+            } else {
+                // No shift mapping - leave blank (except Shift key itself)
+                if (keyValue === 'Shift') {
+                    key.innerHTML = '⇧';
+                } else {
+                    key.innerHTML = '';
+                }
+                key.removeAttribute('data-shavian');
+                key.removeAttribute('data-actual-key');
             }
-            key.removeAttribute('data-shavian');
-            key.removeAttribute('data-actual-key');
+        } else {
+            // Normal (non-shift) mode
+            if (shavianChar) {
+                // Set the Shavian character as the key's content
+                // Use innerHTML to preserve VS1 (U+FE00) characters
+                key.innerHTML = shavianChar;
+                key.setAttribute('data-shavian', shavianChar);
+                key.setAttribute('data-actual-key', actualKey);
+                console.log('Set key', keyValue, '(actual:', actualKey, ') to', shavianChar);
+            } else {
+                // For keys without mappings (Tab, Enter, etc.), restore special symbols
+                const specialKeys = {
+                    'Backspace': '⌫',
+                    'Tab': '⇥',
+                    'CapsLock': '⇪',
+                    'Enter': '⏎',
+                    'Shift': '⇧',
+                    ' ': 'Space'
+                };
+                if (specialKeys[keyValue]) {
+                    key.innerHTML = specialKeys[keyValue];
+                    console.log('Set special key', keyValue, 'to', specialKeys[keyValue]);
+                }
+                key.removeAttribute('data-shavian');
+                key.removeAttribute('data-actual-key');
+            }
         }
     });
     console.log('updateKeyboardLabels complete');
