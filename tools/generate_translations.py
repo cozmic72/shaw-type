@@ -97,23 +97,44 @@ def transliterate_csv(input_file, output_latin, output_british, output_american,
     # Batch transliterate all values at once (much faster!)
     all_values_text = '\n'.join(values)
 
-    # British
-    result = subprocess.run(
-        [shave_cmd, "--readlex-british", str(DICT_FILE_BRITISH)],
-        input=all_values_text,
-        capture_output=True,
-        text=True
-    )
-    british_values = result.stdout.strip().split('\n')
+    # Get path to namer dots correction script
+    fix_script = SCRIPT_DIR / "fix-namer-dots.py"
 
-    # American
-    result = subprocess.run(
-        [shave_cmd, "--readlex-american", str(DICT_FILE_AMERICAN)],
-        input=all_values_text,
-        capture_output=True,
+    # British - pipe through namer dots correction
+    shave_proc = subprocess.Popen(
+        [shave_cmd, "--readlex-british", str(DICT_FILE_BRITISH)],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
         text=True
     )
-    american_values = result.stdout.strip().split('\n')
+    fix_proc = subprocess.Popen(
+        ["python3", str(fix_script)],
+        stdin=shave_proc.stdout,
+        stdout=subprocess.PIPE,
+        text=True
+    )
+    shave_proc.stdin.write(all_values_text)
+    shave_proc.stdin.close()
+    british_output, _ = fix_proc.communicate()
+    british_values = british_output.strip().split('\n')
+
+    # American - pipe through namer dots correction
+    shave_proc = subprocess.Popen(
+        [shave_cmd, "--readlex-american", str(DICT_FILE_AMERICAN)],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        text=True
+    )
+    fix_proc = subprocess.Popen(
+        ["python3", str(fix_script)],
+        stdin=shave_proc.stdout,
+        stdout=subprocess.PIPE,
+        text=True
+    )
+    shave_proc.stdin.write(all_values_text)
+    shave_proc.stdin.close()
+    american_output, _ = fix_proc.communicate()
+    american_values = american_output.strip().split('\n')
 
     # Combine keys with transliterated values
     translations_british = dict(zip(keys, british_values))
@@ -145,26 +166,47 @@ def transliterate_html(input_file, output_british, output_american, shave_cmd):
     with open(input_file, 'r', encoding='utf-8') as f:
         content = f.read()
 
-    # British
-    result = subprocess.run(
+    # Get path to namer dots correction script
+    fix_script = SCRIPT_DIR / "fix-namer-dots.py"
+
+    # British - pipe through namer dots correction
+    shave_proc = subprocess.Popen(
         [shave_cmd, "--readlex-british", str(DICT_FILE_BRITISH)],
-        input=content,
-        capture_output=True,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
         text=True
     )
+    fix_proc = subprocess.Popen(
+        ["python3", str(fix_script)],
+        stdin=shave_proc.stdout,
+        stdout=subprocess.PIPE,
+        text=True
+    )
+    shave_proc.stdin.write(content)
+    shave_proc.stdin.close()
+    british_output, _ = fix_proc.communicate()
     with open(output_british, 'w', encoding='utf-8') as f:
-        f.write(result.stdout)
+        f.write(british_output)
     print(f"    ✓ Saved {output_british.name}")
 
-    # American
-    result = subprocess.run(
+    # American - pipe through namer dots correction
+    shave_proc = subprocess.Popen(
         [shave_cmd, "--readlex-american", str(DICT_FILE_AMERICAN)],
-        input=content,
-        capture_output=True,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
         text=True
     )
+    fix_proc = subprocess.Popen(
+        ["python3", str(fix_script)],
+        stdin=shave_proc.stdout,
+        stdout=subprocess.PIPE,
+        text=True
+    )
+    shave_proc.stdin.write(content)
+    shave_proc.stdin.close()
+    american_output, _ = fix_proc.communicate()
     with open(output_american, 'w', encoding='utf-8') as f:
-        f.write(result.stdout)
+        f.write(american_output)
     print(f"    ✓ Saved {output_american.name}")
 
 
