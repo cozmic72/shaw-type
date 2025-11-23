@@ -2990,9 +2990,6 @@
                 // Backspace or deletion - clear error state
                 isInErrorState = false;
                 maxEffectiveLength = effectiveLength;
-            } else if (isInErrorState && effectiveLength > maxEffectiveLength) {
-                // Blocked - user is in error state, revert not handled here
-                return 'blocked';
             } else if (effectiveLength > maxEffectiveLength) {
                 // New characters to count
                 const numNew = effectiveLength - maxEffectiveLength;
@@ -3018,7 +3015,6 @@
 
                 maxEffectiveLength = effectiveLength;
             }
-            return 'ok';
         }
 
         // Helper: Convert UTF-16 code unit position to character index
@@ -3112,8 +3108,22 @@
             const browserInput = e.target.value;
             const eventData = e.data || '';
 
-            // Save previous shadow state before updating
-            const previousShadow = shadowInput;
+            // Check if we should block this input early (before updating shadow)
+            // Block if user is in error state and trying to add more characters
+            const isAddingCharacters = e.inputType === 'insertText' ||
+                                      e.inputType === 'insertFromPaste' ||
+                                      e.inputType === 'insertReplacementText';
+
+            if (isInErrorState && isAddingCharacters) {
+                // Block the input - revert and flash red
+                typingInput.value = previousInput;
+                typingInput.style.animation = 'none';
+                setTimeout(() => {
+                    typingInput.style.animation = 'error-flash 0.4s ease-out';
+                }, 10);
+                debug('🚫 BLOCKED: user in error state, rejecting input');
+                return;
+            }
 
             // Update shadow input based on what was actually typed
             shadowInput = updateShadowInput(e.inputType, eventData, shadowInput, browserInput);
@@ -3154,19 +3164,9 @@
             const pendingLigature = isPendingLigatureStart(inputChars, wordChars);
             const effectiveLength = pendingLigature ? normalizedInputChars.length - 1 : normalizedInputChars.length;
 
-            // Update statistics and handle blocked input
+            // Update statistics
             const result = updateInputStatistics(effectiveLength, normalizedInputChars, normalizedWordChars);
-            if (result === 'blocked') {
-                // Revert both typing input and shadow input
-                shadowInput = previousShadow;
-                typingInput.value = previousInput;
-                typingInput.style.animation = 'none';
-                setTimeout(() => {
-                    typingInput.style.animation = 'error-flash 0.4s ease-out';
-                }, 10);
-            } else {
-                previousInput = typingInput.value;
-            }
+            previousInput = typingInput.value;
 
             // Debug: log final state
             debug('📊 POSTCONDITION: input=' + JSON.stringify(typingInput.value) +
