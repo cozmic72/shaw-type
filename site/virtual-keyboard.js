@@ -135,8 +135,23 @@ function updateKeyboardLabels(keyboardMap, layoutName) {
 
         // If shift is active, try to get the shifted version
         let actualKey = keyValue;
-        if (isShiftActive && keyValue.length === 1 && keyValue.match(/[a-z]/)) {
-            actualKey = keyValue.toUpperCase();
+        if (isShiftActive && keyValue.length === 1) {
+            if (keyValue.match(/[a-z]/)) {
+                actualKey = keyValue.toUpperCase();
+            } else {
+                // Map number row and punctuation to their shifted equivalents
+                const shiftMap = {
+                    '1': '!', '2': '@', '3': '#', '4': '$', '5': '%',
+                    '6': '^', '7': '&', '8': '*', '9': '(', '0': ')',
+                    '`': '~', '-': '_', '=': '+',
+                    '[': '{', ']': '}', '\\': '|',
+                    ';': ':', '\'': '"',
+                    ',': '<', '.': '>', '/': '?'
+                };
+                if (shiftMap[keyValue]) {
+                    actualKey = shiftMap[keyValue];
+                }
+            }
         }
 
         const shavianChar = keyboardMap[actualKey];
@@ -191,13 +206,36 @@ function updateKeyboardLabels(keyboardMap, layoutName) {
 }
 
 // Highlight key when pressed
-function highlightKey(keyValue) {
-    const key = document.querySelector(`.key[data-key="${keyValue}"]`);
+// keyCode is optional - used to distinguish left/right shift
+function highlightKey(keyValue, keyCode) {
+    let key;
+    if (keyCode) {
+        // Try to find by code first (for left/right shift distinction)
+        key = document.querySelector(`.key[data-code="${keyCode}"]`);
+    }
+    if (!key) {
+        // Fall back to data-key
+        key = document.querySelector(`.key[data-key="${keyValue}"]`);
+    }
     if (key) {
         key.classList.add('active');
-        setTimeout(() => {
-            key.classList.remove('active');
-        }, 150);
+    }
+}
+
+// Remove highlight from key
+// keyCode is optional - used to distinguish left/right shift
+function unhighlightKey(keyValue, keyCode) {
+    let key;
+    if (keyCode) {
+        // Try to find by code first (for left/right shift distinction)
+        key = document.querySelector(`.key[data-code="${keyCode}"]`);
+    }
+    if (!key) {
+        // Fall back to data-key
+        key = document.querySelector(`.key[data-key="${keyValue}"]`);
+    }
+    if (key) {
+        key.classList.remove('active');
     }
 }
 
@@ -234,8 +272,9 @@ function makeKeysClickable(keyboardMap) {
             const typingInput = document.getElementById('typingInput');
             if (!typingInput) return;
 
-            // Highlight the key
+            // Highlight the key briefly for click feedback
             highlightKey(keyValue);
+            setTimeout(() => unhighlightKey(keyValue), 150);
 
             // Get the actual key (considering shift state)
             const actualKey = newKey.getAttribute('data-actual-key') || keyValue;
@@ -302,8 +341,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Track physical Shift and Caps Lock keys to update virtual keyboard
     document.addEventListener('keydown', (e) => {
-        // Highlight the key being pressed
-        highlightKey(e.key);
+        // Highlight the key being pressed (pass e.code to distinguish left/right shift)
+        highlightKey(e.key, e.code);
 
         // Check modifier state on every keypress
         const shouldShowShift = e.shiftKey || e.getModifierState('CapsLock');
@@ -317,6 +356,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.addEventListener('keyup', (e) => {
+        // Remove highlight from released key (pass e.code to distinguish left/right shift)
+        unhighlightKey(e.key, e.code);
+
         // Check modifier state when keys are released
         const shouldShowShift = e.shiftKey || e.getModifierState('CapsLock');
         if (shouldShowShift !== isShiftActive) {
