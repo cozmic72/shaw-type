@@ -258,16 +258,16 @@ def main():
         base_name = filename.replace('.html', '')
 
         latin_output = SITE_DIR / f"{base_name}_latin.html"
-        british_output = SITE_DIR / f"{base_name}_british.html"
-        american_output = SITE_DIR / f"{base_name}_american.html"
+        gb_output = SITE_DIR / f"{base_name}_gb.html"
+        us_output = SITE_DIR / f"{base_name}_us.html"
 
         if source_path.exists():
             print(f"  Processing {filename}...")
             # Copy source to Latin version
             shutil.copy2(source_path, latin_output)
             print(f"    ✓ Copied to {latin_output.name}")
-            # Transliterate to British and American
-            transliterate_html(source_path, british_output, american_output, shave_cmd)
+            # Transliterate to GB and US
+            transliterate_html(source_path, gb_output, us_output, shave_cmd)
         else:
             print(f"  {filename} not found in content/ (skipping)")
 
