@@ -876,12 +876,6 @@
                 </label>
             </div>
 
-            <div class="settings-option">
-                <label>
-                    <input type="checkbox" id="hideWelcomeToggle" onchange="toggleHideWelcome()">
-                    <span id="settingsHideWelcome">Hide welcome screen when page opens</span>
-                </label>
-            </div>
         </div>
     </div>
 
@@ -902,7 +896,7 @@
         <div class="settings-content" style="max-width: 600px;">
             <h2 id="splashTitle">Welcome to Shaw Type!</h2>
             <div id="splashContent" style="margin: 20px 0;">
-                <h3 style="color: #555fdc; margin-top: 0;">What's New</h3>
+                <h3 id="splashWhatsNew" style="color: #555fdc; margin-top: 0;">What's New</h3>
                 <ul style="line-height: 1.8; color: #666;">
                     <li>Virtual keyboard support - see your keyboard layout on screen!</li>
                     <li>Click shift on the virtual keyboard to see shifted characters</li>
@@ -910,25 +904,25 @@
                 </ul>
             </div>
 
-            <div style="margin: 20px 0;">
-                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <button id="splashContinueBtn" class="settings-close-btn" onclick="closeSplashModal()" style="margin-top: 15px; width: 100%;">Continue</button>
+
+            <div style="margin: 15px 0; text-align: center;">
+                <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer;">
                     <input type="checkbox" id="dontShowSplash" style="cursor: pointer;">
-                    <span style="color: #666; font-size: 14px;">Don't show this again</span>
+                    <span id="splashDontShowAgain" style="color: #666; font-size: 14px;">Don't show this again</span>
                 </label>
             </div>
-
-            <button class="settings-close-btn" onclick="closeSplashModal()" style="margin-top: 15px; width: 100%;">Continue</button>
         </div>
     </div>
 
     <!-- First-Time Setup Dialog -->
     <div class="settings-modal" id="setupModal">
         <div class="settings-content" style="max-width: 500px;">
-            <h2>Get Started</h2>
-            <p style="margin: 15px 0; color: #666;">Choose your keyboard layout and spelling preference:</p>
+            <h2 id="setupTitle">Get Started</h2>
+            <p id="setupSubtitle" style="margin: 15px 0; color: #666;">Choose your keyboard layout and spelling preference:</p>
 
             <div class="settings-option">
-                <label style="display: block; margin-bottom: 10px; color: #666; font-weight: normal;">
+                <label id="setupKeyboardLayoutLabel" style="display: block; margin-bottom: 10px; color: #666; font-weight: normal;">
                     Keyboard Layout
                 </label>
                 <select id="layoutSelectSetup" onchange="onLayoutChangeSetup()" style="width: 100%; padding: 8px; font-size: 16px; border: 2px solid #e0e0e0; border-radius: 8px;">
@@ -941,26 +935,26 @@
             </div>
 
             <div class="settings-option">
-                <label style="display: block; margin-bottom: 10px; color: #666; font-weight: normal;">
+                <label id="setupDialectLabel" style="display: block; margin-bottom: 10px; color: #666; font-weight: normal;">
                     Choose spelling
                 </label>
                 <div style="display: flex; gap: 20px;">
                     <label style="cursor: pointer;">
                         <input type="radio" name="dialectSetup" value="gb" checked onchange="onDialectChangeSetup()" style="margin-right: 8px;">
-                        <span>British</span>
+                        <span id="setupDialectBritish">British</span>
                     </label>
                     <label style="cursor: pointer;">
                         <input type="radio" name="dialectSetup" value="us" onchange="onDialectChangeSetup()" style="margin-right: 8px;">
-                        <span>American</span>
+                        <span id="setupDialectAmerican">American</span>
                     </label>
                 </div>
             </div>
 
-            <p style="margin: 20px 0; color: #999; font-size: 14px; font-style: italic;">
+            <p id="setupNote" style="margin: 20px 0; color: #999; font-size: 14px; font-style: italic;">
                 Don't worry too much. This choice, and more besides, can be changed later in settings.
             </p>
 
-            <button class="settings-close-btn" onclick="closeSetupModal()" style="margin-top: 15px; width: 100%;">Start Practicing!</button>
+            <button id="setupStartBtn" class="settings-close-btn" onclick="closeSetupModal()" style="margin-top: 15px; width: 100%;">Start Practicing!</button>
         </div>
     </div>
 
@@ -1426,6 +1420,16 @@
                 displayShavianDesc: 'Show labels and text in Shavian alphabet instead of Latin',
                 showVirtualKeyboard: 'Show virtual keyboard',
                 showVirtualKeyboardDesc: 'Display a draggable on-screen keyboard showing Shavian characters',
+                // Splash screen
+                splashTitle: 'Welcome to Shaw Type!',
+                whatsNew: 'What\'s New',
+                dontShowAgain: 'Don\'t show this again',
+                continueButton: 'Continue',
+                // Setup dialog
+                setupTitle: 'Get Started',
+                setupSubtitle: 'Choose your keyboard layout and spelling preference:',
+                setupNote: 'Don\'t worry too much. This choice, and more besides, can be changed later in settings.',
+                startPracticing: 'Start Practicing!',
                 close: 'Close',
                 lessonModalTitle: 'Choose a Lesson',
                 lessonModalSubtitle: 'Select a lesson to practice:',
@@ -1542,6 +1546,16 @@
                 displayShavianDesc: '𐑖𐑴 𐑤𐑱𐑚𐑩𐑤𐑟 𐑯 𐑑𐑧𐑒𐑕𐑑 𐑦𐑯 ·𐑖𐑱𐑝𐑾𐑯 𐑨𐑤𐑓𐑩𐑚𐑧𐑑 𐑦𐑯𐑕𐑑𐑧𐑛 𐑝 ·𐑤𐑨𐑑𐑦𐑯',
                 showVirtualKeyboard: '𐑖𐑴 𐑝𐑻𐑗𐑵𐑩𐑤 𐑒𐑰𐑚𐑹𐑛',
                 showVirtualKeyboardDesc: '𐑛𐑦𐑕𐑐𐑤𐑱 𐑩 𐑛𐑮𐑨𐑜𐑩𐑚𐑩𐑤 𐑪𐑯-𐑕𐑒𐑮𐑰𐑯 𐑒𐑰𐑚𐑹𐑛 𐑖𐑴𐑦𐑙 ·𐑖𐑱𐑝𐑾𐑯 𐑒𐑨𐑮𐑩𐑒𐑑𐑼𐑟',
+                // Splash screen
+                splashTitle: '𐑢𐑧𐑤𐑒𐑳𐑥 𐑑 ·𐑖𐑷 𐑑𐑲𐑐!',
+                whatsNew: '𐑢𐑪𐑑𐑕 𐑯𐑿',
+                dontShowAgain: '𐑛𐑴𐑯𐑑 𐑖𐑴 𐑞𐑦𐑕 𐑩𐑜𐑧𐑯',
+                continueButton: '𐑒𐑩𐑯𐑑𐑦𐑯𐑿',
+                // Setup dialog
+                setupTitle: '𐑜𐑧𐑑 𐑕𐑑𐑸𐑑𐑩𐑛',
+                setupSubtitle: '𐑗𐑵𐑟 𐑘𐑹 𐑒𐑰𐑚𐑹𐑛 𐑤𐑱𐑬𐑑 𐑯 𐑕𐑐𐑧𐑤𐑦𐑙 𐑐𐑮𐑧𐑓𐑼𐑩𐑯𐑕:',
+                setupNote: '𐑛𐑴𐑯𐑑 𐑢𐑳𐑮𐑦 𐑑𐑵 𐑥𐑳𐑗. 𐑞𐑦𐑕 𐑗𐑶𐑕, 𐑯 𐑥𐑹 𐑚𐑦𐑕𐑲𐑛𐑟, 𐑒𐑨𐑯 𐑚𐑰 𐑗𐑱𐑯𐑡𐑛 𐑤𐑱𐑑𐑼 𐑦𐑯 𐑕𐑧𐑑𐑦𐑙𐑟.',
+                startPracticing: '𐑕𐑑𐑸𐑑 𐑐𐑮𐑨𐑒𐑑𐑦𐑕𐑦𐑙!',
                 close: '𐑒𐑤𐑴𐑟',
                 lessonModalTitle: '𐑗𐑵𐑟 𐑩 𐑤𐑧𐑕𐑩𐑯',
                 lessonModalSubtitle: '𐑕𐑦𐑤𐑧𐑒𐑑 𐑩 𐑤𐑧𐑕𐑩𐑯 𐑑 𐑐𐑮𐑨𐑒𐑑𐑦𐑕:',
@@ -3274,6 +3288,10 @@
             // Show splash if it's a new version and user has already set up
             if (lastSeenVersion !== APP_VERSION && hasSeenKeyboard) {
                 document.getElementById('splashModal').classList.add('show');
+                // Set focus on Continue button
+                setTimeout(() => {
+                    document.getElementById('splashContinueBtn').focus();
+                }, 100);
             }
         }
 
@@ -3298,11 +3316,6 @@
             return false;
         }
 
-        function toggleHideWelcome() {
-            const hideWelcome = document.getElementById('hideWelcomeToggle').checked;
-            localStorage.setItem('hideWelcome', hideWelcome.toString());
-        }
-
         // Settings functions
         function openSettings() {
             // Sync settings with current state
@@ -3312,9 +3325,6 @@
             document.getElementById('layoutSelectSettings').value = currentLayout;
             document.getElementById('ligatureToggleSettings').checked = useLigatures;
 
-            // Sync hide welcome checkbox
-            const hideWelcome = localStorage.getItem('hideWelcome');
-            document.getElementById('hideWelcomeToggle').checked = (hideWelcome === 'true');
 
             // Show/hide ligature option based on current layout
             const supportsLigatures = currentLayout === 'imperial' ||
@@ -3469,8 +3479,23 @@
             document.getElementById('settingsDialectLabel').textContent = t.dialectLabel;
             document.getElementById('settingsDialectBritish').textContent = t.dialectBritish;
             document.getElementById('settingsDialectAmerican').textContent = t.dialectAmerican;
-            document.getElementById('settingsHideWelcome').textContent = t.hideWelcome;
             document.getElementById('settingsVirtualKeyboard').textContent = t.showVirtualKeyboard;
+
+            // Update splash screen
+            document.getElementById('splashTitle').textContent = t.splashTitle;
+            document.getElementById('splashWhatsNew').textContent = t.whatsNew;
+            document.getElementById('splashContinueBtn').textContent = t.continueButton;
+            document.getElementById('splashDontShowAgain').textContent = t.dontShowAgain;
+
+            // Update setup dialog
+            document.getElementById('setupTitle').textContent = t.setupTitle;
+            document.getElementById('setupSubtitle').textContent = t.setupSubtitle;
+            document.getElementById('setupKeyboardLayoutLabel').textContent = t.keyboardLayout;
+            document.getElementById('setupDialectLabel').textContent = t.dialectLabel;
+            document.getElementById('setupDialectBritish').textContent = t.dialectBritish;
+            document.getElementById('setupDialectAmerican').textContent = t.dialectAmerican;
+            document.getElementById('setupNote').textContent = t.setupNote;
+            document.getElementById('setupStartBtn').textContent = t.startPracticing;
 
             // Update layout select options
             updateLayoutSelectOptions();
