@@ -595,7 +595,7 @@ if __name__ == '__main__':
         generate_learn_word_lists(
             readlex_file,
             LEARN_LEVELS_IMPERIAL,
-            f'../site/learn_words_imperial_{dialect}.json',
+            project_dir / 'site' / f'learn_words_imperial_{dialect}.json',
             'Shaw Imperial',
             use_ligatures=True,
             dialect=dialect,
@@ -606,7 +606,7 @@ if __name__ == '__main__':
         generate_learn_word_lists(
             readlex_file,
             LEARN_LEVELS_IMPERIAL,
-            f'../site/learn_words_imperial_{dialect}_no_lig.json',
+            project_dir / 'site' / f'learn_words_imperial_{dialect}_no_lig.json',
             'Shaw Imperial (No Ligatures)',
             use_ligatures=False,
             dialect=dialect,
@@ -617,7 +617,7 @@ if __name__ == '__main__':
         generate_learn_word_lists(
             readlex_file,
             LEARN_LEVELS_NEW_IMPERIAL,
-            f'../site/learn_words_igc_{dialect}.json',
+            project_dir / 'site' / f'learn_words_igc_{dialect}.json',
             'Imperial Good Companion',
             use_ligatures=True,
             dialect=dialect,
@@ -628,7 +628,7 @@ if __name__ == '__main__':
         generate_learn_word_lists(
             readlex_file,
             LEARN_LEVELS_NEW_IMPERIAL,
-            f'../site/learn_words_igc_{dialect}_no_lig.json',
+            project_dir / 'site' / f'learn_words_igc_{dialect}_no_lig.json',
             'Imperial Good Companion (No Ligatures)',
             use_ligatures=False,
             dialect=dialect,
@@ -639,7 +639,7 @@ if __name__ == '__main__':
         generate_learn_word_lists(
             readlex_file,
             LEARN_LEVELS_QWERTY,
-            f'../site/learn_words_qwerty_{dialect}.json',
+            project_dir / 'site' / f'learn_words_qwerty_{dialect}.json',
             'Shaw QWERTY',
             use_ligatures=False,
             dialect=dialect,
@@ -650,7 +650,7 @@ if __name__ == '__main__':
         generate_learn_word_lists(
             readlex_file,
             LEARN_LEVELS_2LAYER,
-            f'../site/learn_words_2layer_{dialect}.json',
+            project_dir / 'site' / f'learn_words_2layer_{dialect}.json',
             'Shaw 2-layer (shift)',
             use_ligatures=False,
             dialect=dialect,
@@ -661,7 +661,7 @@ if __name__ == '__main__':
         generate_learn_word_lists(
             readlex_file,
             LEARN_LEVELS_JAFL,
-            f'../site/learn_words_jafl_{dialect}.json',
+            project_dir / 'site' / f'learn_words_jafl_{dialect}.json',
             'Shaw-JAFL',
             use_ligatures=True,
             dialect=dialect,
@@ -672,7 +672,7 @@ if __name__ == '__main__':
         generate_learn_word_lists(
             readlex_file,
             LEARN_LEVELS_JAFL,
-            f'../site/learn_words_jafl_{dialect}_no_lig.json',
+            project_dir / 'site' / f'learn_words_jafl_{dialect}_no_lig.json',
             'Shaw-JAFL (No Ligatures)',
             use_ligatures=False,
             dialect=dialect,
