@@ -1310,24 +1310,17 @@
         }
 
         function updateVirtualKeyboardLabels(retryCount = 0) {
-            console.log('updateVirtualKeyboardLabels called, retry:', retryCount);
-            console.log('updateKeyboardLabels available:', typeof updateKeyboardLabels);
-            console.log('makeKeysClickable available:', typeof makeKeysClickable);
-
             if (typeof updateKeyboardLabels === 'function' && typeof makeKeysClickable === 'function') {
                 const keyboardMap = KEYBOARD_MAPS[currentLayout];
                 if (!keyboardMap) {
-                    console.log('No keyboard map available for layout: ' + currentLayout);
+                    debug('No keyboard map available for layout:', currentLayout);
                     return; // Can't update labels if no map exists
                 }
                 const layoutName = getLayoutName(currentLayout);
-                console.log('Calling updateKeyboardLabels with layoutName:', layoutName);
                 updateKeyboardLabels(keyboardMap, layoutName);
-                console.log('Calling makeKeysClickable');
                 makeKeysClickable(keyboardMap);
             } else if (retryCount < 20) {
                 // Functions not loaded yet, try again soon
-                console.log('Functions not ready, retrying in 50ms');
                 setTimeout(() => updateVirtualKeyboardLabels(retryCount + 1), 50);
             } else {
                 console.error('Virtual keyboard functions not available after retries');
@@ -1946,7 +1939,6 @@
         function onLevelCountChange() {
             levelCount = parseInt(document.getElementById('levelCountSelect').value);
             localStorage.setItem('levelCount', levelCount.toString());
-            console.log(`Level count changed to ${levelCount}`);
         }
 
         function onLevelChange() {
@@ -2678,13 +2670,11 @@
 
             // If there's a completion callback, use it
             if (currentLevelCompletionCallback) {
-                console.log('[transitionToNextLevel] Calling completion callback');
                 currentLevelCompletionCallback();
                 return;
             }
 
             // Default behavior: try to advance to next level
-            console.log(`[transitionToNextLevel] Mode: ${currentMode}, Current level: ${currentLevelNumber}`);
             let nextLevelData = null;
             if (currentMode === 'learn') {
                 const nextLessonIndex = parseInt(selectedLevel) + 1;
@@ -2695,17 +2685,12 @@
                 }
             } else {
                 const nextLevelNum = currentLevelNumber + 1;
-                console.log(`[transitionToNextLevel] Next level num: ${nextLevelNum}`);
                 if (nextLevelNum <= levelCount) {
                     nextLevelData = getPlayLevelData(nextLevelNum);
                     currentLevelNumber = nextLevelNum;
-                    console.log(`[transitionToNextLevel] Got next level data for level ${nextLevelNum}`);
-                } else {
-                    console.log(`[transitionToNextLevel] No more levels (${nextLevelNum} > ${levelCount})`);
                 }
             }
 
-            console.log(`[transitionToNextLevel] nextLevelData is ${nextLevelData ? 'not null' : 'null'}`);
             if (nextLevelData) {
                 // Start new level with new words (no countdown between levels!)
                 const t = getCurrentTranslations();
@@ -2721,13 +2706,11 @@
                 startLevel(nextLevelData.wordPool, nextLevelData.wordCount, type, nextLevelData.title, typeLabel, currentLevelCompletionCallback);
             } else {
                 // No more levels/lessons - show completion modal
-                console.log('[transitionToNextLevel] Calling showCompletionModal');
                 showCompletionModal();
             }
         }
 
         function showLessonCompletionDialog() {
-            console.log('[showLessonCompletionDialog] Lesson completed');
 
             // Calculate stats for this lesson
             const accuracy = totalLettersTyped === 0 ? 100.0 : ((correctLetters / totalLettersTyped) * 100);
@@ -2765,7 +2748,6 @@
         }
 
         function showCompletionModal() {
-            console.log('[showCompletionModal] Called');
             // Stats already saved in transitionToNextLevel
             const accuracy = totalLettersTyped === 0 ? 100.0 : ((correctLetters / totalLettersTyped) * 100);
             const accuracyFormatted = accuracy.toFixed(1) + '%';
@@ -3946,7 +3928,7 @@
             [1, function patch1_clearBestTime() {
                 // Clear best time due to timer bug fix
                 localStorage.removeItem('bestTime');
-                console.log('Patch 1: Cleared bestTime from localStorage');
+                debug('Patch 1: Cleared bestTime from localStorage');
             }],
             [2, function patch2_migrateToHighScores() {
                 // Migrate old bestTime to new highScores structure
@@ -3962,21 +3944,21 @@
                     }
                     localStorage.setItem('highScores', JSON.stringify(highScores));
                     localStorage.removeItem('bestTime');
-                    console.log('Patch 2: Migrated bestTime to highScores[6]');
+                    debug('Patch 2: Migrated bestTime to highScores[6]');
                 } else {
-                    console.log('Patch 2: No bestTime to migrate');
+                    debug('Patch 2: No bestTime to migrate');
                 }
             }]
         ];
 
         function applyPatches() {
             const currentPatchLevel = parseInt(localStorage.getItem('patchLevel') || '0');
-            console.log(`Current patch level: ${currentPatchLevel}`);
+            debug(`Current patch level: ${currentPatchLevel}`);
 
             // Apply all patches greater than current level
             PATCHES.forEach(([patchNumber, patchFunction]) => {
                 if (patchNumber > currentPatchLevel) {
-                    console.log(`Applying patch ${patchNumber}...`);
+                    debug(`Applying patch ${patchNumber}...`);
                     patchFunction();
                 }
             });
@@ -3986,7 +3968,7 @@
                 const latestPatch = PATCHES[PATCHES.length - 1][0];
                 if (latestPatch > currentPatchLevel) {
                     localStorage.setItem('patchLevel', latestPatch.toString());
-                    console.log(`Updated patch level to ${latestPatch}`);
+                    debug(`Updated patch level to ${latestPatch}`);
                 }
             }
         }

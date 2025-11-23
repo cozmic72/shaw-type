@@ -117,19 +117,15 @@ function hideVirtualKeyboard() {
 // Update keyboard labels with Shavian characters based on current layout
 // Parameters passed from main script to avoid timing issues
 function updateKeyboardLabels(keyboardMap, layoutName) {
-    console.log('updateKeyboardLabels called with:', layoutName, 'keyboardMap:', keyboardMap, 'shift:', isShiftActive);
-
     // Update title to show keyboard name
     const titleElement = document.querySelector('.keyboard-title');
     if (titleElement) {
         const shiftIndicator = isShiftActive ? ' (Shift)' : '';
         titleElement.textContent = layoutName + shiftIndicator;
-        console.log('Title updated to:', layoutName + shiftIndicator);
     }
 
     // Update key labels
     const keys = document.querySelectorAll('.key[data-key]');
-    console.log('Found', keys.length, 'keys to update');
     keys.forEach(key => {
         let keyValue = key.getAttribute('data-key');
 
@@ -163,7 +159,6 @@ function updateKeyboardLabels(keyboardMap, layoutName) {
                 key.innerHTML = shavianChar;
                 key.setAttribute('data-shavian', shavianChar);
                 key.setAttribute('data-actual-key', actualKey);
-                console.log('Set shift key', keyValue, '(actual:', actualKey, ') to', shavianChar);
             } else {
                 // No shift mapping - leave blank (except Shift key itself)
                 if (keyValue === 'Shift') {
@@ -182,7 +177,6 @@ function updateKeyboardLabels(keyboardMap, layoutName) {
                 key.innerHTML = shavianChar;
                 key.setAttribute('data-shavian', shavianChar);
                 key.setAttribute('data-actual-key', actualKey);
-                console.log('Set key', keyValue, '(actual:', actualKey, ') to', shavianChar);
             } else {
                 // For keys without mappings (Tab, Enter, etc.), restore special symbols
                 const specialKeys = {
@@ -195,14 +189,12 @@ function updateKeyboardLabels(keyboardMap, layoutName) {
                 };
                 if (specialKeys[keyValue]) {
                     key.innerHTML = specialKeys[keyValue];
-                    console.log('Set special key', keyValue, 'to', specialKeys[keyValue]);
                 }
                 key.removeAttribute('data-shavian');
                 key.removeAttribute('data-actual-key');
             }
         }
     });
-    console.log('updateKeyboardLabels complete');
 }
 
 // Highlight key when pressed
