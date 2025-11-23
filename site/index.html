@@ -3112,6 +3112,9 @@
             const browserInput = e.target.value;
             const eventData = e.data || '';
 
+            // Save previous shadow state before updating
+            const previousShadow = shadowInput;
+
             // Update shadow input based on what was actually typed
             shadowInput = updateShadowInput(e.inputType, eventData, shadowInput, browserInput);
 
@@ -3154,7 +3157,8 @@
             // Update statistics and handle blocked input
             const result = updateInputStatistics(effectiveLength, normalizedInputChars, normalizedWordChars);
             if (result === 'blocked') {
-                // Revert input and flash red
+                // Revert both typing input and shadow input
+                shadowInput = previousShadow;
                 typingInput.value = previousInput;
                 typingInput.style.animation = 'none';
                 setTimeout(() => {
