@@ -1209,20 +1209,22 @@
 
             if (autoLigatures === 'never') {
                 // Grey out and show "not supported" for layouts without ligatures
-                ligatureToggle.checked = false;
+                // Don't change checked state - just visual display
                 ligatureToggle.disabled = true;
                 ligatureToggle.style.opacity = '0.5';
                 ligatureToggle.style.cursor = 'not-allowed';
                 ligatureLabel.textContent = 'Ligatures not supported';
             } else if (autoLigatures === 'always') {
                 // Grey out and show "built in" for layouts with forced ligatures
-                ligatureToggle.checked = true;
+                // Don't change checked state - just visual display
                 ligatureToggle.disabled = true;
                 ligatureToggle.style.opacity = '0.5';
                 ligatureToggle.style.cursor = 'not-allowed';
                 ligatureLabel.textContent = 'Ligatures built in';
             } else {
                 // 'optional' - show and enable toggle with normal label
+                // Restore user's preference from useLigatures variable
+                ligatureToggle.checked = useLigatures;
                 ligatureToggle.disabled = false;
                 ligatureToggle.style.opacity = '1';
                 ligatureToggle.style.cursor = 'pointer';
