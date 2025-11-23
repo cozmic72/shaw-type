@@ -35,12 +35,10 @@
                 xhr.send();
                 if (xhr.status === 200) {
                     window.translations[file.key] = JSON.parse(xhr.responseText);
-                    console.log(`Loaded ${file.url} - keys:`, Object.keys(window.translations[file.key]).length);
                 } else {
                     console.error(`Failed to load ${file.url} - status: ${xhr.status}`);
                 }
             });
-            console.log('All translations loaded:', window.translations);
         }
 
         loadTranslationsSync();
@@ -1433,16 +1431,12 @@
         // Note: translations are loaded synchronously in <head>
         function getCurrentTranslations() {
             if (!useShavianUI) {
-                const t = window.translations.latin || {};
-                console.log('getCurrentTranslations: using latin, keys:', Object.keys(t).length);
-                return t;
+                return window.translations.latin || {};
             }
 
             // Use dialect-specific Shavian translations
             const dialectKey = currentDialect === 'gb' ? 'shavian_british' : 'shavian_american';
-            const t = window.translations[dialectKey] || {};
-            console.log(`getCurrentTranslations: using ${dialectKey}, keys:`, Object.keys(t).length);
-            return t;
+            return window.translations[dialectKey] || {};
         }
 
         // Temporary: Keep old hardcoded translations as fallback until we finish migration
@@ -3797,16 +3791,13 @@
         }
 
         function updateUILanguage() {
-            console.log('updateUILanguage called, useShavianUI:', useShavianUI, 'currentDialect:', currentDialect);
             const t = getCurrentTranslations();
 
             if (!t || Object.keys(t).length === 0) {
-                console.error('Translations not loaded yet!', t);
+                console.error('Translations not loaded yet!');
                 return;
             }
 
-            console.log('updateUILanguage: Got translations with', Object.keys(t).length, 'keys');
-            console.log('updateUILanguage: layoutImperial =', t.layoutImperial);
             updateUIWithTranslations(t);
         }
 
