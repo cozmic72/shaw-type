@@ -1551,11 +1551,7 @@
                 // Reload words with new dialect
                 loadWords().then(() => {
                     updateLevelSelector();
-                    // If there's an active game, restart it with new words
-                    const isGameActive = !document.getElementById('gameContent').classList.contains('hidden');
-                    if (isGameActive && currentLevelWordPool.length > 0) {
-                        initializeGame();
-                    }
+                    // Dialect change will take effect on next game
                 });
             }
         }
@@ -3059,8 +3055,7 @@
             let filename;
             if (useShavianUI) {
                 // Use dialect-specific Shavian content
-                const dialect = currentDialect === 'gb' ? 'british' : 'american';
-                filename = `${page}_${dialect}.html`;
+                filename = `${page}_${currentDialect}.html`;
             } else {
                 // Use Latin content (no dialect variation needed)
                 filename = `${page}_latin.html`;
