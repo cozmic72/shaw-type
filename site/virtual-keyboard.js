@@ -191,7 +191,8 @@ function makeKeyboardResizable() {
     keyboard.appendChild(resizeHandle);
 
     let isResizing = false;
-    let startX, startY, startScale;
+    let startX, startY, startScale, startPosition;
+    let keyboardWidth, keyboardHeight;
 
     resizeHandle.addEventListener('mousedown', startResize);
     resizeHandle.addEventListener('touchstart', startResize);
@@ -201,6 +202,12 @@ function makeKeyboardResizable() {
         e.stopPropagation();
         isResizing = true;
         startScale = keyboardScale;
+        startPosition = { ...keyboardPosition };
+
+        // Get the original dimensions before scaling
+        const rect = keyboard.getBoundingClientRect();
+        keyboardWidth = rect.width / keyboardScale;
+        keyboardHeight = rect.height / keyboardScale;
 
         if (e.type === 'touchstart') {
             startX = e.touches[0].clientX;
@@ -235,9 +242,16 @@ function makeKeyboardResizable() {
         const diagonal = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
         const scaleDelta = diagonal / 500;
 
-        // Determine if dragging towards or away from keyboard
+        // Determine if dragging towards (down-right) or away (up-left) from keyboard
         const direction = (deltaX > 0 && deltaY > 0) ? 1 : -1;
-        keyboardScale = Math.max(0.5, Math.min(2, startScale + (scaleDelta * direction)));
+        const newScale = Math.max(0.5, Math.min(2, startScale + (scaleDelta * direction)));
+
+        // Adjust position so bottom-right corner stays fixed while scaling
+        // When scale changes, top-left moves, so we compensate
+        const scaleDiff = newScale - startScale;
+        keyboardPosition.x = startPosition.x - (keyboardWidth * scaleDiff);
+        keyboardPosition.y = startPosition.y - (keyboardHeight * scaleDiff);
+        keyboardScale = newScale;
 
         updateKeyboardTransform(keyboard);
     }

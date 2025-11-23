@@ -10,7 +10,7 @@
     cursor: move;
     user-select: none;
     font-family: 'Inter-Alia', sans-serif;
-    transform-origin: bottom right;
+    transform-origin: top left;
 }
 
 /* Resize handle in bottom-right corner */
