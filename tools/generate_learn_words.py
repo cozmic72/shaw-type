@@ -567,23 +567,23 @@ if __name__ == '__main__':
             all_chars=all_imperial_chars
         )
 
-        # Generate for New Shaw Imperial (with ligatures)
+        # Generate for Imperial Good Companion (with ligatures)
         generate_learn_word_lists(
             word_freq_file,
             LEARN_LEVELS_NEW_IMPERIAL,
-            f'../site/learn_words_new-imperial_{dialect}.json',
-            'New Shaw Imperial',
+            f'../site/learn_words_igc_{dialect}.json',
+            'Imperial Good Companion',
             use_ligatures=True,
             dialect=dialect,
             all_chars=all_new_imperial_chars
         )
 
-        # Generate for New Shaw Imperial (without ligatures)
+        # Generate for Imperial Good Companion (without ligatures)
         generate_learn_word_lists(
             word_freq_file,
             LEARN_LEVELS_NEW_IMPERIAL,
-            f'../site/learn_words_new-imperial_{dialect}_no_lig.json',
-            'New Shaw Imperial (No Ligatures)',
+            f'../site/learn_words_igc_{dialect}_no_lig.json',
+            'Imperial Good Companion (No Ligatures)',
             use_ligatures=False,
             dialect=dialect,
             all_chars=all_new_imperial_chars

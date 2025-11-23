@@ -848,7 +848,7 @@
                 </label>
                 <select id="layoutSelectSettings" onchange="onLayoutChangeSettings()" style="width: 100%; padding: 8px; font-size: 16px; border: 2px solid #e0e0e0; border-radius: 8px;">
                     <option value="imperial">Shaw Imperial</option>
-                    <option value="new-imperial">New Shaw Imperial</option>
+                    <option value="igc">Imperial Good Companion</option>
                     <option value="qwerty">Shaw QWERTY</option>
                     <option value="2layer">Shaw 2-layer (shift)</option>
                     <option value="jafl">Shaw-JAFL</option>
@@ -922,7 +922,7 @@
                 </label>
                 <select id="layoutSelectSetup" onchange="onLayoutChangeSetup()" style="width: 100%; padding: 8px; font-size: 16px; border: 2px solid #e0e0e0; border-radius: 8px;">
                     <option value="imperial">Shaw Imperial</option>
-                    <option value="new-imperial">New Shaw Imperial</option>
+                    <option value="igc">Imperial Good Companion</option>
                     <option value="qwerty">Shaw QWERTY</option>
                     <option value="2layer">Shaw 2-layer (shift)</option>
                     <option value="jafl">Shaw-JAFL</option>
@@ -1133,7 +1133,7 @@
                 // Space
                 ' ': ' '
             },
-            'new-imperial': {
+            'igc': {
                 // Number row (1-0 plus - =)
                 '1': '𐑶', '2': '𐑬', '3': '𐑻' + VS1, '4': '𐑫', '5': '𐑺' + VS1,
                 '6': '𐑜', '7': '𐑖', '8': '𐑗', '9': '𐑙', '0': '𐑘',
@@ -1240,7 +1240,7 @@
         function getLayoutName(layout) {
             const layoutNames = {
                 'imperial': 'Shaw Imperial',
-                'new-imperial': 'New Shaw Imperial',
+                'igc': 'Imperial Good Companion',
                 'qwerty': 'Shaw QWERTY',
                 '2layer': 'Shaw 2-layer',
                 'jafl': 'Shaw-JAFL'
@@ -1345,13 +1345,24 @@
         }
 
         // Helper function to toggle debug mode (can be called from console immediately)
-        // Usage: setDebug(true) or setDebug(false)
+        // Usage: setDebug(true) or setDebug(false) or window.debugMode = true
         window.setDebug = function(enabled) {
             debugMode = !!enabled;
+            window.debugMode = debugMode; // Also expose on window for direct access
             localStorage.setItem('debugMode', debugMode);
             console.log('Debug mode ' + (debugMode ? 'enabled' : 'disabled') + ' and saved to localStorage');
             return debugMode;
         };
+
+        // Expose debugMode on window and make it a getter/setter
+        Object.defineProperty(window, 'debugMode', {
+            get: function() { return debugMode; },
+            set: function(value) {
+                debugMode = !!value;
+                localStorage.setItem('debugMode', debugMode);
+                console.log('Debug mode ' + (debugMode ? 'enabled' : 'disabled'));
+            }
+        });
 
         // UI text translations
         const translations = {
@@ -1476,7 +1487,7 @@
                 hideWelcome: 'Hide welcome screen when page opens',
                 // Layout names
                 layoutImperial: 'Shaw Imperial',
-                layoutNewImperial: 'New Shaw Imperial',
+                layoutIGC: 'Imperial Good Companion',
                 layoutQwerty: 'Shaw QWERTY',
                 layout2layer: 'Shaw 2-layer (shift)',
                 layoutJafl: 'Shaw-JAFL'
@@ -1602,7 +1613,7 @@
                 hideWelcome: '𐑣𐑲𐑛 𐑢𐑧𐑤𐑒𐑳𐑥 𐑕𐑒𐑮𐑰𐑯 𐑢𐑧𐑯 𐑐𐑱𐑡 𐑴𐑐𐑩𐑯𐑟',
                 // Layout names
                 layoutImperial: '·𐑖𐑷 𐑦𐑥𐑐𐑽𐑾𐑤',
-                layoutNewImperial: '·𐑯𐑿 𐑖𐑷 𐑦𐑥𐑐𐑽𐑾𐑤',
+                layoutIGC: '·𐑦𐑥𐑐𐑽𐑾𐑤 𐑜𐑫𐑛 𐑒𐑩𐑥𐑐𐑨𐑯𐑘𐑩𐑯',
                 layoutQwerty: '·𐑖𐑷 QWERTY',
                 layout2layer: '·𐑖𐑷 2-𐑤𐑱𐑼 (𐑖𐑦𐑓𐑑)',
                 layoutJafl: '·𐑖𐑷-JAFL'
@@ -1793,9 +1804,9 @@
             currentLayout = document.getElementById('layoutSelectSettings').value;
             localStorage.setItem('keyboardLayout', currentLayout);
             // Show/hide ligature toggle based on layout
-            // Only show for imperial, new-imperial, qwerty, and jafl
+            // Only show for imperial, igc, qwerty, and jafl
             const supportsLigatures = currentLayout === 'imperial' ||
-                                     currentLayout === 'new-imperial' ||
+                                     currentLayout === 'igc' ||
                                      currentLayout === 'qwerty' ||
                                      currentLayout === 'jafl';
             document.getElementById('ligatureSettingOption').style.display =
@@ -1823,7 +1834,7 @@
             // Get the appropriate word list for current layout and ligature settings
             if (currentLayout === 'imperial') {
                 return useLigatures ? learnWordsImperial : learnWordsImperialNoLig;
-            } else if (currentLayout === 'new-imperial') {
+            } else if (currentLayout === 'igc') {
                 return useLigatures ? learnWordsNewImperial : learnWordsNewImperialNoLig;
             } else if (currentLayout === 'qwerty') {
                 return learnWordsQwerty;
@@ -1984,7 +1995,7 @@
 
             if (currentLayout === 'imperial') {
                 learnWords = useLigatures ? learnWordsImperial : learnWordsImperialNoLig;
-            } else if (currentLayout === 'new-imperial') {
+            } else if (currentLayout === 'igc') {
                 learnWords = useLigatures ? learnWordsNewImperial : learnWordsNewImperialNoLig;
             } else if (currentLayout === 'qwerty') {
                 learnWords = learnWordsQwerty;
@@ -2043,7 +2054,7 @@
                 });
 
                 // Load learn mode words for New Imperial
-                const learnNewImperialResponse = await fetch(`learn_words_new-imperial_${currentDialect}.json`);
+                const learnNewImperialResponse = await fetch(`learn_words_igc_${currentDialect}.json`);
                 const learnNewImperialData = await learnNewImperialResponse.json();
                 // Convert string keys to numbers
                 Object.keys(learnNewImperialData).forEach(key => {
@@ -2051,7 +2062,7 @@
                 });
 
                 // Load learn mode words for New Imperial (no ligatures)
-                const learnNewImperialNoLigResponse = await fetch(`learn_words_new-imperial_${currentDialect}_no_lig.json`);
+                const learnNewImperialNoLigResponse = await fetch(`learn_words_igc_${currentDialect}_no_lig.json`);
                 const learnNewImperialNoLigData = await learnNewImperialNoLigResponse.json();
                 // Convert string keys to numbers
                 Object.keys(learnNewImperialNoLigData).forEach(key => {
@@ -2301,8 +2312,10 @@
                 currentWord = formLigaturesInWord(currentWord);
             }
 
-            // Append space to currentWord if it's not the last word of the level
-            if (!isLastWordOfLevel) {
+            // Append space or period to currentWord
+            if (isLastWordOfLevel) {
+                currentWord = currentWord + '.';
+            } else {
                 currentWord = currentWord + ' ';
             }
 
@@ -2872,11 +2885,18 @@
             if (!useLigatures) return input;
             const chars = Array.from(input);
 
-            // Check if last 2 characters form a ligature
-            if (chars.length >= 2) {
-                const lastTwo = chars[chars.length - 2] + chars[chars.length - 1];
+            // Normalize to treat base+VS1 as single units
+            const normalizedChars = normalizeCharArray(chars);
+
+            // Check if last 2 normalized characters form a ligature
+            if (normalizedChars.length >= 2) {
+                const lastTwo = normalizedChars[normalizedChars.length - 2] + normalizedChars[normalizedChars.length - 1];
+                debug('🔗 LIGATURE CHECK: lastTwo="' + lastTwo + '" [' + toCodePoints(lastTwo) + ']' +
+                      ' | maps to: ' + (COMPONENT_TO_LIGATURE[lastTwo] || 'none'));
                 if (COMPONENT_TO_LIGATURE[lastTwo]) {
-                    return chars.slice(0, -2).join('') + COMPONENT_TO_LIGATURE[lastTwo];
+                    const result = normalizedChars.slice(0, -2).join('') + COMPONENT_TO_LIGATURE[lastTwo];
+                    debug('✅ LIGATURE FORMED: "' + result + '" [' + toCodePoints(result) + ']');
+                    return result;
                 }
             }
 
@@ -3051,7 +3071,7 @@
         });
 
         typingInput.addEventListener('input', (e) => {
-            const browserInput = e.target.value;
+            let browserInput = e.target.value;
             let eventData = e.data || '';
 
             // Virtual keyboard: translate QWERTY input to Shavian if needed
@@ -3066,25 +3086,37 @@
                         // Input is Latin and has a mapping - translate it
                         const translatedChar = keyboardMap[eventData];
                         debug('⌨️  Translating: "' + eventData + '" → "' + translatedChar + '" [' + toCodePoints(translatedChar) + ']');
-                        eventData = translatedChar;
 
-                        // Update the browser input to show the translated character
-                        const start = typingInput.selectionStart - eventData.length;
-                        const before = browserInput.substring(0, start);
-                        const after = browserInput.substring(typingInput.selectionStart);
-                        typingInput.value = before + translatedChar + after;
-                        typingInput.setSelectionRange(start + translatedChar.length, start + translatedChar.length);
+                        // Remove the Latin character that was inserted and replace with Shavian
+                        const originalLength = eventData.length;
+                        const selectionPos = typingInput.selectionStart;
+                        const before = browserInput.substring(0, selectionPos - originalLength);
+                        const after = browserInput.substring(selectionPos);
+                        browserInput = before + after; // Remove the original character
+
+                        eventData = translatedChar;
                     }
                 }
             }
 
-            // Check if we should block this input early (before updating shadow)
+            // Check if this character would complete a ligature
+            let completesLigature = false;
+            if (useLigatures && e.inputType === 'insertText' && eventData) {
+                const chars = Array.from(shadowInput);
+                const normalizedChars = normalizeCharArray(chars);
+                if (normalizedChars.length > 0) {
+                    const potentialPair = normalizedChars[normalizedChars.length - 1] + eventData;
+                    completesLigature = !!COMPONENT_TO_LIGATURE[potentialPair];
+                }
+            }
+
             // Block if user is in error state and trying to add more characters
+            // (but allow ligature completion)
             const isAddingCharacters = e.inputType === 'insertText' ||
                                       e.inputType === 'insertFromPaste' ||
                                       e.inputType === 'insertReplacementText';
 
-            if (isInErrorState && isAddingCharacters) {
+            if (isInErrorState && isAddingCharacters && !completesLigature) {
                 // Block the input - revert and flash red
                 typingInput.value = previousInput;
                 typingInput.style.animation = 'none';
@@ -3093,6 +3125,10 @@
                 }, 10);
                 debug('🚫 BLOCKED: user in error state, rejecting input');
                 return;
+            }
+
+            if (completesLigature) {
+                debug('✅ ALLOWING: completes ligature' + (isInErrorState ? ' (in error state)' : ''));
             }
 
             // Update shadow input based on what was actually typed
@@ -3361,7 +3397,7 @@
 
             // Show/hide ligature option based on current layout
             const supportsLigatures = currentLayout === 'imperial' ||
-                                     currentLayout === 'new-imperial' ||
+                                     currentLayout === 'igc' ||
                                      currentLayout === 'qwerty' ||
                                      currentLayout === 'jafl';
             document.getElementById('ligatureSettingOption').style.display =
@@ -3568,8 +3604,8 @@
                             case 'imperial':
                                 option.textContent = t.layoutImperial;
                                 break;
-                            case 'new-imperial':
-                                option.textContent = t.layoutNewImperial;
+                            case 'igc':
+                                option.textContent = t.layoutIGC;
                                 break;
                             case 'qwerty':
                                 option.textContent = t.layoutQwerty;
@@ -3636,7 +3672,12 @@
             }
 
             // Load keyboard layout
-            const savedLayout = localStorage.getItem('keyboardLayout');
+            let savedLayout = localStorage.getItem('keyboardLayout');
+            // Migration: rename "new-imperial" to "igc"
+            if (savedLayout === 'new-imperial') {
+                savedLayout = 'igc';
+                localStorage.setItem('keyboardLayout', 'igc');
+            }
             if (savedLayout !== null) {
                 currentLayout = savedLayout;
             }
