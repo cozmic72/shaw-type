@@ -1551,9 +1551,9 @@
                 // Reload words with new dialect
                 loadWords().then(() => {
                     updateLevelSelector();
-                    // Only reinitialize if not in an active game
+                    // If there's an active game, restart it with new words
                     const isGameActive = !document.getElementById('gameContent').classList.contains('hidden');
-                    if (!isGameActive) {
+                    if (isGameActive && currentLevelWordPool.length > 0) {
                         initializeGame();
                     }
                 });
