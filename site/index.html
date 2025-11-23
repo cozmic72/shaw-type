@@ -1290,8 +1290,11 @@
                 if (toggle) toggle.checked = true;
                 localStorage.setItem('showVirtualKeyboard', 'true');
             } else {
-                // Hide keyboard
+                // Hide keyboard and reset position/scale
                 hideVirtualKeyboard();
+                if (typeof resetKeyboardState === 'function') {
+                    resetKeyboardState();
+                }
                 if (toggle) toggle.checked = false;
                 localStorage.setItem('showVirtualKeyboard', 'false');
             }

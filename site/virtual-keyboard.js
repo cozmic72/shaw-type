@@ -3,17 +3,59 @@
 // Track shift state
 let isShiftActive = false;
 
+// Track keyboard position and scale
+let keyboardPosition = { x: 0, y: 0 };
+let keyboardScale = 1;
+
+// Load keyboard state from localStorage
+function loadKeyboardState() {
+    const saved = localStorage.getItem('virtualKeyboardState');
+    if (saved) {
+        try {
+            const state = JSON.parse(saved);
+            keyboardPosition = state.position || { x: 0, y: 0 };
+            keyboardScale = state.scale || 1;
+        } catch (e) {
+            console.error('Failed to load keyboard state:', e);
+        }
+    }
+}
+
+// Save keyboard state to localStorage
+function saveKeyboardState() {
+    const state = {
+        position: keyboardPosition,
+        scale: keyboardScale
+    };
+    localStorage.setItem('virtualKeyboardState', JSON.stringify(state));
+}
+
+// Reset keyboard state (called when virtual keyboard is toggled off)
+function resetKeyboardState() {
+    keyboardPosition = { x: 0, y: 0 };
+    keyboardScale = 1;
+    localStorage.removeItem('virtualKeyboardState');
+    const keyboard = document.getElementById('virtualKeyboard');
+    if (keyboard) {
+        updateKeyboardTransform(keyboard);
+    }
+}
+
+// Update keyboard transform based on current position and scale
+function updateKeyboardTransform(el) {
+    el.style.transform = `translate(${keyboardPosition.x}px, ${keyboardPosition.y}px) scale(${keyboardScale})`;
+}
+
 // Make keyboard draggable
 function makeKeyboardDraggable() {
     const keyboard = document.getElementById('virtualKeyboard');
     const header = keyboard.querySelector('.keyboard-header');
     let isDragging = false;
-    let currentX;
-    let currentY;
-    let initialX;
-    let initialY;
-    let xOffset = 0;
-    let yOffset = 0;
+    let startX, startY;
+
+    // Apply saved state
+    loadKeyboardState();
+    updateKeyboardTransform(keyboard);
 
     header.addEventListener('mousedown', dragStart);
     document.addEventListener('mousemove', drag);
@@ -25,19 +67,19 @@ function makeKeyboardDraggable() {
     document.addEventListener('touchend', dragEnd);
 
     function dragStart(e) {
-        if (e.type === 'touchstart') {
-            initialX = e.touches[0].clientX - xOffset;
-            initialY = e.touches[0].clientY - yOffset;
-        } else {
-            initialX = e.clientX - xOffset;
-            initialY = e.clientY - yOffset;
-        }
-
         if (e.target === header || header.contains(e.target)) {
             if (e.target.classList.contains('keyboard-close')) {
                 return; // Don't drag when clicking close button
             }
             isDragging = true;
+
+            if (e.type === 'touchstart') {
+                startX = e.touches[0].clientX - keyboardPosition.x;
+                startY = e.touches[0].clientY - keyboardPosition.y;
+            } else {
+                startX = e.clientX - keyboardPosition.x;
+                startY = e.clientY - keyboardPosition.y;
+            }
         }
     }
 
@@ -46,28 +88,22 @@ function makeKeyboardDraggable() {
             e.preventDefault();
 
             if (e.type === 'touchmove') {
-                currentX = e.touches[0].clientX - initialX;
-                currentY = e.touches[0].clientY - initialY;
+                keyboardPosition.x = e.touches[0].clientX - startX;
+                keyboardPosition.y = e.touches[0].clientY - startY;
             } else {
-                currentX = e.clientX - initialX;
-                currentY = e.clientY - initialY;
+                keyboardPosition.x = e.clientX - startX;
+                keyboardPosition.y = e.clientY - startY;
             }
 
-            xOffset = currentX;
-            yOffset = currentY;
-
-            setTranslate(currentX, currentY, keyboard);
+            updateKeyboardTransform(keyboard);
         }
     }
 
     function dragEnd(e) {
-        initialX = currentX;
-        initialY = currentY;
-        isDragging = false;
-    }
-
-    function setTranslate(xPos, yPos, el) {
-        el.style.transform = `translate(${xPos}px, ${yPos}px)`;
+        if (isDragging) {
+            isDragging = false;
+            saveKeyboardState();
+        }
     }
 }
 
@@ -155,7 +191,7 @@ function makeKeyboardResizable() {
     keyboard.appendChild(resizeHandle);
 
     let isResizing = false;
-    let startWidth, startHeight, startX, startY;
+    let startX, startY, startScale;
 
     resizeHandle.addEventListener('mousedown', startResize);
     resizeHandle.addEventListener('touchstart', startResize);
@@ -164,10 +200,7 @@ function makeKeyboardResizable() {
         e.preventDefault();
         e.stopPropagation();
         isResizing = true;
-
-        const rect = keyboard.getBoundingClientRect();
-        startWidth = rect.width;
-        startHeight = rect.height;
+        startScale = keyboardScale;
 
         if (e.type === 'touchstart') {
             startX = e.touches[0].clientX;
@@ -200,17 +233,24 @@ function makeKeyboardResizable() {
 
         // Calculate new scale based on diagonal resize
         const diagonal = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-        const scaleFactor = 1 + (diagonal / 500);
+        const scaleDelta = diagonal / 500;
 
-        keyboard.style.transform = keyboard.style.transform.replace(/scale\([^)]*\)/, '') + ` scale(${scaleFactor})`;
+        // Determine if dragging towards or away from keyboard
+        const direction = (deltaX > 0 && deltaY > 0) ? 1 : -1;
+        keyboardScale = Math.max(0.5, Math.min(2, startScale + (scaleDelta * direction)));
+
+        updateKeyboardTransform(keyboard);
     }
 
     function stopResize() {
-        isResizing = false;
-        document.removeEventListener('mousemove', resize);
-        document.removeEventListener('mouseup', stopResize);
-        document.removeEventListener('touchmove', resize);
-        document.removeEventListener('touchend', stopResize);
+        if (isResizing) {
+            isResizing = false;
+            saveKeyboardState();
+            document.removeEventListener('mousemove', resize);
+            document.removeEventListener('mouseup', stopResize);
+            document.removeEventListener('touchmove', resize);
+            document.removeEventListener('touchend', stopResize);
+        }
     }
 }
 
