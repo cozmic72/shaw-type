@@ -6,98 +6,7 @@ Progressive levels based on finger travel distance from home row.
 
 import json
 from pathlib import Path
-
-# Shaw Imperial keyboard layout (ANSI US)
-LAYOUT_IMPERIAL = {
-    'number': '𐑶𐑬𐑫𐑜𐑖𐑗𐑙𐑘𐑡𐑔',  # 1-0 keys
-    'qwerty': '𐑭𐑷𐑵𐑱𐑳𐑓𐑞𐑤𐑥𐑒𐑢𐑣𐑠',  # q to \ keys
-    'home': '𐑪𐑨𐑦𐑩𐑧𐑐𐑯𐑑𐑮𐑕𐑛',  # a to ; keys (home row)
-    'bottom': '𐑾𐑲𐑴𐑰𐑚𐑝𐑟'  # z to / keys
-}
-
-# New Shaw Imperial keyboard layout (ANSI US) - includes compound chars in number row
-LAYOUT_NEW_IMPERIAL = {
-    'number': '𐑶𐑬𐑻𐑫𐑺𐑜𐑖𐑗𐑙𐑘𐑡𐑔',  # 1-0 plus - = keys (includes 𐑻 𐑺 compounds)
-    'qwerty': '𐑭𐑷𐑵𐑱𐑳𐑓𐑞𐑤𐑥𐑒𐑢𐑣𐑠',  # q to \ keys
-    'home': '𐑪𐑨𐑦𐑩𐑧𐑐𐑯𐑑𐑮𐑕𐑛',  # a to ; keys (home row)
-    'bottom': '𐑾𐑲𐑴𐑰𐑚𐑝𐑟'  # z to / keys
-}
-
-# Shaw QWERTY keyboard layout (no number row)
-# Base layer (unshifted)
-LAYOUT_QWERTY_BASE = {
-    'qwerty': '𐑶𐑢𐑧𐑮𐑑𐑭𐑳𐑦𐑪𐑐',  # q to p keys
-    'home': '𐑩𐑕𐑛𐑓𐑜𐑣𐑘𐑒𐑤',  # a to l keys (home row)
-    'bottom': '𐑟𐑻𐑗𐑝𐑚𐑯𐑥'  # z to m keys
-}
-
-# Shift layer
-LAYOUT_QWERTY_SHIFT = {
-    'qwerty': '𐑬𐑾𐑱𐑸𐑔𐑷𐑫𐑰𐑴𐑹',  # q to p keys (shifted)
-    'home': '𐑨𐑖𐑼𐑲·𐑞𐑡',  # a to l keys (shifted)
-    'bottom': '𐑠𐑺𐑽𐑿⸰𐑙𐑵'  # z to m keys (shifted)
-}
-
-# Combine both layers for Shaw QWERTY
-LAYOUT_QWERTY = {
-    'qwerty': LAYOUT_QWERTY_BASE['qwerty'] + LAYOUT_QWERTY_SHIFT['qwerty'],
-    'home': LAYOUT_QWERTY_BASE['home'] + LAYOUT_QWERTY_SHIFT['home'],
-    'bottom': LAYOUT_QWERTY_BASE['bottom'] + LAYOUT_QWERTY_SHIFT['bottom']
-}
-
-# Shaw 2-layer (shift) keyboard layout (no number row)
-# Base layer
-LAYOUT_2LAYER_BASE = {
-    'qwerty': '𐑵𐑧𐑨𐑭𐑬𐑝𐑢𐑞𐑣',  # q to p keys (minus punctuation)
-    'home': '𐑤𐑦𐑩𐑯𐑷𐑖𐑑𐑕𐑒𐑐',  # a to ; keys
-    'bottom': '𐑪𐑳𐑼𐑴𐑗'  # z to m keys (minus punctuation)
-}
-
-# Shift layer
-LAYOUT_2LAYER_SHIFT = {
-    'qwerty': '𐑿𐑱𐑲𐑸𐑶𐑓𐑘𐑔𐑙',  # q to p keys (shifted, minus punctuation)
-    'home': '𐑮𐑰𐑾𐑥𐑹𐑠𐑛𐑟𐑜𐑚',  # a to ; keys (shifted)
-    'bottom': '𐑺𐑻𐑽𐑫𐑡'  # z to m keys (shifted, minus punctuation)
-}
-
-# Combine both layers for Shaw 2-layer
-LAYOUT_2LAYER = {
-    'qwerty': LAYOUT_2LAYER_BASE['qwerty'] + LAYOUT_2LAYER_SHIFT['qwerty'],
-    'home': LAYOUT_2LAYER_BASE['home'] + LAYOUT_2LAYER_SHIFT['home'],
-    'bottom': LAYOUT_2LAYER_BASE['bottom'] + LAYOUT_2LAYER_SHIFT['bottom']
-}
-
-# Shaw-JAFL keyboard layout (no number row)
-# Base layer
-LAYOUT_JAFL_BASE = {
-    'qwerty': '𐑱𐑧𐑰𐑥𐑒𐑐𐑑𐑛𐑓',  # q to p keys (minus punctuation)
-    'home': '𐑪𐑨𐑩𐑦𐑳𐑤𐑮𐑕𐑯𐑢',  # a to ; keys
-    'bottom': '𐑲𐑴𐑞𐑟𐑣𐑝𐑚'  # z to m keys (minus punctuation)
-}
-
-# Shift layer
-LAYOUT_JAFL_SHIFT = {
-    'qwerty': '𐑬𐑹𐑸𐑿𐑜𐑗𐑡',  # q to p keys (shifted, minus punctuation)
-    'home': '𐑷𐑭𐑩𐑵𐑫𐑮𐑖𐑙𐑘',  # a to ; keys (shifted, note 𐑩 appears in both)
-    'bottom': '𐑶𐑔𐑠'  # z to m keys (shifted, minus punctuation)
-}
-
-# Combine both layers for Shaw-JAFL
-LAYOUT_JAFL = {
-    'qwerty': LAYOUT_JAFL_BASE['qwerty'] + LAYOUT_JAFL_SHIFT['qwerty'],
-    'home': LAYOUT_JAFL_BASE['home'] + LAYOUT_JAFL_SHIFT['home'],
-    'bottom': LAYOUT_JAFL_BASE['bottom'] + LAYOUT_JAFL_SHIFT['bottom']
-}
-
-# Ligatures: compound letters formed by typing two characters
-# Format: ligature -> (char1, char2)
-LIGATURES = {
-    '𐑼': ('𐑩', '𐑮'),  # ER ligature
-    '𐑸': ('𐑭', '𐑮'),  # AR ligature
-    '𐑹': ('𐑷', '𐑮'),  # OR ligature
-    '𐑿': ('𐑘', '𐑵'),  # YEW ligature
-    '𐑽': ('𐑾', '𐑮')   # AIR ligature
-}
+from keyboard_layout_loader import get_layout_for_learn_mode, LIGATURES, load_keyboard_layouts
 
 # Define progressive levels for Shaw Imperial
 LEARN_LEVELS_IMPERIAL = {
@@ -556,6 +465,16 @@ def generate_learn_word_lists(readlex_file, learn_levels, output_file, layout_na
 
 
 if __name__ == '__main__':
+    # Load keyboard layouts from JSON
+    keyboard_layouts = load_keyboard_layouts()
+
+    # Get layouts organized by rows
+    LAYOUT_IMPERIAL = get_layout_for_learn_mode('imperial', keyboard_layouts)
+    LAYOUT_NEW_IMPERIAL = get_layout_for_learn_mode('igc', keyboard_layouts)  # IGC is the new imperial
+    LAYOUT_QWERTY = get_layout_for_learn_mode('qwerty', keyboard_layouts)
+    LAYOUT_2LAYER = get_layout_for_learn_mode('2layer', keyboard_layouts)
+    LAYOUT_JAFL = get_layout_for_learn_mode('jafl', keyboard_layouts)
+
     # All chars for each layout (for compound letters lessons)
     all_imperial_chars = ''.join([
         LAYOUT_IMPERIAL['number'],
