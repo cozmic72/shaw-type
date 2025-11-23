@@ -5,6 +5,7 @@ Progressive levels based on finger travel distance from home row.
 """
 
 import json
+from pathlib import Path
 
 # Shaw Imperial keyboard layout (ANSI US)
 LAYOUT_IMPERIAL = {
@@ -324,6 +325,56 @@ def is_shavian_only(word):
     return True
 
 
+
+def load_readlex_words(readlex_file, dialect='gb'):
+    """
+    Load words from readlex.json and select appropriate variant.
+    
+    Args:
+        readlex_file: Path to readlex.json
+        dialect: 'gb' for British (RRP), 'us' for American (GenAm preferred)
+    
+    Returns:
+        List of (shavian_word, frequency) tuples
+    """
+    with open(readlex_file, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+    
+    words = []
+    variant_pref = 'GenAm' if dialect == 'us' else 'RRP'
+    
+    for key, entries in data.items():
+        # Select the appropriate variant
+        selected_entry = None
+        
+        # First, try to find preferred variant
+        for entry in entries:
+            if entry.get('var') == variant_pref:
+                selected_entry = entry
+                break
+        
+        # If no preferred variant found, use RRP
+        if selected_entry is None:
+            for entry in entries:
+                if entry.get('var') == 'RRP':
+                    selected_entry = entry
+                    break
+        
+        # Fallback to first entry if nothing else matches
+        if selected_entry is None and len(entries) > 0:
+            selected_entry = entries[0]
+        
+        if selected_entry:
+            shaw_word = selected_entry.get('Shaw', '')
+            freq = selected_entry.get('freq', 0)
+            
+            # Only include if it's purely Shavian
+            if shaw_word and is_shavian_only(shaw_word):
+                words.append((shaw_word, freq))
+    
+    return words
+
+
 def expand_ligatures(word):
     """
     Expand ligatures in a word to their component characters.
@@ -370,7 +421,7 @@ def get_new_chars_for_level(level_num, learn_levels):
     return current_chars - prev_chars
 
 
-def generate_learn_word_lists(word_freq_file, learn_levels, output_file, layout_name, use_ligatures=True, dialect='gb', all_chars=''):
+def generate_learn_word_lists(readlex_file, learn_levels, output_file, layout_name, use_ligatures=True, dialect='gb', all_chars=''):
     """
     Generate word lists for each learning level for a specific layout.
     Words are selected to:
@@ -380,27 +431,11 @@ def generate_learn_word_lists(word_freq_file, learn_levels, output_file, layout_
 
     A compound letter lesson is automatically inserted at third-from-last position.
     """
-    # Load all words with frequency info
-    all_words = []
-    filtered_count = 0
-    with open(word_freq_file, 'r', encoding='utf-8') as f:
-        for line_num, line in enumerate(f, 1):
-            parts = line.strip().split()
-            if len(parts) >= 2:
-                word = parts[0]
-                # Skip words with non-Shavian characters
-                if not is_shavian_only(word):
-                    filtered_count += 1
-                    continue
-                try:
-                    freq = int(parts[1])
-                    all_words.append((word, freq))
-                except ValueError:
-                    print(f"  Warning: Skipping line {line_num}: {line.strip()}")
-                    continue
+    # Load all words with frequency info from readlex
+    all_words = load_readlex_words(readlex_file, dialect)
 
     print(f"\n{layout_name} Layout ({dialect.upper()}):")
-    print(f"Loaded {len(all_words)} words from frequency file (filtered {filtered_count} non-Shavian words)")
+    print(f"Loaded {len(all_words)} words from readlex")
     if use_ligatures:
         print(f"  Using ligature expansion")
     else:
@@ -537,9 +572,20 @@ if __name__ == '__main__':
         LAYOUT_JAFL['bottom']
     ])
 
+    # Paths
+    script_dir = Path(__file__).parent
+    project_dir = script_dir.parent
+    readlex_file = project_dir / 'readlex' / 'readlex.json'
+    
+    if not readlex_file.exists():
+        print(f"Error: readlex.json not found at {readlex_file}")
+        print("Make sure the readlex submodule is initialized:")
+        print("  git submodule update --init --recursive")
+        exit(1)
+
     # Generate for both GB and US dialects
     for dialect in ['gb', 'us']:
-        word_freq_file = f'shavian-{dialect}-word-frequencies.txt'
+
 
         print(f"\n{'='*60}")
         print(f"Generating word lists for {dialect.upper()} English")
@@ -547,7 +593,7 @@ if __name__ == '__main__':
 
         # Generate for Shaw Imperial (with ligatures)
         generate_learn_word_lists(
-            word_freq_file,
+            readlex_file,
             LEARN_LEVELS_IMPERIAL,
             f'../site/learn_words_imperial_{dialect}.json',
             'Shaw Imperial',
@@ -558,7 +604,7 @@ if __name__ == '__main__':
 
         # Generate for Shaw Imperial (without ligatures)
         generate_learn_word_lists(
-            word_freq_file,
+            readlex_file,
             LEARN_LEVELS_IMPERIAL,
             f'../site/learn_words_imperial_{dialect}_no_lig.json',
             'Shaw Imperial (No Ligatures)',
@@ -569,7 +615,7 @@ if __name__ == '__main__':
 
         # Generate for Imperial Good Companion (with ligatures)
         generate_learn_word_lists(
-            word_freq_file,
+            readlex_file,
             LEARN_LEVELS_NEW_IMPERIAL,
             f'../site/learn_words_igc_{dialect}.json',
             'Imperial Good Companion',
@@ -580,7 +626,7 @@ if __name__ == '__main__':
 
         # Generate for Imperial Good Companion (without ligatures)
         generate_learn_word_lists(
-            word_freq_file,
+            readlex_file,
             LEARN_LEVELS_NEW_IMPERIAL,
             f'../site/learn_words_igc_{dialect}_no_lig.json',
             'Imperial Good Companion (No Ligatures)',
@@ -591,7 +637,7 @@ if __name__ == '__main__':
 
         # Generate for Shaw QWERTY (no ligatures)
         generate_learn_word_lists(
-            word_freq_file,
+            readlex_file,
             LEARN_LEVELS_QWERTY,
             f'../site/learn_words_qwerty_{dialect}.json',
             'Shaw QWERTY',
@@ -602,7 +648,7 @@ if __name__ == '__main__':
 
         # Generate for Shaw 2-layer (no ligature support - ligatures are direct keys)
         generate_learn_word_lists(
-            word_freq_file,
+            readlex_file,
             LEARN_LEVELS_2LAYER,
             f'../site/learn_words_2layer_{dialect}.json',
             'Shaw 2-layer (shift)',
@@ -613,7 +659,7 @@ if __name__ == '__main__':
 
         # Generate for Shaw-JAFL (with ligatures)
         generate_learn_word_lists(
-            word_freq_file,
+            readlex_file,
             LEARN_LEVELS_JAFL,
             f'../site/learn_words_jafl_{dialect}.json',
             'Shaw-JAFL',
@@ -624,7 +670,7 @@ if __name__ == '__main__':
 
         # Generate for Shaw-JAFL (without ligatures)
         generate_learn_word_lists(
-            word_freq_file,
+            readlex_file,
             LEARN_LEVELS_JAFL,
             f'../site/learn_words_jafl_{dialect}_no_lig.json',
             'Shaw-JAFL (No Ligatures)',

@@ -14,6 +14,14 @@ echo "Building Shaw Type Resources"
 echo "=========================================="
 echo
 
+# Check if readlex submodule is initialized
+if [ ! -f "readlex/readlex.json" ]; then
+    echo "Initializing readlex submodule..."
+    git submodule update --init --recursive
+    echo "✓ Readlex submodule initialized"
+    echo
+fi
+
 # Generate keyboard images
 if [ -f "tools/generate_keyboard_images.py" ]; then
     echo "Generating keyboard images..."
