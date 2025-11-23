@@ -864,21 +864,19 @@
 
             <div class="settings-option">
                 <label>
-                    <input type="checkbox" id="shavianUIToggle" onchange="toggleShavianUI()">
-                    <span>Display UI in Shavian</span>
+                    <input type="checkbox" id="virtualKeyboardToggle" onchange="toggleVirtualKeyboard()">
+                    <span id="settingsVirtualKeyboard">Show virtual keyboard</span>
                 </label>
-                <div class="settings-option-desc">Show labels and text in Shavian alphabet instead of Latin</div>
             </div>
 
             <div class="settings-option">
                 <label>
-                    <input type="checkbox" id="virtualKeyboardToggle" onchange="toggleVirtualKeyboard()">
-                    <span id="settingsVirtualKeyboard">Show virtual keyboard</span>
+                    <input type="checkbox" id="shavianUIToggle" onchange="toggleShavianUI()">
+                    <span>Display UI in Shavian</span>
                 </label>
-                <div class="settings-option-desc" id="settingsVirtualKeyboardDesc">Display a draggable on-screen keyboard showing Shavian characters</div>
             </div>
 
-            <div class="settings-option" style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #e0e0e0;">
+            <div class="settings-option">
                 <label>
                     <input type="checkbox" id="hideWelcomeToggle" onchange="toggleHideWelcome()">
                     <span id="settingsHideWelcome">Hide welcome screen when page opens</span>
@@ -3464,7 +3462,6 @@
             document.getElementById('settingsDialectAmerican').textContent = t.dialectAmerican;
             document.getElementById('settingsHideWelcome').textContent = t.hideWelcome;
             document.getElementById('settingsVirtualKeyboard').textContent = t.showVirtualKeyboard;
-            document.getElementById('settingsVirtualKeyboardDesc').textContent = t.showVirtualKeyboardDesc;
 
             // Update layout select options
             updateLayoutSelectOptions();
