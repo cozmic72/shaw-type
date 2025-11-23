@@ -226,7 +226,7 @@ def main():
 
     # Process CSV translations
     print("\nGenerating JSON translations from CSV:")
-    csv_file = SITE_DIR / "translations.csv"
+    csv_file = SCRIPT_DIR / "translations.csv"
 
     if csv_file.exists():
         transliterate_csv(
