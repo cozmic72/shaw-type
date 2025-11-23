@@ -3549,9 +3549,8 @@
             if (shouldShowSplash) {
                 document.getElementById('splashModal').classList.add('show');
 
-                // Load content based on current language
-                const lang = useShavianUI ? 'shavian' : 'latin';
-                const filename = `whats_new_${lang}.html`;
+                // Load content based on current dialect
+                const filename = `whats_new_${currentDialect}.html`;
                 const contentEl = document.getElementById('splashContent');
 
                 try {
@@ -3873,10 +3872,10 @@
             document.getElementById('splashContinueBtn').textContent = t.continueButton;
             document.getElementById('splashDontShowAgain').textContent = t.dontShowAgain;
 
-            // Reload splash content in current language if modal is showing
+            // Reload splash content in current dialect if modal is showing
             const splashModal = document.getElementById('splashModal');
             if (splashModal.classList.contains('show')) {
-                const filename = `whats_new_${lang}.html`;
+                const filename = `whats_new_${currentDialect}.html`;
                 const contentEl = document.getElementById('splashContent');
                 fetch(filename)
                     .then(response => response.ok ? response.text() : '<p>Content not found.</p>')
