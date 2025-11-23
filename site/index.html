@@ -3045,70 +3045,33 @@
             }
         });
 
-        // Virtual keyboard: translate QWERTY keys to Shavian characters
-        typingInput.addEventListener('keydown', (e) => {
-            console.log('KEYDOWN:', e.key, 'useVirtualKeyboard:', useVirtualKeyboard, 'currentLayout:', currentLayout);
-
-            if (!useVirtualKeyboard) {
-                console.log('Virtual keyboard disabled, skipping');
-                return;
-            }
-
-            // If key is already a Shavian character (user has Shavian keyboard), don't translate
-            // Shavian Unicode range: U+10450 to U+1047F
-            // Note: e.key.length will be 2 for Shavian chars (surrogate pairs in JavaScript)
-            if (e.key.length > 0) {
-                const codePoint = e.key.codePointAt(0);
-                if (codePoint >= 0x10450 && codePoint <= 0x1047F) {
-                    console.log('Key is already Shavian, skipping translation');
-                    return;
-                }
-            }
-
-            // Get the keyboard map for current layout (if available)
-            const keyboardMap = KEYBOARD_MAPS[currentLayout];
-            if (!keyboardMap) {
-                // No QWERTY mapping for this layout, allow normal typing
-                console.log('No keyboard map for', currentLayout, 'allowing normal typing');
-                return;
-            }
-
-            // Check if this key has a mapping
-            const shavianChar = keyboardMap[e.key];
-            console.log('Key mapping:', e.key, '->', shavianChar);
-            if (shavianChar) {
-                // Prevent default key input
-                e.preventDefault();
-
-                // Insert the Shavian character instead
-                const start = typingInput.selectionStart;
-                const end = typingInput.selectionEnd;
-                const currentValue = typingInput.value;
-
-                // Replace selected text (if any) with the Shavian character
-                const newValue = currentValue.substring(0, start) + shavianChar + currentValue.substring(end);
-                typingInput.value = newValue;
-
-                // Move cursor after inserted character
-                const newCursorPos = start + shavianChar.length;
-                typingInput.setSelectionRange(newCursorPos, newCursorPos);
-
-                // Trigger input event manually so the game logic processes it
-                const inputEvent = new InputEvent('input', {
-                    bubbles: true,
-                    cancelable: true,
-                    inputType: 'insertText',
-                    data: shavianChar
-                });
-                typingInput.dispatchEvent(inputEvent);
-
-                debug('⌨️  Virtual keyboard: ' + e.key + ' → ' + shavianChar + ' [' + toCodePoints(shavianChar) + ']');
-            }
-        });
-
         typingInput.addEventListener('input', (e) => {
             const browserInput = e.target.value;
-            const eventData = e.data || '';
+            let eventData = e.data || '';
+
+            // Virtual keyboard: translate QWERTY input to Shavian if needed
+            if (useVirtualKeyboard && e.inputType === 'insertText' && eventData.length > 0) {
+                const keyboardMap = KEYBOARD_MAPS[currentLayout];
+                if (keyboardMap) {
+                    // Check if the input data is a Latin character that needs translation
+                    const codePoint = eventData.codePointAt(0);
+                    const isShavian = codePoint >= 0x10450 && codePoint <= 0x1047F;
+
+                    if (!isShavian && keyboardMap[eventData]) {
+                        // Input is Latin and has a mapping - translate it
+                        const translatedChar = keyboardMap[eventData];
+                        debug('⌨️  Translating: "' + eventData + '" → "' + translatedChar + '" [' + toCodePoints(translatedChar) + ']');
+                        eventData = translatedChar;
+
+                        // Update the browser input to show the translated character
+                        const start = typingInput.selectionStart - eventData.length;
+                        const before = browserInput.substring(0, start);
+                        const after = browserInput.substring(typingInput.selectionStart);
+                        typingInput.value = before + translatedChar + after;
+                        typingInput.setSelectionRange(start + translatedChar.length, start + translatedChar.length);
+                    }
+                }
+            }
 
             // Check if we should block this input early (before updating shadow)
             // Block if user is in error state and trying to add more characters
