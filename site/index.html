@@ -3046,6 +3046,43 @@
         typingInput.addEventListener('keydown', (e) => {
             console.log('KEYDOWN:', e.key, 'useVirtualKeyboard:', useVirtualKeyboard, 'currentLayout:', currentLayout);
 
+            // Handle Backspace specially to delete VS1 sequences properly
+            if (e.key === 'Backspace') {
+                const start = typingInput.selectionStart;
+                const end = typingInput.selectionEnd;
+                const currentValue = typingInput.value;
+
+                // If there's a selection, let browser handle it normally
+                if (start !== end) {
+                    return;
+                }
+
+                // Check if character before cursor ends with VS1 (U+FE00)
+                if (start >= 2) {
+                    const charBefore = currentValue.substring(start - 2, start);
+                    if (charBefore.codePointAt(1) === 0xFE00) {
+                        // This is a base+VS1 sequence, delete both
+                        e.preventDefault();
+                        const newValue = currentValue.substring(0, start - 2) + currentValue.substring(start);
+                        typingInput.value = newValue;
+                        typingInput.setSelectionRange(start - 2, start - 2);
+
+                        // Trigger input event
+                        const inputEvent = new InputEvent('input', {
+                            bubbles: true,
+                            cancelable: true,
+                            inputType: 'deleteContentBackward',
+                            data: null
+                        });
+                        typingInput.dispatchEvent(inputEvent);
+                        debug('⌨️  Backspace: deleted VS1 sequence');
+                        return;
+                    }
+                }
+                // Let browser handle normal backspace
+                return;
+            }
+
             if (!useVirtualKeyboard) {
                 console.log('Virtual keyboard disabled, skipping');
                 return;
