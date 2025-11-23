@@ -2090,11 +2090,9 @@
         async function init() {
             await loadWords();
             if (wordsLoaded) {
-                // Show setup dialog for first-time users, then splash for returning users
-                const isFirstTime = showSetupIfNeeded();
-                if (!isFirstTime) {
-                    showSplashIfNeeded();
-                }
+                // Show splash for all users (first-time and returning)
+                // Splash will then show setup dialog for first-time users
+                showSplashIfNeeded();
                 // Start on home screen - don't auto-load game
                 // User will click Play or Practice to start
             }
@@ -3294,14 +3292,16 @@
                 localStorage.setItem('splashVersion', APP_VERSION);
             }
             document.getElementById('splashModal').classList.remove('show');
+
+            // After closing splash, show setup dialog for first-time users
+            showSetupIfNeeded();
         }
 
         async function showSplashIfNeeded() {
             const lastSeenVersion = localStorage.getItem('splashVersion');
-            const hasSeenKeyboard = localStorage.getItem('keyboardLayout');
 
-            // Show splash if it's a new version and user has already set up
-            if (lastSeenVersion !== APP_VERSION && hasSeenKeyboard) {
+            // Show splash if it's a new version (or first time)
+            if (lastSeenVersion !== APP_VERSION) {
                 document.getElementById('splashModal').classList.add('show');
 
                 // Load content based on current language
