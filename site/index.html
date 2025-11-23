@@ -12,10 +12,37 @@
     <link rel="shortcut icon" type="image/png" href="favicon.png">
     <link rel="stylesheet" href="virtual-keyboard.css">
 
-    <!-- Preload translation files -->
-    <link rel="preload" href="translations_latin.json" as="fetch" type="application/json" crossorigin>
-    <link rel="preload" href="translations_british.json" as="fetch" type="application/json" crossorigin>
-    <link rel="preload" href="translations_american.json" as="fetch" type="application/json" crossorigin>
+    <!-- Load translations synchronously before anything else -->
+    <script>
+        // Global translations object - loaded synchronously
+        window.translations = {
+            latin: null,
+            shavian_british: null,
+            shavian_american: null
+        };
+
+        // Load translations synchronously using XMLHttpRequest (blocking)
+        function loadTranslationsSync() {
+            const files = [
+                { key: 'latin', url: 'translations_latin.json' },
+                { key: 'shavian_british', url: 'translations_british.json' },
+                { key: 'shavian_american', url: 'translations_american.json' }
+            ];
+
+            files.forEach(file => {
+                const xhr = new XMLHttpRequest();
+                xhr.open('GET', file.url, false); // false = synchronous
+                xhr.send();
+                if (xhr.status === 200) {
+                    window.translations[file.key] = JSON.parse(xhr.responseText);
+                } else {
+                    console.error(`Failed to load ${file.url}`);
+                }
+            });
+        }
+
+        loadTranslationsSync();
+    </script>
 
     <style>
         @font-face {
@@ -1400,45 +1427,16 @@
             }
         });
 
-        // UI text translations - loaded dynamically from JSON files
-        let translations = {
-            latin: null,
-            shavian_british: null,
-            shavian_american: null
-        };
-
-        // Load translation files
-        async function loadTranslations() {
-            try {
-                // Add cache buster to ensure fresh JSON files
-                const cacheBuster = `?v=${APP_VERSION}`;
-                const [latinResp, britishResp, americanResp] = await Promise.all([
-                    fetch(`translations_latin.json${cacheBuster}`),
-                    fetch(`translations_british.json${cacheBuster}`),
-                    fetch(`translations_american.json${cacheBuster}`)
-                ]);
-
-                translations.latin = await latinResp.json();
-                translations.shavian_british = await britishResp.json();
-                translations.shavian_american = await americanResp.json();
-
-                console.log('Translations loaded successfully');
-                return true;
-            } catch (error) {
-                console.error('Error loading translations:', error);
-                return false;
-            }
-        }
-
         // Get current translations based on settings
+        // Note: translations are loaded synchronously in <head>
         function getCurrentTranslations() {
             if (!useShavianUI) {
-                return translations.latin || {};
+                return window.translations.latin || {};
             }
 
             // Use dialect-specific Shavian translations
             const dialectKey = currentDialect === 'gb' ? 'shavian_british' : 'shavian_american';
-            return translations[dialectKey] || {};
+            return window.translations[dialectKey] || {};
         }
 
         // Temporary: Keep old hardcoded translations as fallback until we finish migration
@@ -4165,11 +4163,10 @@
         applyPatches();
         loadPreferences();
 
-        // Load translations then initialize UI
-        loadTranslations().then(() => {
-            init();
-            updateUILanguage();
-        });
+        // Translations are already loaded synchronously in <head>
+        // Initialize the app
+        init();
+        updateUILanguage();
     </script>
     <script src="virtual-keyboard.js"></script>
 </body>
