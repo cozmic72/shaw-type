@@ -327,9 +327,15 @@ function makeKeysClickable(keyboardMap) {
             const shavianChar = keyboardMap ? keyboardMap[actualKey] : null;
 
             if (shavianChar) {
+                // Temporarily remove readonly to allow selection manipulation
+                const wasReadonly = typingInput.hasAttribute('readonly');
+                if (wasReadonly) {
+                    typingInput.removeAttribute('readonly');
+                }
+
                 // Insert the Shavian character
-                const start = typingInput.selectionStart;
-                const end = typingInput.selectionEnd;
+                const start = typingInput.selectionStart || typingInput.value.length;
+                const end = typingInput.selectionEnd || typingInput.value.length;
                 const currentValue = typingInput.value;
 
                 const newValue = currentValue.substring(0, start) + shavianChar + currentValue.substring(end);
@@ -337,7 +343,16 @@ function makeKeysClickable(keyboardMap) {
 
                 // Move cursor after inserted character
                 const newCursorPos = start + shavianChar.length;
-                typingInput.setSelectionRange(newCursorPos, newCursorPos);
+                try {
+                    typingInput.setSelectionRange(newCursorPos, newCursorPos);
+                } catch (e) {
+                    // Ignore selection errors on readonly inputs
+                }
+
+                // Restore readonly if it was set
+                if (wasReadonly) {
+                    typingInput.setAttribute('readonly', 'readonly');
+                }
 
                 // Trigger input event so the game logic processes it
                 const inputEvent = new InputEvent('input', {
@@ -348,21 +363,40 @@ function makeKeysClickable(keyboardMap) {
                 });
                 typingInput.dispatchEvent(inputEvent);
             } else if (keyValue === 'Backspace') {
+                // Temporarily remove readonly to allow selection manipulation
+                const wasReadonly = typingInput.hasAttribute('readonly');
+                if (wasReadonly) {
+                    typingInput.removeAttribute('readonly');
+                }
+
                 // Handle backspace
-                const start = typingInput.selectionStart;
-                const end = typingInput.selectionEnd;
+                const start = typingInput.selectionStart || typingInput.value.length;
+                const end = typingInput.selectionEnd || typingInput.value.length;
 
                 if (start !== end) {
                     // Delete selection
                     typingInput.value = typingInput.value.substring(0, start) + typingInput.value.substring(end);
-                    typingInput.setSelectionRange(start, start);
+                    try {
+                        typingInput.setSelectionRange(start, start);
+                    } catch (e) {
+                        // Ignore selection errors
+                    }
                 } else if (start > 0) {
                     // Delete one character before cursor
                     const chars = Array.from(typingInput.value);
                     const before = chars.slice(0, start - 1).join('');
                     const after = chars.slice(start).join('');
                     typingInput.value = before + after;
-                    typingInput.setSelectionRange(start - 1, start - 1);
+                    try {
+                        typingInput.setSelectionRange(start - 1, start - 1);
+                    } catch (e) {
+                        // Ignore selection errors
+                    }
+                }
+
+                // Restore readonly if it was set
+                if (wasReadonly) {
+                    typingInput.setAttribute('readonly', 'readonly');
                 }
 
                 const inputEvent = new InputEvent('input', {
@@ -373,8 +407,9 @@ function makeKeysClickable(keyboardMap) {
                 typingInput.dispatchEvent(inputEvent);
             }
 
-            // Focus the input
-            typingInput.focus();
+            // Don't focus the input - let the game logic handle focus
+            // (focusing would trigger mobile OS keyboard)
+            // typingInput.focus();
         });
     });
 }

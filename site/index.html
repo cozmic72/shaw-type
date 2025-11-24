@@ -1311,6 +1311,16 @@
             }
         }
 
+        // Prevent input from gaining focus when virtual keyboard is active
+        function preventInputFocusWhenVirtualKeyboardActive(e) {
+            const savedShowKeyboard = localStorage.getItem('showVirtualKeyboard');
+            const keyboard = document.getElementById('virtualKeyboard');
+            if (savedShowKeyboard === 'true' && keyboard && keyboard.style.display !== 'none') {
+                e.preventDefault();
+                e.target.blur();
+            }
+        }
+
         // Show virtual keyboard if user preference is enabled
         function showVirtualKeyboardIfEnabled() {
             const savedShowKeyboard = localStorage.getItem('showVirtualKeyboard');
@@ -1318,10 +1328,15 @@
                 showVirtualKeyboard();
                 updateVirtualKeyboardLabels();
 
-                // Blur the typing input to prevent mobile OS keyboard from showing
+                // Set input to readonly to prevent mobile OS keyboard
                 const typingInput = document.getElementById('typingInput');
                 if (typingInput) {
+                    typingInput.setAttribute('readonly', 'readonly');
                     typingInput.blur();
+
+                    // Add focus event listener as backup to prevent focus
+                    typingInput.removeEventListener('focus', preventInputFocusWhenVirtualKeyboardActive);
+                    typingInput.addEventListener('focus', preventInputFocusWhenVirtualKeyboardActive);
                 }
             }
         }
@@ -1330,10 +1345,16 @@
         function hideVirtualKeyboardTemporarily() {
             hideVirtualKeyboard();
 
-            // Restore focus to typing input when keyboard is hidden
+            // Remove readonly and focus prevention
             const typingInput = document.getElementById('typingInput');
-            if (typingInput && typingInput.style.display !== 'none') {
-                typingInput.focus();
+            if (typingInput) {
+                typingInput.removeAttribute('readonly');
+                typingInput.removeEventListener('focus', preventInputFocusWhenVirtualKeyboardActive);
+
+                // Restore focus to typing input when keyboard is hidden
+                if (typingInput.style.display !== 'none') {
+                    typingInput.focus();
+                }
             }
         }
 
