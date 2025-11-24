@@ -132,6 +132,10 @@
         padding: 5px;
     }
 
+    .keyboard-row {
+        justify-content: flex-start;
+    }
+
     .key {
         min-width: 24px;
         height: 28px;
