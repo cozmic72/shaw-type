@@ -10,12 +10,12 @@
     <link rel="icon" type="image/png" sizes="192x192" href="favicon-192x192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="favicon-512x512.png">
     <link rel="shortcut icon" type="image/png" href="favicon.png">
-    <link rel="stylesheet" href="virtual-keyboard.css?v=2.0-beta-15">
+    <link rel="stylesheet" href="virtual-keyboard.css?v=2.0-beta-16">
 
     <!-- Load translations synchronously before anything else -->
     <script>
         // Version for cache-busting
-        const RESOURCE_VERSION = '2.0-beta-15';
+        const RESOURCE_VERSION = '2.0-beta-16';
 
         // Helper: Add version parameter to resource URLs (global)
         window.versionedUrl = function(url) {
@@ -1045,96 +1045,8 @@
         </div>
     </div>
 
-    <!-- Virtual Keyboard Window -->
-    <div id="virtualKeyboard" class="virtual-keyboard" style="display: none;">
-        <div class="keyboard-header">
-            <span class="keyboard-title">Virtual Keyboard</span>
-            <span class="keyboard-close" onclick="toggleVirtualKeyboard()">&times;</span>
-        </div>
-        <div class="keyboard-body">
-            <!-- Number row -->
-            <div class="keyboard-row">
-                <div class="key desktop-only" data-key="`"></div>
-                <div class="key desktop-only" data-key="1"></div>
-                <div class="spacer mobile-only" style="flex: 0.5;"></div>
-                <div class="key" data-key="2"></div>
-                <div class="key" data-key="3"></div>
-                <div class="key" data-key="4"></div>
-                <div class="key" data-key="5"></div>
-                <div class="key" data-key="6"></div>
-                <div class="key" data-key="7"></div>
-                <div class="key" data-key="8"></div>
-                <div class="key" data-key="9"></div>
-                <div class="key" data-key="0"></div>
-                <div class="key" data-key="-"></div>
-                <div class="key" data-key="="></div>
-                <div class="spacer mobile-only" style="flex: 0.5;"></div>
-                <div class="key key-wide desktop-only" data-key="Backspace">⌫</div>
-            </div>
-            <!-- QWERTY row -->
-            <div class="keyboard-row">
-                <div class="key key-wide desktop-only" data-key="Tab">⇥</div>
-                <div class="key" data-key="q"></div>
-                <div class="key" data-key="w"></div>
-                <div class="key" data-key="e"></div>
-                <div class="key" data-key="r"></div>
-                <div class="key" data-key="t"></div>
-                <div class="key" data-key="y"></div>
-                <div class="key" data-key="u"></div>
-                <div class="key" data-key="i"></div>
-                <div class="key" data-key="o"></div>
-                <div class="key" data-key="p"></div>
-                <div class="key" data-key="["></div>
-                <div class="key" data-key="]"></div>
-                <div class="spacer mobile-only" style="flex: 1.5;"></div>
-                <div class="key desktop-only" data-key="\"></div>
-            </div>
-            <!-- Home row -->
-            <div class="keyboard-row">
-                <div class="key key-wider desktop-only" data-key="CapsLock">⇪</div>
-                <div class="spacer mobile-only" style="flex: 0.25;"></div>
-                <div class="key" data-key="a"></div>
-                <div class="key" data-key="s"></div>
-                <div class="key" data-key="d"></div>
-                <div class="key" data-key="f"></div>
-                <div class="key" data-key="g"></div>
-                <div class="key" data-key="h"></div>
-                <div class="key" data-key="j"></div>
-                <div class="key" data-key="k"></div>
-                <div class="key" data-key="l"></div>
-                <div class="key" data-key=";"></div>
-                <div class="key" data-key="'"></div>
-                <div class="spacer mobile-only" style="flex: 1.75;"></div>
-                <div class="key key-wider desktop-only" data-key="Enter">⏎</div>
-            </div>
-            <!-- Bottom row -->
-            <div class="keyboard-row">
-                <div class="key key-widest desktop-only" data-key="Shift" data-code="ShiftLeft">⇧</div>
-                <div class="spacer mobile-only" style="flex: 0.75;"></div>
-                <div class="key" data-key="z"></div>
-                <div class="key" data-key="x"></div>
-                <div class="key" data-key="c"></div>
-                <div class="key" data-key="v"></div>
-                <div class="key" data-key="b"></div>
-                <div class="key" data-key="n"></div>
-                <div class="key" data-key="m"></div>
-                <div class="key" data-key=","></div>
-                <div class="key" data-key="."></div>
-                <div class="key desktop-only" data-key="/"></div>
-                <div class="key key-widest desktop-only" data-key="Shift" data-code="ShiftRight">⇧</div>
-                <div class="key key-wide mobile-only" data-key="Backspace">⌫</div>
-                <div class="spacer mobile-only" style="flex: 2.25;"></div>
-            </div>
-            <!-- Space row -->
-            <div class="keyboard-row">
-                <div class="spacer mobile-only" style="flex: 1.5;"></div>
-                <div class="key key-wide-half mobile-only" data-key="Shift" data-code="ShiftLeft">⇧</div>
-                <div class="key key-space" data-key=" ">Space</div>
-                <div class="key key-wide-half mobile-only" data-key="Shift" data-code="ShiftRight">⇧</div>
-                <div class="spacer mobile-only" style="flex: 1.5;"></div>
-            </div>
-        </div>
-    </div>
+    <!-- Virtual Keyboard Container (loaded dynamically) -->
+    <div id="virtualKeyboardContainer"></div>
 
     <script>
         // Words will be loaded from JSON file
@@ -1996,6 +1908,12 @@
 
         // Initialize
         async function init() {
+            // Initialize virtual keyboard (encapsulated in virtual-keyboard.js)
+            await initVirtualKeyboard(
+                document.getElementById('virtualKeyboardContainer'),
+                RESOURCE_VERSION
+            );
+
             await loadWords();
             if (wordsLoaded) {
                 // Show splash for all users (first-time and returning)
@@ -3265,7 +3183,7 @@
         }
 
         // Splash screen functions
-        const APP_VERSION = '2.0-beta-15';
+        const APP_VERSION = '2.0-beta-16';
 
         function closeSplashModal() {
             const dontShow = document.getElementById('dontShowSplash').checked;
@@ -3922,6 +3840,6 @@
         init();
         updateUILanguage();
     </script>
-    <script src="virtual-keyboard.js?v=2.0-beta-15"></script>
+    <script src="virtual-keyboard.js?v=2.0-beta-16"></script>
 </body>
 </html>

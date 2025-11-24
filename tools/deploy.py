@@ -51,6 +51,7 @@ def deploy(version):
     # Process content/*.html files - deploy to site/*_latin.html
     # (transliteration tool will read these and create _gb and _us versions)
     # Skip index.html since it's already processed above
+    # Special case: virtual-keyboard.html is deployed directly without _latin suffix
     if content_dir.exists():
         html_files = list(content_dir.glob('*.html'))
         for source_file in html_files:
@@ -65,13 +66,19 @@ def deploy(version):
             # Replace version placeholder
             content = content.replace('{{VERSION}}', version)
 
-            # Write to site/*_latin.html
-            base_name = source_file.stem
-            output_file = site_dir / f"{base_name}_latin.html"
-            with open(output_file, 'w', encoding='utf-8') as f:
-                f.write(content)
-
-            print(f"✓ Deployed {source_file.name} → {output_file.name}")
+            # Special case: virtual-keyboard.html is deployed directly (no _latin suffix)
+            if source_file.name == 'virtual-keyboard.html':
+                output_file = site_dir / source_file.name
+                with open(output_file, 'w', encoding='utf-8') as f:
+                    f.write(content)
+                print(f"✓ Deployed {source_file.name} → {output_file.name}")
+            else:
+                # Write to site/*_latin.html
+                base_name = source_file.stem
+                output_file = site_dir / f"{base_name}_latin.html"
+                with open(output_file, 'w', encoding='utf-8') as f:
+                    f.write(content)
+                print(f"✓ Deployed {source_file.name} → {output_file.name}")
 
     print()
     print(f"Version: {version}")

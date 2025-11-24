@@ -1,5 +1,22 @@
 // Virtual Keyboard Functionality
 
+// Initialize virtual keyboard - loads HTML and sets up
+async function initVirtualKeyboard(containerElement, resourceVersion) {
+    try {
+        const response = await fetch(`virtual-keyboard.html?v=${resourceVersion}`);
+        if (!response.ok) {
+            console.error('Failed to load virtual keyboard HTML');
+            return false;
+        }
+        const html = await response.text();
+        containerElement.innerHTML = html;
+        return true;
+    } catch (error) {
+        console.error('Error loading virtual keyboard:', error);
+        return false;
+    }
+}
+
 // Keyboard layouts - loaded from JSON
 let KEYBOARD_MAPS = {};
 
