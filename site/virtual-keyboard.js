@@ -338,6 +338,11 @@ function makeKeysClickable(keyboardMap) {
             e.preventDefault();
             const keyValue = newKey.getAttribute('data-key');
 
+            // Notify that user is using virtual keyboard (to prevent OS keyboard)
+            if (typeof activateVirtualKeyboardMode === 'function') {
+                activateVirtualKeyboardMode();
+            }
+
             // Handle shift key specially
             if (keyValue === 'Shift') {
                 toggleShift();

@@ -812,7 +812,7 @@
         </div>
 
         <div class="input-container">
-            <input type="text" id="typingInput" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+            <input type="text" id="typingInput" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" onclick="activatePhysicalKeyboardMode()">
         </div>
 
         <div class="stats">
@@ -1311,25 +1311,40 @@
             }
         }
 
-        // Central focus management: configure input based on virtual keyboard state
+        // Track whether user is actively using virtual keyboard
+        let isUsingVirtualKeyboard = false;
+
+        // Central focus management: configure input based on virtual keyboard usage
         function updateInputFocusMode() {
             const typingInput = document.getElementById('typingInput');
             if (!typingInput) return;
 
             const keyboard = document.getElementById('virtualKeyboard');
-            const isVirtualKeyboardActive = keyboard && keyboard.style.display !== 'none';
+            const isVirtualKeyboardVisible = keyboard && keyboard.style.display !== 'none';
 
-            if (isVirtualKeyboardActive) {
-                // Virtual keyboard is active: prevent mobile OS keyboard
+            if (isVirtualKeyboardVisible && isUsingVirtualKeyboard) {
+                // User clicked virtual keyboard: prevent physical keyboard
                 typingInput.setAttribute('readonly', 'readonly');
                 typingInput.blur();
             } else {
-                // Virtual keyboard is hidden: allow normal input
+                // Allow physical keyboard input
                 typingInput.removeAttribute('readonly');
                 if (typingInput.style.display !== 'none') {
                     typingInput.focus();
                 }
             }
+        }
+
+        // Called when user clicks on virtual keyboard
+        function activateVirtualKeyboardMode() {
+            isUsingVirtualKeyboard = true;
+            updateInputFocusMode();
+        }
+
+        // Called when user clicks on text input
+        function activatePhysicalKeyboardMode() {
+            isUsingVirtualKeyboard = false;
+            updateInputFocusMode();
         }
 
         // Show virtual keyboard if user preference is enabled
@@ -1338,6 +1353,8 @@
             if (savedShowKeyboard === 'true') {
                 showVirtualKeyboard();
                 updateVirtualKeyboardLabels();
+                // Don't force readonly - let user choose by clicking
+                isUsingVirtualKeyboard = false;
                 updateInputFocusMode();
             }
         }
@@ -1345,6 +1362,7 @@
         // Hide virtual keyboard temporarily (preserves user preference)
         function hideVirtualKeyboardTemporarily() {
             hideVirtualKeyboard();
+            isUsingVirtualKeyboard = false;
             updateInputFocusMode();
         }
 
