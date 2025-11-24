@@ -387,7 +387,7 @@ window.setLevel = function(targetLevel) {
 
     const t = getCurrentTranslations();
     const typeLabel = isPlayMode ? t.level_label : t.lesson_label;
-    const callback = isPlayMode ? null : showLessonCompletionDialog;
+    const callback = isPlayMode ? onPlayLevelComplete : showLessonCompletionDialog;
 
     // Start the level
     startLevel(levelData.wordPool, levelData.wordCount, levelType, levelData.title, typeLabel, callback);
