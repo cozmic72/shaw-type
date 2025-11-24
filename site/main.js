@@ -323,6 +323,84 @@ Object.defineProperty(window, 'debugMode', {
     }
 });
 
+// Debug function to jump to a specific level/lesson for testing
+// Usage: setLevel(5) - jumps to level 5 with appropriate state
+window.setLevel = function(targetLevel) {
+    if (!currentMode) {
+        console.error('No game in progress. Start a game first with startPlay() or startPractice()');
+        return;
+    }
+
+    const isPlayMode = currentMode === 'play';
+    const levelType = isPlayMode ? 'level' : 'lesson';
+
+    // Validate target level
+    let maxLevel;
+    if (isPlayMode) {
+        maxLevel = levelCount;
+    } else {
+        const learnWords = getLearnWords();
+        maxLevel = learnWords ? Object.keys(learnWords).length : 0;
+    }
+
+    if (targetLevel < 1 || targetLevel > maxLevel) {
+        console.error(`Invalid ${levelType} number. Must be between 1 and ${maxLevel}`);
+        return;
+    }
+
+    console.log(`Jumping to ${levelType} ${targetLevel}...`);
+
+    // Calculate stats as if we completed all previous levels
+    levelStats = [];
+    for (let i = 1; i < targetLevel; i++) {
+        levelStats.push({
+            level: i,
+            accuracy: 95 + Math.random() * 5, // Random accuracy 95-100%
+            lettersTyped: 50,
+            correctLetters: 48
+        });
+    }
+
+    // Set word counts as if we completed previous levels
+    const wordsPerLevel = isPlayMode ? 5 : 10;
+    wordsCompleted = (targetLevel - 1) * wordsPerLevel;
+    totalLettersTyped = (targetLevel - 1) * 50;
+    correctLetters = Math.floor(totalLettersTyped * 0.97); // 97% accuracy
+
+    // Update level number
+    currentLevelNumber = targetLevel;
+    if (!isPlayMode) {
+        selectedLevel = targetLevel.toString();
+    }
+
+    // For play mode, start the timer if it hasn't been started
+    if (isPlayMode && !startTime) {
+        startTime = Date.now();
+    }
+
+    // Get level data and start it
+    const levelData = isPlayMode ? getPlayLevelData(targetLevel) : getLearnLessonData(targetLevel);
+    if (!levelData) {
+        console.error(`Could not load ${levelType} ${targetLevel} data`);
+        return;
+    }
+
+    const t = getCurrentTranslations();
+    const typeLabel = isPlayMode ? t.level_label : t.lesson_label;
+    const callback = isPlayMode ? null : showLessonCompletionDialog;
+
+    // Start the level
+    startLevel(levelData.wordPool, levelData.wordCount, levelType, levelData.title, typeLabel, callback);
+
+    // Update display
+    updateStats();
+    updateLevel();
+
+    console.log(`Now on ${levelType} ${targetLevel}: ${levelData.title}`);
+    console.log(`State: ${wordsCompleted} words completed, ${levelStats.length} ${levelType}s in stats`);
+    return true;
+};
+
 // Get current translations based on settings
 // Note: translations are loaded synchronously in <head>
 function getCurrentTranslations() {
