@@ -511,10 +511,35 @@ function startPlay() {
     // Update UI language
     updateUILanguage();
 
-    // Show countdown, then start game
+    // Show countdown, then start game with callback
     const t = getCurrentTranslations();
     const levelData = getPlayLevelData(1);
-    showCountdown(levelData.wordPool, levelData.wordCount, 'level', levelData.title, t.level_label, null);
+    showCountdown(levelData.wordPool, levelData.wordCount, 'level', levelData.title, t.level_label, onPlayLevelComplete);
+}
+
+// Completion callback for play mode - handles advancing to next level or showing final modal
+function onPlayLevelComplete() {
+    debug(`[onPlayLevelComplete] Level ${currentLevelNumber} complete, checking for next level`);
+
+    const nextLevelNum = currentLevelNumber + 1;
+    const nextLevelData = getPlayLevelData(nextLevelNum);
+
+    if (nextLevelData) {
+        // There's another level - start it immediately
+        debug(`[onPlayLevelComplete] Starting next level ${nextLevelNum}`);
+        currentLevelNumber = nextLevelNum;
+
+        const t = getCurrentTranslations();
+        document.getElementById('mainSubtitle').textContent =
+            `${t.level_label} ${currentLevelNumber}: ${nextLevelData.title}`;
+
+        startLevel(nextLevelData.wordPool, nextLevelData.wordCount, 'level',
+                   nextLevelData.title, t.level_label, onPlayLevelComplete);
+    } else {
+        // No more levels - show final completion modal
+        debug(`[onPlayLevelComplete] No more levels, showing final completion modal`);
+        showCompletionModal();
+    }
 }
 
 function playAgain() {
@@ -539,10 +564,10 @@ function playAgain() {
     // Show/hide lesson info
     document.getElementById('currentLessonInfo').style.display = 'none';
 
-    // Show countdown, then start game
+    // Show countdown, then start game with callback
     const t = getCurrentTranslations();
     const levelData = getPlayLevelData(1);
-    showCountdown(levelData.wordPool, levelData.wordCount, 'level', levelData.title, t.level_label, null);
+    showCountdown(levelData.wordPool, levelData.wordCount, 'level', levelData.title, t.level_label, onPlayLevelComplete);
 }
 
 function startPractice() {
@@ -1317,8 +1342,9 @@ function checkCompletion() {
     }
 }
 
+// Unified level completion handler - simply saves stats and delegates to callback
 function transitionToNextLevel() {
-    debug(`[transitionToNextLevel] Starting transition - currentMode=${currentMode}, currentLevelNumber=${currentLevelNumber}, levelCount=${levelCount}, wordsInCurrentLevel=${wordsInCurrentLevel}, currentLevelWordCount=${currentLevelWordCount}, hasCallback=${!!currentLevelCompletionCallback}`);
+    debug(`[transitionToNextLevel] Level ${currentLevelNumber} complete - saving stats and calling callback`);
 
     // Save stats for completed level
     const finalLevelAccuracy = currentLevelLettersTyped === 0 ? 100.0 :
@@ -1330,62 +1356,15 @@ function transitionToNextLevel() {
         correctLetters: currentLevelCorrectLetters
     });
 
-    // If there's a completion callback, use it
+    // Delegate to the completion callback
+    // The callback is responsible for deciding what happens next:
+    // - For play mode: advance to next level or show final completion modal
+    // - For practice mode: show lesson completion dialog
     if (currentLevelCompletionCallback) {
         debug(`[transitionToNextLevel] Calling completion callback`);
         currentLevelCompletionCallback();
-        return;
-    }
-
-    // Default behavior: try to advance to next level
-    let nextLevelData = null;
-    if (currentMode === 'learn') {
-        const nextLessonIndex = parseInt(selectedLevel) + 1;
-        debug(`[transitionToNextLevel] LEARN mode: checking for next lesson ${nextLessonIndex}`);
-        nextLevelData = getLearnLessonData(nextLessonIndex);
-        if (nextLevelData) {
-            debug(`[transitionToNextLevel] Found next lesson data`);
-            selectedLevel = nextLessonIndex.toString();
-            currentLevelNumber = nextLessonIndex;
-        } else {
-            debug(`[transitionToNextLevel] No more lessons available`);
-        }
     } else {
-        const nextLevelNum = currentLevelNumber + 1;
-        debug(`[transitionToNextLevel] PLAY mode: currentLevelNumber=${currentLevelNumber}, nextLevelNum=${nextLevelNum}, levelCount=${levelCount}`);
-        // Try to get next level data (getPlayLevelData will return null if beyond available levels)
-        nextLevelData = getPlayLevelData(nextLevelNum);
-        if (nextLevelData) {
-            debug(`[transitionToNextLevel] Found next level data for level ${nextLevelNum}`);
-            currentLevelNumber = nextLevelNum;
-        } else {
-            debug(`[transitionToNextLevel] No more levels available after level ${currentLevelNumber}`);
-        }
-    }
-
-    if (nextLevelData) {
-        debug(`[transitionToNextLevel] Starting next level`);
-        // Start new level with new words (no countdown between levels!)
-        const t = getCurrentTranslations();
-        const type = currentMode === 'learn' ? 'lesson' : 'level';
-        const typeLabel = type === 'lesson' ? t.lesson_label : t.level_label;
-
-        // Set subtitle based on mode
-        if (type === 'lesson') {
-            // For lessons, show instructions initially (will update after first word)
-            document.getElementById('mainSubtitle').textContent = t.gameInstructions;
-        } else {
-            // For play mode, immediately show the level info
-            document.getElementById('mainSubtitle').textContent =
-                `${typeLabel} ${currentLevelNumber}: ${nextLevelData.title}`;
-        }
-
-        // Just start the level directly (both play and practice)
-        startLevel(nextLevelData.wordPool, nextLevelData.wordCount, type, nextLevelData.title, typeLabel, currentLevelCompletionCallback);
-    } else {
-        debug(`[transitionToNextLevel] No more levels - showing completion modal`);
-        // No more levels/lessons - show completion modal
-        showCompletionModal();
+        console.error('[transitionToNextLevel] No completion callback set! This should not happen.');
     }
 }
 
@@ -1471,55 +1450,48 @@ function showCompletionModal() {
     // Get translations
     const t = getCurrentTranslations();
 
-    // Show different modal based on mode
-    if (currentMode === 'learn') {
-        // Show session completion modal for learn mode
-        document.getElementById('sessionAccuracy').textContent = accuracyFormatted;
-        document.getElementById('sessionCompletionModal').classList.add('show');
+    // Show play completion modal (this function is only called from play mode)
+    const pbLabel = document.getElementById('personalBestLabel');
+    if (isNewTimeRecord) {
+        pbLabel.textContent = t.newPersonalBest || 'New Personal Best:';
+        pbLabel.style.display = 'block';
     } else {
-        // Show play completion modal
-        const pbLabel = document.getElementById('personalBestLabel');
-        if (isNewTimeRecord) {
-            pbLabel.textContent = t.newPersonalBest || 'New Personal Best:';
-            pbLabel.style.display = 'block';
-        } else {
-            pbLabel.style.display = 'none';
-        }
-
-        document.getElementById('finalScore').textContent = timeFormatted;
-        document.getElementById('finalLevel').textContent = currentLevelNumber;
-
-        // Update stats with personal best highlighting
-        const accuracyRow = document.getElementById('finalAccuracy').parentElement;
-        document.getElementById('finalAccuracy').textContent = accuracyFormatted;
-        if (isNewAccuracyRecord) {
-            accuracyRow.style.color = '#28a745';
-            document.getElementById('finalAccuracy').textContent = accuracyFormatted + ' ' + t.personalBest;
-        } else {
-            accuracyRow.style.color = '';
-        }
-
-        const wpmRow = document.getElementById('finalWPM').parentElement;
-        document.getElementById('finalWPM').textContent = wpm.toFixed(1);
-        if (isNewWPMRecord) {
-            wpmRow.style.color = '#28a745';
-        } else {
-            wpmRow.style.color = '';
-        }
-
-        document.getElementById('finalLPM').textContent = lettersPerMinute.toFixed(0);
-
-        // Generate per-level stats HTML
-        let levelStatsHTML = '';
-        levelStats.forEach(stat => {
-            const levelAccuracyFormatted = stat.accuracy.toFixed(1);
-            const levelLabel = t.level_label;
-            levelStatsHTML += `<div class="level-stat">${levelLabel} ${stat.level}: ${levelAccuracyFormatted}%</div>`;
-        });
-        document.getElementById('levelStatsContainer').innerHTML = levelStatsHTML;
-
-        document.getElementById('playCompletionModal').classList.add('show');
+        pbLabel.style.display = 'none';
     }
+
+    document.getElementById('finalScore').textContent = timeFormatted;
+    document.getElementById('finalLevel').textContent = currentLevelNumber;
+
+    // Update stats with personal best highlighting
+    const accuracyRow = document.getElementById('finalAccuracy').parentElement;
+    document.getElementById('finalAccuracy').textContent = accuracyFormatted;
+    if (isNewAccuracyRecord) {
+        accuracyRow.style.color = '#28a745';
+        document.getElementById('finalAccuracy').textContent = accuracyFormatted + ' ' + t.personalBest;
+    } else {
+        accuracyRow.style.color = '';
+    }
+
+    const wpmRow = document.getElementById('finalWPM').parentElement;
+    document.getElementById('finalWPM').textContent = wpm.toFixed(1);
+    if (isNewWPMRecord) {
+        wpmRow.style.color = '#28a745';
+    } else {
+        wpmRow.style.color = '';
+    }
+
+    document.getElementById('finalLPM').textContent = lettersPerMinute.toFixed(0);
+
+    // Generate per-level stats HTML
+    let levelStatsHTML = '';
+    levelStats.forEach(stat => {
+        const levelAccuracyFormatted = stat.accuracy.toFixed(1);
+        const levelLabel = t.level_label;
+        levelStatsHTML += `<div class="level-stat">${levelLabel} ${stat.level}: ${levelAccuracyFormatted}%</div>`;
+    });
+    document.getElementById('levelStatsContainer').innerHTML = levelStatsHTML;
+
+    document.getElementById('playCompletionModal').classList.add('show');
 }
 
 function resetPractice() {
@@ -1540,17 +1512,13 @@ function resetPractice() {
 
     // Start first level
     const t = getCurrentTranslations();
+    document.getElementById('mainSubtitle').textContent = t.gameInstructions;
 
     if (currentMode === 'play') {
         const levelData = getPlayLevelData(1);
-        // Set instructions in subtitle
-        document.getElementById('mainSubtitle').textContent = t.gameInstructions;
-        startLevel(levelData.wordPool, levelData.wordCount, 'level', levelData.title, t.level_label, null);
+        startLevel(levelData.wordPool, levelData.wordCount, 'level', levelData.title, t.level_label, onPlayLevelComplete);
     } else {
         // In learn mode, use the selected lesson
-        // Set instructions in subtitle
-        document.getElementById('mainSubtitle').textContent = t.gameInstructions;
-
         const levelData = getLearnLessonData(parseInt(selectedLevel));
         if (levelData) {
             currentLevelNumber = parseInt(selectedLevel);
