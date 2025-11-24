@@ -124,7 +124,8 @@ async def generate_keyboard_screenshots(server_port=8765):
                     window.currentLayout = '{layout}';
                     localStorage.setItem('currentLayout', '{layout}');
 
-                    const keyboardMap = KEYBOARD_MAPS['{layout}'];
+                    const layoutData = KEYBOARD_MAPS['{layout}'];
+                    const keyboardMap = layoutData ? layoutData.keys : null;
                     const layoutNames = {{
                         'imperial': 'Shaw Imperial',
                         'igc': 'Imperial Good Companion',
@@ -135,10 +136,10 @@ async def generate_keyboard_screenshots(server_port=8765):
                     const layoutName = layoutNames['{layout}'] || 'Virtual Keyboard';
 
                     // Directly call the virtual keyboard functions with the correct map
-                    if (typeof updateKeyboardLabels === 'function') {{
+                    if (keyboardMap && typeof updateKeyboardLabels === 'function') {{
                         updateKeyboardLabels(keyboardMap, layoutName);
                     }}
-                    if (typeof makeKeysClickable === 'function') {{
+                    if (keyboardMap && typeof makeKeysClickable === 'function') {{
                         makeKeysClickable(keyboardMap);
                     }}
 
