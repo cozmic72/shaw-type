@@ -42,12 +42,18 @@ def apply_corrections(text, corrections):
     if not patterns:
         return text
 
-    # Build patterns with negative lookbehind for namer dot
-    # This ensures exact matches - pattern won't match if preceded by ·
+    # Build patterns with word boundaries
+    # Match only at word boundaries (whitespace, punctuation, start/end of string)
+    # Use lookahead/lookbehind to ensure we match complete tokens
     escaped_patterns = []
     for p in patterns:
-        # Add negative lookbehind for namer dot to ensure exact matches
-        escaped_patterns.append(f'(?<!·){re.escape(p)}')
+        # Match pattern only when:
+        # - preceded by whitespace, punctuation, or start of string
+        # - followed by whitespace, punctuation, or end of string
+        # This prevents matching partial words like matching 𐑼 inside 𐑐·𐑮𐑨𐑒𐑑𐑦𐑕
+        escaped_p = re.escape(p)
+        pattern_with_boundaries = f'(?:^|(?<=\\s)|(?<=[^\\w·𐑐-𐑿])){escaped_p}(?:$|(?=\\s)|(?=[^\\w·𐑐-𐑿]))'
+        escaped_patterns.append(pattern_with_boundaries)
 
     pattern = '|'.join(escaped_patterns)
 
