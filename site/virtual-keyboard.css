@@ -208,8 +208,12 @@
         display: flex !important;
     }
 
-    /* Show spacers on mobile */
-    .spacer.mobile-only {
+    /* Show spacers on mobile (unless they should be hidden for imperial layouts) */
+    .spacer.mobile-only:not(.show-mobile-non-imperial) {
+        display: block !important;
+    }
+
+    .keyboard-body:not(.layout-shaw-imperial):not(.layout-imperial-good-companion) .spacer.mobile-only.show-mobile-non-imperial {
         display: block !important;
     }
 
