@@ -12,13 +12,12 @@ from pathlib import Path
 def deploy(version):
     """Deploy files with the specified version."""
     project_root = Path(__file__).parent.parent
-    sources_dir = project_root / 'sources'
     content_dir = project_root / 'content'
     site_dir = project_root / 'site'
 
     # Ensure directories exist
-    if not sources_dir.exists():
-        print(f"Error: Sources directory not found: {sources_dir}")
+    if not content_dir.exists():
+        print(f"Error: Content directory not found: {content_dir}")
         return 1
 
     if not site_dir.exists():
@@ -29,7 +28,7 @@ def deploy(version):
     print()
 
     # Process index.html
-    template_file = sources_dir / 'index.html'
+    template_file = content_dir / 'index.html'
     output_file = site_dir / 'index.html'
 
     if not template_file.exists():
@@ -51,9 +50,14 @@ def deploy(version):
 
     # Process content/*.html files - deploy to site/*_latin.html
     # (transliteration tool will read these and create _gb and _us versions)
+    # Skip index.html since it's already processed above
     if content_dir.exists():
         html_files = list(content_dir.glob('*.html'))
         for source_file in html_files:
+            # Skip index.html - already processed
+            if source_file.name == 'index.html':
+                continue
+
             # Read source
             with open(source_file, 'r', encoding='utf-8') as f:
                 content = f.read()
