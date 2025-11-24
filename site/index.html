@@ -1317,12 +1317,24 @@
             if (savedShowKeyboard === 'true') {
                 showVirtualKeyboard();
                 updateVirtualKeyboardLabels();
+
+                // Blur the typing input to prevent mobile OS keyboard from showing
+                const typingInput = document.getElementById('typingInput');
+                if (typingInput) {
+                    typingInput.blur();
+                }
             }
         }
 
         // Hide virtual keyboard temporarily (preserves user preference)
         function hideVirtualKeyboardTemporarily() {
             hideVirtualKeyboard();
+
+            // Restore focus to typing input when keyboard is hidden
+            const typingInput = document.getElementById('typingInput');
+            if (typingInput && typingInput.style.display !== 'none') {
+                typingInput.focus();
+            }
         }
 
         // Form ligatures in a word by replacing component pairs with ligatures
@@ -2025,11 +2037,15 @@
                 startTime = Date.now();
             }
 
-            // Focus input
-            typingInput.focus();
-
             // Show virtual keyboard if setting is enabled
+            // This will blur the input to prevent mobile OS keyboard
             showVirtualKeyboardIfEnabled();
+
+            // Only focus input if virtual keyboard is NOT enabled
+            const savedShowKeyboard = localStorage.getItem('showVirtualKeyboard');
+            if (savedShowKeyboard !== 'true') {
+                typingInput.focus();
+            }
         }
 
         function pickRandomWord() {
@@ -2651,7 +2667,7 @@
 
             // Restart current level/lesson with same word pool
             startLevel(currentLevelWordPool, currentLevelWordCount, currentLevelType, currentLevelTitle, currentLevelTypeLabel, currentLevelCompletionCallback);
-            typingInput.focus();
+            // Note: startLevel handles focus based on virtual keyboard setting
         }
 
         function nextLesson() {
@@ -2681,7 +2697,7 @@
                 if (levelData) {
                     currentLevelNumber = nextLessonNum;
                     startLevel(levelData.wordPool, levelData.wordCount, 'lesson', levelData.title, t.lesson_label, showLessonCompletionDialog);
-                    typingInput.focus();
+                    // Note: startLevel handles focus based on virtual keyboard setting
                 }
             }
         }
