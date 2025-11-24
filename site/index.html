@@ -10,12 +10,12 @@
     <link rel="icon" type="image/png" sizes="192x192" href="favicon-192x192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="favicon-512x512.png">
     <link rel="shortcut icon" type="image/png" href="favicon.png">
-    <link rel="stylesheet" href="virtual-keyboard.css?v=2.0-beta-14">
+    <link rel="stylesheet" href="virtual-keyboard.css?v=2.0-beta-15">
 
     <!-- Load translations synchronously before anything else -->
     <script>
         // Version for cache-busting
-        const RESOURCE_VERSION = '2.0-beta-14';
+        const RESOURCE_VERSION = '2.0-beta-15';
 
         // Helper: Add version parameter to resource URLs (global)
         window.versionedUrl = function(url) {
@@ -1121,9 +1121,9 @@
                 <div class="key" data-key=","></div>
                 <div class="key" data-key="."></div>
                 <div class="key desktop-only" data-key="/"></div>
-                <div class="spacer mobile-only" style="flex: 2.75;"></div>
                 <div class="key key-widest desktop-only" data-key="Shift" data-code="ShiftRight">⇧</div>
                 <div class="key key-wide mobile-only" data-key="Backspace">⌫</div>
+                <div class="spacer mobile-only" style="flex: 2.25;"></div>
             </div>
             <!-- Space row -->
             <div class="keyboard-row">
@@ -3265,7 +3265,7 @@
         }
 
         // Splash screen functions
-        const APP_VERSION = '2.0-beta-14';
+        const APP_VERSION = '2.0-beta-15';
 
         function closeSplashModal() {
             const dontShow = document.getElementById('dontShowSplash').checked;
@@ -3922,6 +3922,6 @@
         init();
         updateUILanguage();
     </script>
-    <script src="virtual-keyboard.js?v=2.0-beta-14"></script>
+    <script src="virtual-keyboard.js?v=2.0-beta-15"></script>
 </body>
 </html>
