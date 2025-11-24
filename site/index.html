@@ -1311,74 +1311,23 @@
             }
         }
 
-        // Track whether user is actively using virtual keyboard (touch only)
+        // Track whether user is actively using virtual keyboard
         let isUsingVirtualKeyboard = false;
-
-        // Handle physical keyboard input when in virtual keyboard mode
-        function handlePhysicalKeydown(e) {
-            const typingInput = document.getElementById('typingInput');
-            if (!typingInput || !typingInput.hasAttribute('readonly')) return;
-
-            // Get the keyboard map for translation
-            const layout = KEYBOARD_MAPS[currentLayout];
-            const keyboardMap = layout ? layout.keys : null;
-            if (!keyboardMap) return;
-
-            // Handle printable characters
-            if (e.key.length === 1 && !e.ctrlKey && !e.metaKey) {
-                e.preventDefault();
-
-                // Get Shavian character for this key
-                const shavianChar = keyboardMap[e.key];
-                if (shavianChar) {
-                    // Insert character
-                    const start = typingInput.value.length;
-                    typingInput.value += shavianChar;
-
-                    // Trigger input event
-                    const inputEvent = new InputEvent('input', {
-                        bubbles: true,
-                        cancelable: true,
-                        inputType: 'insertText',
-                        data: shavianChar
-                    });
-                    typingInput.dispatchEvent(inputEvent);
-                }
-            } else if (e.key === 'Backspace') {
-                e.preventDefault();
-
-                // Delete last character
-                if (typingInput.value.length > 0) {
-                    const chars = Array.from(typingInput.value);
-                    typingInput.value = chars.slice(0, -1).join('');
-
-                    // Trigger input event
-                    const inputEvent = new InputEvent('input', {
-                        bubbles: true,
-                        cancelable: true,
-                        inputType: 'deleteContentBackward'
-                    });
-                    typingInput.dispatchEvent(inputEvent);
-                }
-            }
-        }
 
         // Central focus management: configure input based on virtual keyboard usage
         function updateInputFocusMode() {
             const typingInput = document.getElementById('typingInput');
             if (!typingInput) return;
 
-            // Remove old listeners
-            document.removeEventListener('keydown', handlePhysicalKeydown);
+            const keyboard = document.getElementById('virtualKeyboard');
+            const isVirtualKeyboardVisible = keyboard && keyboard.style.display !== 'none';
 
-            if (isUsingVirtualKeyboard) {
-                // Set readonly to prevent OS keyboard, but capture physical keyboard
+            if (isVirtualKeyboardVisible && isUsingVirtualKeyboard) {
+                // User clicked virtual keyboard: prevent physical keyboard
                 typingInput.setAttribute('readonly', 'readonly');
                 typingInput.blur();
-                // Add keydown listener to capture physical keyboard input
-                document.addEventListener('keydown', handlePhysicalKeydown);
             } else {
-                // Allow normal input
+                // Allow physical keyboard input
                 typingInput.removeAttribute('readonly');
                 if (typingInput.style.display !== 'none') {
                     typingInput.focus();
@@ -1390,12 +1339,24 @@
         function activateVirtualKeyboardMode() {
             isUsingVirtualKeyboard = true;
             updateInputFocusMode();
+
+            // Add visual indicator that virtual keyboard is active
+            const typingInput = document.getElementById('typingInput');
+            if (typingInput) {
+                typingInput.style.border = '3px solid #667eea';
+            }
         }
 
         // Called when user clicks on text input
         function activatePhysicalKeyboardMode() {
             isUsingVirtualKeyboard = false;
             updateInputFocusMode();
+
+            // Remove visual indicator
+            const typingInput = document.getElementById('typingInput');
+            if (typingInput) {
+                typingInput.style.border = '';
+            }
         }
 
         // Show virtual keyboard if user preference is enabled
