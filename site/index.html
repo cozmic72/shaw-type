@@ -1311,24 +1311,35 @@
             }
         }
 
-        // Track whether user is actively using virtual keyboard
+        // Track whether user is actively using virtual keyboard (touch only)
         let isUsingVirtualKeyboard = false;
+
+        // Prevent focus on mobile when using virtual keyboard (stops OS keyboard popup)
+        function handleInputFocus(e) {
+            const keyboard = document.getElementById('virtualKeyboard');
+            const isVirtualKeyboardVisible = keyboard && keyboard.style.display !== 'none';
+
+            if (isVirtualKeyboardVisible && isUsingVirtualKeyboard) {
+                // User is using virtual keyboard - blur to prevent OS keyboard
+                e.preventDefault();
+                e.target.blur();
+            }
+        }
 
         // Central focus management: configure input based on virtual keyboard usage
         function updateInputFocusMode() {
             const typingInput = document.getElementById('typingInput');
             if (!typingInput) return;
 
-            const keyboard = document.getElementById('virtualKeyboard');
-            const isVirtualKeyboardVisible = keyboard && keyboard.style.display !== 'none';
+            // Remove old listener
+            typingInput.removeEventListener('focus', handleInputFocus);
 
-            if (isVirtualKeyboardVisible && isUsingVirtualKeyboard) {
-                // User clicked virtual keyboard: prevent physical keyboard
-                typingInput.setAttribute('readonly', 'readonly');
+            if (isUsingVirtualKeyboard) {
+                // Add focus prevention (for mobile OS keyboard)
+                typingInput.addEventListener('focus', handleInputFocus);
                 typingInput.blur();
             } else {
-                // Allow physical keyboard input
-                typingInput.removeAttribute('readonly');
+                // Allow normal focus
                 if (typingInput.style.display !== 'none') {
                     typingInput.focus();
                 }

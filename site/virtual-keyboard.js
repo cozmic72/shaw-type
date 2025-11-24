@@ -13,15 +13,9 @@ fetch('keyboard_layouts.json')
         console.error('Failed to load keyboard layouts:', error);
     });
 
-// Helper: Execute function with input temporarily editable (removes readonly)
+// Helper: Execute function (no longer needs readonly handling)
 function withEditableInput(input, fn) {
-    const wasReadonly = input.hasAttribute('readonly');
-    if (wasReadonly) input.removeAttribute('readonly');
-    try {
-        fn();
-    } finally {
-        if (wasReadonly) input.setAttribute('readonly', 'readonly');
-    }
+    fn();
 }
 
 // Helper: Set selection safely (ignores errors on readonly inputs)
