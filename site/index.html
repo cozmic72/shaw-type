@@ -10,12 +10,12 @@
     <link rel="icon" type="image/png" sizes="192x192" href="favicon-192x192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="favicon-512x512.png">
     <link rel="shortcut icon" type="image/png" href="favicon.png">
-    <link rel="stylesheet" href="virtual-keyboard.css?v=2.0-beta-24">
+    <link rel="stylesheet" href="virtual-keyboard.css?v=2.0-beta-25">
 
     <!-- Load translations synchronously before anything else -->
     <script>
         // Version for cache-busting
-        const RESOURCE_VERSION = '2.0-beta-24';
+        const RESOURCE_VERSION = '2.0-beta-25';
 
         // Helper: Add version parameter to resource URLs (global)
         window.versionedUrl = function(url) {
@@ -854,13 +854,11 @@
         <div class="completion-content">
             <span class="modal-close" onclick="goHome()">&times;</span>
             <h2 id="completionTitle">Congratulations!</h2>
-            <p id="completionMessage">You completed 30 words!</p>
             <div id="personalBestLabel" style="color: #28a745; font-weight: bold; margin-top: 10px; display: none;"></div>
             <div class="final-score" id="finalScore">--</div>
             <div class="stat-row">WPM: <span id="finalWPM">--</span></div>
             <div class="stat-row">Letters/min: <span id="finalLPM">--</span></div>
             <div class="stat-row">Accuracy: <span id="finalAccuracy">--</span></div>
-            <div class="stat-row" id="bestTimeRow"></div>
             <div class="stat-row" id="levelReachedRow">Level Reached: <span id="finalLevel">--</span></div>
             <div id="levelStatsContainer" class="level-stats-container"></div>
             <div id="completionButtons">
@@ -1049,7 +1047,7 @@
     <div id="virtualKeyboardContainer"></div>
 
     <!-- Load virtual keyboard before main script -->
-    <script src="virtual-keyboard.js?v=2.0-beta-24"></script>
+    <script src="virtual-keyboard.js?v=2.0-beta-25"></script>
 
     <script>
         // Words will be loaded from JSON file
@@ -2422,7 +2420,6 @@
             document.getElementById('finalScore').style.display = 'none';
             document.getElementById('finalWPM').parentElement.style.display = 'none';
             document.getElementById('finalLPM').parentElement.style.display = 'none';
-            document.getElementById('bestTimeRow').style.display = 'none';
             document.getElementById('levelReachedRow').style.display = 'none';
             document.getElementById('levelStatsContainer').style.display = 'none';
 
@@ -2572,28 +2569,12 @@
             wpmRow.style.display = 'block';
             if (isNewWPMRecord) {
                 wpmRow.style.color = '#28a745';
-                document.getElementById('finalWPM').textContent = wpm.toFixed(1) + pbText;
             } else {
                 wpmRow.style.color = '';
-                document.getElementById('finalWPM').textContent = wpm.toFixed(1);
             }
 
             document.getElementById('finalLPM').textContent = lettersPerMinute.toFixed(0);
             document.getElementById('finalLPM').parentElement.style.display = 'block';
-
-            // Show current personal best records (not shown if any are new - individual stats show that)
-            let recordsHTML = '';
-            if (!isNewTimeRecord && !isNewWPMRecord && !isNewAccuracyRecord && currentHighScores.time !== null) {
-                // Show current records for this level count only if no new records
-                const bestMinutes = Math.floor(currentHighScores.time / 60);
-                const bestSeconds = Math.floor(currentHighScores.time % 60);
-                const bestTimeFormatted = `${bestMinutes}:${bestSeconds.toString().padStart(2, '0')}`;
-                const bestWPM = currentHighScores.wpm ? currentHighScores.wpm.toFixed(1) : 'N/A';
-                const bestAccuracy = currentHighScores.accuracy ? currentHighScores.accuracy.toFixed(1) + '%' : 'N/A';
-                recordsHTML = `Personal Bests (${levelCount} levels): Time ${bestTimeFormatted} | WPM ${bestWPM} | Accuracy ${bestAccuracy}`;
-            }
-
-            document.getElementById('bestTimeRow').innerHTML = recordsHTML;
 
             document.getElementById('completionModal').classList.add('show');
         }
@@ -3186,7 +3167,7 @@
         }
 
         // Splash screen functions
-        const APP_VERSION = '2.0-beta-24';
+        const APP_VERSION = '2.0-beta-25';
 
         function closeSplashModal() {
             const dontShow = document.getElementById('dontShowSplash').checked;
