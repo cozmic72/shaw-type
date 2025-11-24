@@ -170,8 +170,8 @@
         display: flex;
         justify-content: flex-start;
         gap: 4px;
-        /* Position spacebar to align with x and m keys */
-        padding-left: 62px; /* 40px (shift) + 4px (gap) + 18px (3/4 of x key) */
+        /* Position shift key to align with z key + 1/4 */
+        padding-left: 13px; /* z at 47px, z+1/4 = 53px, 53-40 (shift width) = 13px */
     }
 
     /* Row indentation for mobile (QWERTY-style stagger) */
@@ -192,7 +192,7 @@
 
     /* Bottom row - half key more than home row */
     .keyboard-body .keyboard-row:nth-child(4) {
-        padding-left: 35px;
+        padding-left: 47px;
     }
 
     /* Space row - centered */
