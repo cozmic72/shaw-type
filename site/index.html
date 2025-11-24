@@ -1311,6 +1311,20 @@
             }
         }
 
+        // Show virtual keyboard if user preference is enabled
+        function showVirtualKeyboardIfEnabled() {
+            const savedShowKeyboard = localStorage.getItem('showVirtualKeyboard');
+            if (savedShowKeyboard === 'true') {
+                showVirtualKeyboard();
+                updateVirtualKeyboardLabels();
+            }
+        }
+
+        // Hide virtual keyboard temporarily (preserves user preference)
+        function hideVirtualKeyboardTemporarily() {
+            hideVirtualKeyboard();
+        }
+
         // Form ligatures in a word by replacing component pairs with ligatures
         function formLigaturesInWord(word) {
             const componentToLigature = getCurrentComponentToLigature();
@@ -1424,6 +1438,9 @@
         function goHome() {
             // Cancel any running countdown
             cancelCountdown();
+
+            // Hide virtual keyboard when returning to home
+            hideVirtualKeyboardTemporarily();
 
             // Hide game content and countdown, show home screen
             document.getElementById('gameContent').classList.add('hidden');
@@ -1924,6 +1941,9 @@
         function showCountdown(wordPool, wordCount, type, title, typeLabel, completionCallback) {
             debug('[showCountdown] Starting countdown');
 
+            // Show virtual keyboard if enabled (game is about to start)
+            showVirtualKeyboardIfEnabled();
+
             // Clear any existing countdown
             cancelCountdown();
             countdownCancelled = false;
@@ -2009,11 +2029,7 @@
             typingInput.focus();
 
             // Show virtual keyboard if setting is enabled
-            const savedShowKeyboard = localStorage.getItem('showVirtualKeyboard');
-            if (savedShowKeyboard === 'true') {
-                showVirtualKeyboard();
-                updateVirtualKeyboardLabels();
-            }
+            showVirtualKeyboardIfEnabled();
         }
 
         function pickRandomWord() {
@@ -2392,6 +2408,8 @@
         }
 
         function showLessonCompletionDialog() {
+            // Hide virtual keyboard temporarily while modal is shown
+            hideVirtualKeyboardTemporarily();
 
             // Calculate stats for this lesson
             const accuracy = totalLettersTyped === 0 ? 100.0 : ((correctLetters / totalLettersTyped) * 100);
@@ -2429,6 +2447,9 @@
         }
 
         function showCompletionModal() {
+            // Hide virtual keyboard temporarily while modal is shown
+            hideVirtualKeyboardTemporarily();
+
             // Stats already saved in transitionToNextLevel
             const accuracy = totalLettersTyped === 0 ? 100.0 : ((correctLetters / totalLettersTyped) * 100);
             const accuracyFormatted = accuracy.toFixed(1) + '%';
@@ -3066,6 +3087,9 @@
         async function openContentModal(page) {
             closeBurgerMenu();
 
+            // Hide virtual keyboard temporarily while modal is shown
+            hideVirtualKeyboardTemporarily();
+
             // Pause timer if in play mode
             if (currentMode === 'play') {
                 pauseTimer();
@@ -3105,6 +3129,9 @@
 
         function closeContentModal() {
             document.getElementById('contentModal').classList.remove('show');
+
+            // Show virtual keyboard if enabled (returning to game)
+            showVirtualKeyboardIfEnabled();
 
             // Resume timer if in play mode
             if (currentMode === 'play') {
@@ -3289,6 +3316,9 @@
         }
 
         function openSettings() {
+            // Hide virtual keyboard temporarily while modal is shown
+            hideVirtualKeyboardTemporarily();
+
             // Pause timer if in play mode
             if (currentMode === 'play') {
                 pauseTimer();
@@ -3316,6 +3346,9 @@
         function closeSettings() {
             document.getElementById('settingsModal').classList.remove('show');
 
+            // Show virtual keyboard if enabled (returning to game)
+            showVirtualKeyboardIfEnabled();
+
             // Resume timer if in play mode
             if (currentMode === 'play') {
                 resumeTimer();
@@ -3323,6 +3356,9 @@
         }
 
         function openHighScores() {
+            // Hide virtual keyboard temporarily while modal is shown
+            hideVirtualKeyboardTemporarily();
+
             // Pause timer if in play mode
             if (currentMode === 'play') {
                 pauseTimer();
@@ -3381,6 +3417,9 @@
 
         function closeHighScores() {
             document.getElementById('highScoresModal').classList.remove('show');
+
+            // Show virtual keyboard if enabled (returning to game)
+            showVirtualKeyboardIfEnabled();
 
             // Resume timer if in play mode
             if (currentMode === 'play') {
