@@ -147,8 +147,8 @@
     }
 
     .key-space {
-        min-width: 140px;
-        flex: 1;
+        min-width: 150px;
+        max-width: 150px;
     }
 
     /* 1.5x width key for mobile shift keys */
@@ -168,8 +168,10 @@
     /* Space row layout on mobile */
     .keyboard-row:last-child {
         display: flex;
-        justify-content: center;
+        justify-content: flex-start;
         gap: 4px;
+        /* Position spacebar to align with x and m keys */
+        padding-left: 62px; /* 40px (shift) + 4px (gap) + 18px (3/4 of x key) */
     }
 
     /* Row indentation for mobile (QWERTY-style stagger) */
