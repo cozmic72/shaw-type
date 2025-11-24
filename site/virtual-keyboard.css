@@ -113,6 +113,11 @@
     min-width: 312px;
 }
 
+/* Desktop-only keys (hidden on mobile) */
+.mobile-only {
+    display: none;
+}
+
 /* Mobile responsiveness */
 @media (max-width: 768px) {
     .virtual-keyboard {
@@ -142,6 +147,23 @@
     }
 
     .key-space {
-        min-width: 200px;
+        min-width: 140px;
+        flex: 1;
+    }
+
+    /* Show/hide keys based on mobile/desktop */
+    .desktop-only {
+        display: none;
+    }
+
+    .mobile-only {
+        display: flex;
+    }
+
+    /* Space row layout on mobile */
+    .keyboard-row:last-child {
+        display: flex;
+        justify-content: center;
+        gap: 4px;
     }
 }
