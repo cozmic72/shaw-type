@@ -114,8 +114,8 @@
 }
 
 /* Desktop-only keys (hidden on mobile) */
-.mobile-only {
-    display: none;
+.key.mobile-only {
+    display: none !important;
 }
 
 /* Mobile responsiveness */
@@ -152,12 +152,12 @@
     }
 
     /* Show/hide keys based on mobile/desktop */
-    .desktop-only {
-        display: none;
+    .key.desktop-only {
+        display: none !important;
     }
 
-    .mobile-only {
-        display: flex;
+    .key.mobile-only {
+        display: flex !important;
     }
 
     /* Space row layout on mobile */
