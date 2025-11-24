@@ -1432,7 +1432,7 @@ function showCompletionModal() {
         document.getElementById('levelStatsContainer').innerHTML = levelStatsHTML;
 
         document.getElementById('completionButtons').innerHTML = `
-            <button onclick="playAgain()">Play Again</button>
+            <button onclick="playAgain()">${t.practiceAgain}</button>
         `;
     }
 
