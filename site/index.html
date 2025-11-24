@@ -1009,6 +1009,13 @@
                 </div>
             </div>
 
+            <div class="settings-option">
+                <label style="cursor: pointer;">
+                    <input type="checkbox" id="virtualKeyboardToggleSetup" style="margin-right: 8px;">
+                    <span id="setupVirtualKeyboard">Show virtual keyboard</span>
+                </label>
+            </div>
+
             <p id="setupNote" style="margin: 20px 0; color: #999; font-size: 14px; font-style: italic;">
                 Don't worry too much. This choice, and more besides, can be changed later in settings.
             </p>
@@ -3218,6 +3225,15 @@
             localStorage.setItem('dialect', currentDialect);
             localStorage.setItem('currentMode', 'play');
 
+            // Save virtual keyboard preference
+            const vkToggleSetup = document.getElementById('virtualKeyboardToggleSetup');
+            if (vkToggleSetup) {
+                localStorage.setItem('showVirtualKeyboard', vkToggleSetup.checked ? 'true' : 'false');
+                // Sync with settings toggle
+                const vkToggleSettings = document.getElementById('virtualKeyboardToggle');
+                if (vkToggleSettings) vkToggleSettings.checked = vkToggleSetup.checked;
+            }
+
             document.getElementById('setupModal').classList.remove('show');
             currentMode = 'play';
         }
@@ -3229,6 +3245,13 @@
                 const dialectRadio = document.querySelector(`input[name="dialectSetup"][value="${currentDialect}"]`);
                 if (dialectRadio) dialectRadio.checked = true;
                 document.getElementById('layoutSelectSetup').value = currentLayout;
+
+                // Initialize virtual keyboard checkbox (default to false for new users)
+                const vkToggleSetup = document.getElementById('virtualKeyboardToggleSetup');
+                if (vkToggleSetup) {
+                    const savedShowKeyboard = localStorage.getItem('showVirtualKeyboard');
+                    vkToggleSetup.checked = savedShowKeyboard === 'true';
+                }
 
                 document.getElementById('setupModal').classList.add('show');
                 return true;
@@ -3535,6 +3558,7 @@
             document.getElementById('setupDialectLabel').textContent = t.dialectLabel;
             document.getElementById('setupDialectBritish').textContent = t.dialectBritish;
             document.getElementById('setupDialectAmerican').textContent = t.dialectAmerican;
+            document.getElementById('setupVirtualKeyboard').textContent = t.showVirtualKeyboard;
             document.getElementById('setupNote').textContent = t.setupNote;
             document.getElementById('setupStartBtn').textContent = t.startPracticing;
 
