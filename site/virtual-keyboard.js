@@ -13,6 +13,37 @@ fetch('keyboard_layouts.json')
         console.error('Failed to load keyboard layouts:', error);
     });
 
+// Helper: Execute function with input temporarily editable (removes readonly)
+function withEditableInput(input, fn) {
+    const wasReadonly = input.hasAttribute('readonly');
+    if (wasReadonly) input.removeAttribute('readonly');
+    try {
+        fn();
+    } finally {
+        if (wasReadonly) input.setAttribute('readonly', 'readonly');
+    }
+}
+
+// Helper: Set selection safely (ignores errors on readonly inputs)
+function setSelectionSafe(input, pos) {
+    try {
+        input.setSelectionRange(pos, pos);
+    } catch (e) {
+        // Selection may fail on readonly/unfocused inputs - ignore
+    }
+}
+
+// Helper: Dispatch input event
+function dispatchInputEvent(input, type, data = null) {
+    const event = new InputEvent('input', {
+        bubbles: true,
+        cancelable: true,
+        inputType: type,
+        data: data
+    });
+    input.dispatchEvent(event);
+}
+
 // Translate input event data from Latin to Shavian if needed
 // This is a decorator function that index.html can use
 // Returns: { eventData: string, browserInput: string }
@@ -327,89 +358,43 @@ function makeKeysClickable(keyboardMap) {
             const shavianChar = keyboardMap ? keyboardMap[actualKey] : null;
 
             if (shavianChar) {
-                // Temporarily remove readonly to allow selection manipulation
-                const wasReadonly = typingInput.hasAttribute('readonly');
-                if (wasReadonly) {
-                    typingInput.removeAttribute('readonly');
-                }
+                // Insert character using helper
+                withEditableInput(typingInput, () => {
+                    const start = typingInput.selectionStart || typingInput.value.length;
+                    const end = typingInput.selectionEnd || typingInput.value.length;
 
-                // Insert the Shavian character
-                const start = typingInput.selectionStart || typingInput.value.length;
-                const end = typingInput.selectionEnd || typingInput.value.length;
-                const currentValue = typingInput.value;
+                    typingInput.value = typingInput.value.substring(0, start) +
+                                       shavianChar +
+                                       typingInput.value.substring(end);
 
-                const newValue = currentValue.substring(0, start) + shavianChar + currentValue.substring(end);
-                typingInput.value = newValue;
-
-                // Move cursor after inserted character
-                const newCursorPos = start + shavianChar.length;
-                try {
-                    typingInput.setSelectionRange(newCursorPos, newCursorPos);
-                } catch (e) {
-                    // Ignore selection errors on readonly inputs
-                }
-
-                // Restore readonly if it was set
-                if (wasReadonly) {
-                    typingInput.setAttribute('readonly', 'readonly');
-                }
+                    setSelectionSafe(typingInput, start + shavianChar.length);
+                });
 
                 // Trigger input event so the game logic processes it
-                const inputEvent = new InputEvent('input', {
-                    bubbles: true,
-                    cancelable: true,
-                    inputType: 'insertText',
-                    data: shavianChar
-                });
-                typingInput.dispatchEvent(inputEvent);
+                dispatchInputEvent(typingInput, 'insertText', shavianChar);
+
             } else if (keyValue === 'Backspace') {
-                // Temporarily remove readonly to allow selection manipulation
-                const wasReadonly = typingInput.hasAttribute('readonly');
-                if (wasReadonly) {
-                    typingInput.removeAttribute('readonly');
-                }
+                // Delete character using helper
+                withEditableInput(typingInput, () => {
+                    const start = typingInput.selectionStart || typingInput.value.length;
+                    const end = typingInput.selectionEnd || typingInput.value.length;
 
-                // Handle backspace
-                const start = typingInput.selectionStart || typingInput.value.length;
-                const end = typingInput.selectionEnd || typingInput.value.length;
-
-                if (start !== end) {
-                    // Delete selection
-                    typingInput.value = typingInput.value.substring(0, start) + typingInput.value.substring(end);
-                    try {
-                        typingInput.setSelectionRange(start, start);
-                    } catch (e) {
-                        // Ignore selection errors
+                    if (start !== end) {
+                        // Delete selection
+                        typingInput.value = typingInput.value.substring(0, start) +
+                                           typingInput.value.substring(end);
+                        setSelectionSafe(typingInput, start);
+                    } else if (start > 0) {
+                        // Delete one character before cursor
+                        const chars = Array.from(typingInput.value);
+                        typingInput.value = chars.slice(0, start - 1).join('') +
+                                           chars.slice(start).join('');
+                        setSelectionSafe(typingInput, start - 1);
                     }
-                } else if (start > 0) {
-                    // Delete one character before cursor
-                    const chars = Array.from(typingInput.value);
-                    const before = chars.slice(0, start - 1).join('');
-                    const after = chars.slice(start).join('');
-                    typingInput.value = before + after;
-                    try {
-                        typingInput.setSelectionRange(start - 1, start - 1);
-                    } catch (e) {
-                        // Ignore selection errors
-                    }
-                }
-
-                // Restore readonly if it was set
-                if (wasReadonly) {
-                    typingInput.setAttribute('readonly', 'readonly');
-                }
-
-                const inputEvent = new InputEvent('input', {
-                    bubbles: true,
-                    cancelable: true,
-                    inputType: 'deleteContentBackward'
                 });
-                typingInput.dispatchEvent(inputEvent);
-            }
 
-            // Don't focus the input - let the game logic handle focus
-            // (focusing would trigger mobile OS keyboard)
-            // typingInput.focus();
+                dispatchInputEvent(typingInput, 'deleteContentBackward');
+            }
         });
     });
 }
