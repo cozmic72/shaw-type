@@ -75,15 +75,15 @@ dontShowAgain,Don't show this again
 continueButton,Continue
 setupTitle,Get Started
 setupSubtitle,Choose your keyboard layout and spelling preference:
-setupNote,Don't worry too much. This choice, and more besides, can be changed later in settings.
+setupNote,"Don't worry too much. This choice, and more besides, can be changed later in settings."
 startPracticing,Start Practicing!
 close,Close
 lessonModalTitle,Choose a Lesson
 lessonModalSubtitle,Select a lesson to practice:
 lessonModalCancel,Cancel
 lessonPrefix,Lesson
-desc1,Middle fingers only, home row
-desc2,All fingers, home row
+desc1,"Middle fingers only, home row"
+desc2,"All fingers, home row"
 desc3,Add index finger upper/lower reaches
 desc4,Extend to more keys above and below
 desc5,Add outer columns
@@ -104,7 +104,7 @@ desc19,Journey to the upper reaches of your keyboard
 desc20,Explore the depths below home position
 desc21,Discover new dimensions with the shift key
 desc22,Achieve mastery over the complete keyboard
-desc23,All fingers, home row (unshifted)
+desc23,"All fingers, home row (unshifted)"
 desc24,Complete keyboard including number row
 menuAbout,About
 menuKeyboards,Keyboards
