@@ -2005,32 +2005,6 @@ function onLayoutChangeSetup() {
     localStorage.setItem('keyboardLayout', currentLayout);
 }
 
-function updateWelcomeLanguage() {
-    const lang = useShavianUI ? 'shavian' : 'latin';
-    // TODO: Add Shavian translations for welcome screen
-    if (useShavianUI) {
-        document.getElementById('welcomeTitle').textContent = '𐑢𐑧𐑤𐑒𐑳𐑥 𐑑 ·𐑖𐑷 𐑑𐑲𐑐!';
-        document.getElementById('welcomeSubtitle').textContent = '𐑗𐑵𐑟 𐑘𐑹 𐑐𐑮𐑧𐑓𐑼𐑩𐑯𐑕𐑩𐑟 𐑑 𐑜𐑧𐑑 𐑕𐑑𐑸𐑑𐑩𐑛:';
-        document.getElementById('welcomeDialectLabel').textContent = '𐑗𐑵𐑟 𐑕𐑐𐑧𐑤𐑦𐑙';
-        document.getElementById('welcomeDialectBritish').textContent = '𐑚𐑮𐑦𐑑𐑦𐑖';
-        document.getElementById('welcomeDialectAmerican').textContent = '𐑩𐑥𐑧𐑮𐑦𐑒𐑩𐑯';
-        document.getElementById('welcomeLayoutLabel').textContent = '𐑒𐑰𐑚𐑪𐑮𐑛 𐑤𐑱𐑬𐑑';
-        document.getElementById('welcomeLigatureLabel').textContent = '𐑷𐑑𐑩𐑥𐑨𐑑𐑦𐑒 𐑤𐑦𐑜𐑩𐑗𐑼𐑟 (𐑩+𐑮→𐑼, 𐑘+𐑵→𐑿)';
-        document.getElementById('welcomeShavianUILabel').textContent = '𐑛𐑦𐑕𐑐𐑤𐑱 UI 𐑦𐑯 ·𐑖𐑱𐑝𐑾𐑯';
-        document.getElementById('welcomeStartButton').textContent = '𐑕𐑑𐑸𐑑';
-    } else {
-        document.getElementById('welcomeTitle').textContent = 'Welcome to Shaw Type!';
-        document.getElementById('welcomeSubtitle').textContent = 'Choose your preferences to get started:';
-        document.getElementById('welcomeDialectLabel').textContent = 'Choose spelling';
-        document.getElementById('welcomeDialectBritish').textContent = 'British';
-        document.getElementById('welcomeDialectAmerican').textContent = 'American';
-        document.getElementById('welcomeLayoutLabel').textContent = 'Keyboard Layout';
-        document.getElementById('welcomeLigatureLabel').textContent = 'Automatic ligatures (𐑩+𐑮→𐑼, 𐑘+𐑵→𐑿)';
-        document.getElementById('welcomeShavianUILabel').textContent = 'Display UI in Shavian';
-        document.getElementById('welcomeStartButton').textContent = 'Start';
-    }
-}
-
 // Splash screen functions
 const APP_VERSION = '{{VERSION}}';
 
