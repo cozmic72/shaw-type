@@ -119,28 +119,15 @@ async def generate_keyboard_screenshots(server_port=8765):
             for layout in LAYOUTS:
                 print(f"Generating screenshots for {layout}...")
 
-                # Change layout using JavaScript - directly call updateKeyboardLabels with the correct map
+                # Change layout using JavaScript - update currentLayout and refresh keyboard
                 result = await page.evaluate(f'''() => {{
-                    window.currentLayout = '{layout}';
+                    // Update the currentLayout variable directly (not window.currentLayout)
+                    currentLayout = '{layout}';
                     localStorage.setItem('currentLayout', '{layout}');
 
-                    const layoutData = KEYBOARD_MAPS['{layout}'];
-                    const keyboardMap = layoutData ? layoutData.keys : null;
-                    const layoutNames = {{
-                        'imperial': 'Shaw Imperial',
-                        'igc': 'Imperial Good Companion',
-                        'qwerty': 'Shaw QWERTY',
-                        '2layer': 'Shaw 2-layer',
-                        'jafl': 'Shaw-JAFL'
-                    }};
-                    const layoutName = layoutNames['{layout}'] || 'Virtual Keyboard';
-
-                    // Directly call the virtual keyboard functions with the correct map
-                    if (keyboardMap && typeof updateKeyboardLabels === 'function') {{
-                        updateKeyboardLabels(keyboardMap, layoutName);
-                    }}
-                    if (keyboardMap && typeof makeKeysClickable === 'function') {{
-                        makeKeysClickable(keyboardMap);
+                    // Call updateVirtualKeyboardLabels to refresh with the new layout
+                    if (typeof updateVirtualKeyboardLabels === 'function') {{
+                        updateVirtualKeyboardLabels();
                     }}
 
                     return '{layout}';
