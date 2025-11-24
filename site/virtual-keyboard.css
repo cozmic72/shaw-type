@@ -146,6 +146,21 @@
         display: none !important;
     }
 
+    /* Hide keys for imperial layouts only on mobile */
+    .keyboard-body.layout-shaw-imperial .hide-mobile-imperial,
+    .keyboard-body.layout-imperial-good-companion .hide-mobile-imperial {
+        display: none !important;
+    }
+
+    /* Show keys/spacers only for non-imperial layouts on mobile */
+    .show-mobile-non-imperial {
+        display: none !important;
+    }
+
+    .keyboard-body:not(.layout-shaw-imperial):not(.layout-imperial-good-companion) .show-mobile-non-imperial {
+        display: block !important;
+    }
+
     .keyboard-row {
         justify-content: space-between;
         width: 100%;
