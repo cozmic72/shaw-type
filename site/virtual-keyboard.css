@@ -150,6 +150,12 @@
         display: none !important;
     }
 
+    /* Show spacers with hide-mobile-non-imperial on imperial layouts */
+    .keyboard-body.layout-shaw-imperial .spacer.hide-mobile-non-imperial,
+    .keyboard-body.layout-imperial-good-companion .spacer.hide-mobile-non-imperial {
+        display: block !important;
+    }
+
     /* Hide keys for imperial layouts only on mobile */
     .keyboard-body.layout-shaw-imperial .hide-mobile-imperial,
     .keyboard-body.layout-imperial-good-companion .hide-mobile-imperial {
