@@ -13,12 +13,26 @@ here are:
 We generate the game levels and practice lessons using the python scripts
 `generate_learn_words.py` and `generrate_play_words.py`.
 
-### Deployment
-To deploy a new version:
+### Build Process
+To build all resources for a new version:
+```bash
+./build.sh <version>
+```
+Example: `./build.sh 2.0-beta-5`
+
+This script:
+1. Deploys `index.html` with the version number (from template)
+2. Generates keyboard images
+3. Generates transliterations for content pages
+4. Generates word lists
+5. Generates favicon
+
+### Manual Deployment
+To deploy index.html without running the full build:
 ```bash
 python3 tools/deploy.py <version>
 ```
-Example: `python3 tools/deploy.py 2.0-beta-4`
+Example: `python3 tools/deploy.py 2.0-beta-5`
 
 This script:
 - Reads `sources/index.html.template`

@@ -3,15 +3,33 @@
 # Build script for Shaw Type
 # Generates all resources needed for the site
 #
+# Usage: ./build.sh <version>
+# Example: ./build.sh 2.0-beta-5
 
 set -e  # Exit on error
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
+# Check if version argument is provided
+if [ -z "$1" ]; then
+    echo "Error: Version number required"
+    echo "Usage: ./build.sh <version>"
+    echo "Example: ./build.sh 2.0-beta-5"
+    exit 1
+fi
+
+VERSION="$1"
+
 echo "=========================================="
-echo "Building Shaw Type Resources"
+echo "Building Shaw Type Resources (v${VERSION})"
 echo "=========================================="
+echo
+
+# Deploy index.html with version number (MUST BE FIRST)
+echo "Deploying index.html with version ${VERSION}..."
+python3 tools/deploy.py "${VERSION}"
+echo "✓ index.html deployed"
 echo
 
 # Check if readlex submodule is initialized

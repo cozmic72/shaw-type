@@ -13,6 +13,7 @@ def deploy(version):
     """Deploy files with the specified version."""
     project_root = Path(__file__).parent.parent
     sources_dir = project_root / 'sources'
+    content_dir = project_root / 'content'
     site_dir = project_root / 'site'
 
     # Ensure directories exist
@@ -24,15 +25,16 @@ def deploy(version):
         print(f"Error: Site directory not found: {site_dir}")
         return 1
 
-    # Process index.html.template
-    template_file = sources_dir / 'index.html.template'
+    print(f"Deploying version {version}...")
+    print()
+
+    # Process index.html
+    template_file = sources_dir / 'index.html'
     output_file = site_dir / 'index.html'
 
     if not template_file.exists():
         print(f"Error: Template file not found: {template_file}")
         return 1
-
-    print(f"Deploying version {version}...")
 
     # Read template
     with open(template_file, 'r', encoding='utf-8') as f:
@@ -45,8 +47,30 @@ def deploy(version):
     with open(output_file, 'w', encoding='utf-8') as f:
         f.write(content)
 
-    print(f"✓ Deployed {template_file.name} → {output_file.name}")
-    print(f"  Version: {version}")
+    print(f"✓ Deployed {template_file.name} → {output_file}")
+
+    # Process content/*.html files - deploy to site/*_latin.html
+    # (transliteration tool will read these and create _gb and _us versions)
+    if content_dir.exists():
+        html_files = list(content_dir.glob('*.html'))
+        for source_file in html_files:
+            # Read source
+            with open(source_file, 'r', encoding='utf-8') as f:
+                content = f.read()
+
+            # Replace version placeholder
+            content = content.replace('{{VERSION}}', version)
+
+            # Write to site/*_latin.html
+            base_name = source_file.stem
+            output_file = site_dir / f"{base_name}_latin.html"
+            with open(output_file, 'w', encoding='utf-8') as f:
+                f.write(content)
+
+            print(f"✓ Deployed {source_file.name} → {output_file.name}")
+
+    print()
+    print(f"Version: {version}")
 
     return 0
 
