@@ -141,6 +141,11 @@
         padding: 3px;
     }
 
+    /* Hide number row and certain keys for non-imperial layouts on mobile */
+    .keyboard-body:not(.layout-shaw-imperial):not(.layout-imperial-good-companion) .hide-mobile-non-imperial {
+        display: none !important;
+    }
+
     .keyboard-row {
         justify-content: space-between;
         width: 100%;
@@ -149,9 +154,9 @@
     .key {
         flex: 1;
         min-width: 0;
-        height: 32px;
+        height: 38px;
         padding: 4px;
-        font-size: 11px;
+        font-size: 12px;
     }
 
     .key-wide {

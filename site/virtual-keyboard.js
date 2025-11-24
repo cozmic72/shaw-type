@@ -221,6 +221,16 @@ function hideVirtualKeyboard() {
 // Update keyboard labels with Shavian characters based on current layout
 // Parameters passed from main script to avoid timing issues
 function updateKeyboardLabels(keyboardMap, layoutName) {
+    // Update keyboard body class for layout-specific styling
+    const keyboardBody = document.querySelector('.keyboard-body');
+    if (keyboardBody) {
+        // Remove all existing layout classes
+        keyboardBody.className = keyboardBody.className.replace(/layout-\S+/g, '').trim();
+        // Add current layout class (convert to lowercase and remove spaces)
+        const layoutClass = 'layout-' + layoutName.toLowerCase().replace(/\s+/g, '-');
+        keyboardBody.classList.add(layoutClass);
+    }
+
     // Update title to show keyboard name
     const titleElement = document.querySelector('.keyboard-title');
     if (titleElement) {
