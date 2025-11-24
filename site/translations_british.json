@@ -130,6 +130,12 @@
   "continueThisLesson": "𐑒𐑰𐑐 𐑐𐑮𐑨𐑒𐑑𐑦𐑕𐑦𐑙 𐑞𐑦𐑕 𐑤𐑧𐑕𐑩𐑯",
   "nextLesson": "·𐑯𐑧𐑒𐑕𐑑 𐑤𐑧𐑕𐑩𐑯",
   "chooseDifferentLesson": "𐑗𐑵𐑟 ·𐑛𐑦𐑓𐑼𐑩𐑯𐑑 𐑤𐑧𐑕𐑩𐑯",
+  "chooseDifferentLesson2": "·𐑗𐑵𐑟 𐑛𐑦𐑓𐑼𐑩𐑯𐑑 𐑤𐑧𐑕𐑩𐑯",
   "continueButton2": "𐑒𐑩𐑯𐑑𐑦𐑯𐑿",
-  "playAgainBtn": "𐑐𐑤𐑱 𐑩𐑜𐑧𐑯"
+  "playAgainBtn": "𐑐𐑤𐑱 𐑩𐑜𐑧𐑯",
+  "lessonCompleteTitle": "𐑤𐑧𐑕𐑩𐑯 𐑒𐑩𐑥𐑐𐑤𐑰𐑑!",
+  "sessionCompleteTitle": "·𐑕𐑧𐑖𐑩𐑯 𐑒𐑩𐑥𐑐𐑤𐑰𐑑!",
+  "playCompleteTitle": "𐑒𐑩𐑯𐑜𐑮𐑨𐑗𐑩𐑤𐑱𐑖𐑩𐑯𐑟!",
+  "accuracy_lesson": "𐑨𐑒𐑘𐑼𐑩𐑕𐑦:",
+  "accuracy_session": "𐑨𐑒𐑘𐑼𐑩𐑕𐑦:"
 }

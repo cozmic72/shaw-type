@@ -132,5 +132,10 @@
   "chooseDifferentLesson": "Choose Different Lesson",
   "chooseDifferentLesson2": "Choose Different Lesson",
   "continueButton2": "Continue",
-  "playAgainBtn": "Play Again"
+  "playAgainBtn": "Play Again",
+  "lessonCompleteTitle": "Lesson Complete!",
+  "sessionCompleteTitle": "Session Complete!",
+  "playCompleteTitle": "Congratulations!",
+  "accuracy_lesson": "Accuracy:",
+  "accuracy_session": "Accuracy:"
 }

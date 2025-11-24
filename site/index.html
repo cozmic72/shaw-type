@@ -10,13 +10,13 @@
     <link rel="icon" type="image/png" sizes="192x192" href="favicon-192x192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="favicon-512x512.png">
     <link rel="shortcut icon" type="image/png" href="favicon.png">
-    <link rel="stylesheet" href="virtual-keyboard.css?v=2.0-beta-39">
-    <link rel="stylesheet" href="style.css?v=2.0-beta-39">
+    <link rel="stylesheet" href="virtual-keyboard.css?v=2.0-beta-40">
+    <link rel="stylesheet" href="style.css?v=2.0-beta-40">
 
     <!-- Load translations synchronously before anything else -->
     <script>
         // Version for cache-busting
-        const RESOURCE_VERSION = '2.0-beta-39';
+        const RESOURCE_VERSION = '2.0-beta-40';
 
         // Helper: Add version parameter to resource URLs (global)
         window.versionedUrl = function(url) {
@@ -126,20 +126,47 @@
         @2025 joro.io
     </div>
 
-    <!-- Completion Modal -->
-    <div class="completion-modal" id="completionModal">
+    <!-- Practice/Learn Mode Lesson Completion Modal -->
+    <div class="completion-modal" id="lessonCompletionModal">
         <div class="completion-content">
             <span class="modal-close" onclick="goHome()">&times;</span>
-            <h2 id="congratulations">Congratulations!</h2>
+            <h2 id="lessonCompleteTitle">Lesson Complete!</h2>
+            <div class="stat-row"><span id="accuracy_lesson">Accuracy:</span> <span id="lessonAccuracy">--</span></div>
+            <div>
+                <button id="continueThisLesson" onclick="continueLesson()">Keep practicing this lesson</button>
+                <button id="nextLesson" onclick="nextLesson()" style="margin-left: 10px;">Next lesson</button>
+                <button id="chooseDifferentLesson" onclick="chooseDifferentLesson()" style="margin-left: 10px; background: white; color: #667eea; border: 2px solid #667eea;">Choose Different Lesson</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Practice/Learn Mode Session Completion Modal -->
+    <div class="completion-modal" id="sessionCompletionModal">
+        <div class="completion-content">
+            <span class="modal-close" onclick="goHome()">&times;</span>
+            <h2 id="sessionCompleteTitle">Session Complete!</h2>
+            <div class="stat-row"><span id="accuracy_session">Accuracy:</span> <span id="sessionAccuracy">--</span></div>
+            <div>
+                <button id="continueButton2" onclick="continueLesson()">Continue</button>
+                <button id="chooseDifferentLesson2" onclick="chooseDifferentLesson()" style="margin-left: 10px; background: white; color: #667eea; border: 2px solid #667eea;">Choose Different Lesson</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Play Mode Completion Modal -->
+    <div class="completion-modal" id="playCompletionModal">
+        <div class="completion-content">
+            <span class="modal-close" onclick="goHome()">&times;</span>
+            <h2 id="playCompleteTitle">Congratulations!</h2>
             <div id="personalBestLabel" style="color: #28a745; font-weight: bold; margin-top: 10px; display: none;"></div>
             <div class="final-score" id="finalScore">--</div>
             <div class="stat-row"><span id="wpm">WPM:</span> <span id="finalWPM">--</span></div>
             <div class="stat-row"><span id="lettersPerMin">Letters/min:</span> <span id="finalLPM">--</span></div>
             <div class="stat-row"><span id="accuracy_final">Accuracy:</span> <span id="finalAccuracy">--</span></div>
-            <div class="stat-row" id="levelReachedRow"><span id="levelReached">Level Reached:</span> <span id="finalLevel">--</span></div>
+            <div class="stat-row"><span id="levelReached">Level Reached:</span> <span id="finalLevel">--</span></div>
             <div id="levelStatsContainer" class="level-stats-container"></div>
-            <div id="completionButtons">
-                <button id="practiceAgain" onclick="resetPractice()">Practice Again</button>
+            <div>
+                <button id="playAgainBtn" onclick="playAgain()">Play Again</button>
             </div>
         </div>
     </div>
@@ -324,8 +351,8 @@
     <div id="virtualKeyboardContainer"></div>
 
     <!-- Load virtual keyboard before main script -->
-    <script src="virtual-keyboard.js?v=2.0-beta-39"></script>
+    <script src="virtual-keyboard.js?v=2.0-beta-40"></script>
 
-    <script src="main.js?v=2.0-beta-39"></script>
+    <script src="main.js?v=2.0-beta-40"></script>
 </body>
 </html>
