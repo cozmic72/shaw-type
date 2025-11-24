@@ -854,7 +854,6 @@
         <div class="completion-content">
             <span class="modal-close" onclick="goHome()">&times;</span>
             <h2 id="completionTitle">Congratulations!</h2>
-            <div id="personalBestLabel" style="color: #28a745; font-weight: bold; margin-top: 10px; display: none;"></div>
             <div class="final-score" id="finalScore">--</div>
             <div class="stat-row">WPM: <span id="finalWPM">--</span></div>
             <div class="stat-row">Letters/min: <span id="finalLPM">--</span></div>
@@ -2414,7 +2413,6 @@
             // Set modal content for lesson completion
             const t = getCurrentTranslations();
             document.getElementById('completionTitle').textContent = t.lessonComplete;
-            document.getElementById('completionMessage').textContent = t.completedWords.replace('{n}', wordsCompleted);
 
             // Hide game-specific stats
             document.getElementById('finalScore').style.display = 'none';
@@ -2506,7 +2504,6 @@
             // Customize modal based on mode
             if (currentMode === 'learn') {
                 document.getElementById('completionTitle').textContent = t.sessionComplete;
-                document.getElementById('completionMessage').textContent = t.completed10;
                 document.getElementById('levelReachedRow').style.display = 'none';
                 document.getElementById('levelStatsContainer').style.display = 'none';
 
@@ -2517,7 +2514,6 @@
                 `;
             } else {
                 document.getElementById('completionTitle').textContent = t.congratulations;
-                document.getElementById('completionMessage').textContent = t.completedWords.replace('{n}', wordsCompleted);
                 document.getElementById('levelReachedRow').style.display = 'block';
                 document.getElementById('levelStatsContainer').style.display = 'block';
 
@@ -2538,17 +2534,6 @@
             }
 
             // Update main display (time is the primary score)
-            const pbText = ' - ' + (t.personalBest || 'personal best!');
-
-            // Show "New Personal Best:" label above time if it's a record
-            const pbLabel = document.getElementById('personalBestLabel');
-            if (isNewTimeRecord) {
-                pbLabel.textContent = t.newPersonalBest || 'New Personal Best:';
-                pbLabel.style.display = 'block';
-            } else {
-                pbLabel.style.display = 'none';
-            }
-
             document.getElementById('finalScore').textContent = timeFormatted;
             document.getElementById('finalScore').style.display = 'block';
 
