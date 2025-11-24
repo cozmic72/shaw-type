@@ -576,71 +576,14 @@ function getLearnWords() {
     return null;
 }
 
-function translateLessonName(name) {
+function translateLessonName(nameKey) {
     const t = getCurrentTranslations();
-
-    // Map English lesson names to translation keys
-    const nameMap = {
-        'Home Row Center': t.lessonHomeRowCenter,
-        'Full Home Row': t.lessonFullHomeRow,
-        'Index Finger Reach': t.lessonIndexFingerReach,
-        'Upper & Lower Rows': t.lessonUpperLowerRows,
-        'Number Row Focus': t.lessonNumberRowFocus,
-        'Hard to Reach': t.lessonHardToReach,
-        'All Keys': t.lessonAllKeys,
-        'Compound Letters': t.lessonCompoundLetters,
-        'Home Row + Shift': t.lessonHomeRowShift,
-        'Add Upper Row': t.lessonAddUpperRow,
-        'Add Lower Row': t.lessonAddLowerRow,
-        'Essential Phonemes': t.lessonEssentialPhonemes,
-        'Vowel Voyage': t.lessonVowelVoyage,
-        'Consonant Command': t.lessonConsonantCommand,
-        'Ligature Power': t.lessonLigaturePower,
-        'Shift Mastery': t.lessonShiftMastery,
-        'Complete Control': t.lessonCompleteControl,
-        'Core Foundation': t.lessonCoreFoundation,
-        'Home Sweet Home': t.lessonHomeSweet,
-        'Upper Expedition': t.lessonUpperExpedition,
-        'Lower Exploration': t.lessonLowerExploration,
-        'Shift Introduction': t.lessonShiftIntroduction,
-        'Master Typist': t.lessonMasterTypist
-    };
-
-    return nameMap[name] || name;
+    return t[nameKey] || nameKey;
 }
 
-function translateLessonDescription(description) {
+function translateLessonDescription(descKey) {
     const t = getCurrentTranslations();
-
-    // Map English descriptions to translation keys
-    const descMap = {
-        'Middle fingers only, home row': t.desc1,
-        'All fingers, home row': t.desc2,
-        'Add index finger upper/lower reaches': t.desc3,
-        'Extend to more keys above and below': t.desc4,
-        'Add outer columns': t.desc5,
-        'Complete keyboard (all layers)': t.desc6,
-        'Practice typing ligatures: 𐑼 𐑸 𐑹 𐑿 𐑽': t.desc7,
-        'Home row with shift layer': t.desc8,
-        'Add upper row (both layers)': t.desc9,
-        'Add lower row (both layers)': t.desc10,
-        'Master the 9 most common sounds in English': t.desc11,
-        'Navigate through English vowel sounds': t.desc12,
-        'Build confidence with base layer consonants': t.desc13,
-        'Harness the efficiency of compound letters': t.desc14,
-        'Unlock the full potential of the shift layer': t.desc15,
-        'Command every key with confidence': t.desc16,
-        'Build your foundation with essential sounds': t.desc17,
-        'Master the comfort of the home row': t.desc18,
-        'Journey to the upper reaches of your keyboard': t.desc19,
-        'Explore the depths below home position': t.desc20,
-        'Discover new dimensions with the shift key': t.desc21,
-        'Achieve mastery over the complete keyboard': t.desc22,
-        'All fingers, home row (unshifted)': t.desc23,
-        'Complete keyboard including number row': t.desc24
-    };
-
-    return descMap[description] || description;
+    return t[descKey] || descKey;
 }
 
 function updateLevelSelector() {
@@ -667,7 +610,7 @@ function updateLevelSelector() {
             if (levelData) {
                 const option = document.createElement('option');
                 option.value = i;
-                const translatedName = translateLessonName(levelData.name);
+                const translatedName = translateLessonName(levelData.nameKey);
                 option.textContent = `${i}. ${translatedName}`;
                 levelSelect.appendChild(option);
             }
@@ -687,29 +630,29 @@ function updateLevelSelector() {
 // Level configuration for different level counts
 const LEVEL_CONFIGS = {
     3: [
-        { lengths: [1, 2, 3], title: 'Short Words' },
-        { lengths: [3, 4, 5], title: 'Medium Words' },
-        { lengths: [5, 6, 7], title: 'Long Words' }
+        { lengths: [1, 2, 3], titleKey: 'shortWords' },
+        { lengths: [3, 4, 5], titleKey: 'mediumWords' },
+        { lengths: [5, 6, 7], titleKey: 'longWords' }
     ],
     6: [
-        { lengths: [1, 2], title: '1-2 Letters' },
-        { lengths: [2, 3], title: '2-3 Letters' },
-        { lengths: [3, 4], title: '3-4 Letters' },
-        { lengths: [4, 5, 6], title: '4-6 Letters' },
-        { lengths: [5, 6, 7], title: '5+ Letters' },
-        { lengths: [6, 7], title: '6+ Letters' }
+        { lengths: [1, 2], count: '1-2', unitKey: 'letters' },
+        { lengths: [2, 3], count: '2-3', unitKey: 'letters' },
+        { lengths: [3, 4], count: '3-4', unitKey: 'letters' },
+        { lengths: [4, 5, 6], count: '4-6', unitKey: 'letters' },
+        { lengths: [5, 6, 7], count: '5+', unitKey: 'letters' },
+        { lengths: [6, 7], count: '6+', unitKey: 'letters' }
     ],
     10: [
-        { lengths: [1], title: '1 Letter' },
-        { lengths: [2], title: '2 Letters' },
-        { lengths: [3], title: '3 Letters' },
-        { lengths: [4], title: '4 Letters' },
-        { lengths: [5], title: '5 Letters' },
-        { lengths: [6], title: '6 Letters' },
-        { lengths: [7], title: '7 Letters' },
-        { lengths: [5, 6], title: '5-6 Letters' },
-        { lengths: [6, 7], title: '6-7 Letters' },
-        { lengths: [7], title: '7+ Letters' }
+        { lengths: [1], count: '1', unitKey: 'letter' },
+        { lengths: [2], count: '2', unitKey: 'letters' },
+        { lengths: [3], count: '3', unitKey: 'letters' },
+        { lengths: [4], count: '4', unitKey: 'letters' },
+        { lengths: [5], count: '5', unitKey: 'letters' },
+        { lengths: [6], count: '6', unitKey: 'letters' },
+        { lengths: [7], count: '7', unitKey: 'letters' },
+        { lengths: [5, 6], count: '5-6', unitKey: 'letters' },
+        { lengths: [6, 7], count: '6-7', unitKey: 'letters' },
+        { lengths: [7], count: '7+', unitKey: 'letters' }
     ]
 };
 
@@ -735,10 +678,20 @@ function getPlayLevelData(levelNum) {
         }
     });
 
+    const t = getCurrentTranslations();
+    let title;
+    if (levelConfig.titleKey) {
+        // For 3-level mode: shortWords, mediumWords, longWords
+        title = t[levelConfig.titleKey];
+    } else {
+        // For 6 and 10-level modes: programmatically build title like "1-2 Letters"
+        title = `${levelConfig.count} ${t[levelConfig.unitKey]}`;
+    }
+
     return {
         wordPool: pool,
         wordCount: 5,
-        title: levelConfig.title
+        title: title
     };
 }
 
@@ -760,7 +713,8 @@ function getLearnLessonData(lessonIndex) {
 
     const levelData = learnWords[lessonIndex];
     if (levelData && levelData.words) {
-        const translatedName = translateLessonName(levelData.name);
+        const t = getCurrentTranslations();
+        const translatedName = t[levelData.nameKey] || levelData.nameKey;
         return {
             wordPool: levelData.words,
             wordCount: 10,
@@ -2347,8 +2301,8 @@ function openLessonSelector() {
         if (levelData) {
             const lessonBtn = document.createElement('div');
             lessonBtn.className = 'lesson-option';
-            const translatedName = translateLessonName(levelData.name);
-            const translatedDescription = translateLessonDescription(levelData.description);
+            const translatedName = translateLessonName(levelData.nameKey);
+            const translatedDescription = translateLessonDescription(levelData.descKey);
             lessonBtn.innerHTML = `
                 <strong>${t.lessonPrefix} ${i}: ${translatedName}</strong>
                 <p style="margin: 5px 0 0 0; font-size: 12px; color: #888;">${translatedDescription}</p>
