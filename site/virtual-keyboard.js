@@ -10,6 +10,10 @@ async function initVirtualKeyboard(containerElement, resourceVersion) {
         }
         const html = await response.text();
         containerElement.innerHTML = html;
+
+        // Now that the HTML is loaded, make it draggable
+        makeKeyboardDraggable();
+
         return true;
     } catch (error) {
         console.error('Error loading virtual keyboard:', error);
@@ -421,10 +425,9 @@ function makeKeysClickable(keyboardMap) {
     });
 }
 
-// Initialize keyboard UI on page load - main script handles showing/hiding
+// Initialize keyboard UI - track physical keyboard state
+// Note: makeKeyboardDraggable() is called from initVirtualKeyboard() after HTML loads
 document.addEventListener('DOMContentLoaded', () => {
-    makeKeyboardDraggable();
-
     // Track physical Shift and Caps Lock keys to update virtual keyboard
     document.addEventListener('keydown', (e) => {
         // Highlight the key being pressed (pass e.code to distinguish left/right shift)

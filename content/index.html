@@ -1048,6 +1048,9 @@
     <!-- Virtual Keyboard Container (loaded dynamically) -->
     <div id="virtualKeyboardContainer"></div>
 
+    <!-- Load virtual keyboard before main script -->
+    <script src="virtual-keyboard.js?v={{VERSION}}"></script>
+
     <script>
         // Words will be loaded from JSON file
         let wordsByLength = {};
@@ -3840,6 +3843,5 @@
         init();
         updateUILanguage();
     </script>
-    <script src="virtual-keyboard.js?v={{VERSION}}"></script>
 </body>
 </html>
