@@ -1314,17 +1314,6 @@
         // Track whether user is actively using virtual keyboard
         let isUsingVirtualKeyboard = false;
 
-        // Detect physical keyboard use and auto-switch mode
-        function handlePhysicalKeyPress(e) {
-            // Ignore modifier keys, function keys, etc.
-            if (e.key.length === 1 || e.key === 'Backspace') {
-                // Physical key pressed - switch to physical keyboard mode
-                if (isUsingVirtualKeyboard) {
-                    activatePhysicalKeyboardMode();
-                }
-            }
-        }
-
         // Central focus management: configure input based on virtual keyboard usage
         function updateInputFocusMode() {
             const typingInput = document.getElementById('typingInput');
@@ -1333,15 +1322,10 @@
             const keyboard = document.getElementById('virtualKeyboard');
             const isVirtualKeyboardVisible = keyboard && keyboard.style.display !== 'none';
 
-            // Remove old listener
-            document.removeEventListener('keydown', handlePhysicalKeyPress);
-
             if (isVirtualKeyboardVisible && isUsingVirtualKeyboard) {
                 // User clicked virtual keyboard: prevent physical keyboard
                 typingInput.setAttribute('readonly', 'readonly');
                 typingInput.blur();
-                // But listen for physical keyboard to auto-switch
-                document.addEventListener('keydown', handlePhysicalKeyPress);
             } else {
                 // Allow physical keyboard input
                 typingInput.removeAttribute('readonly');
