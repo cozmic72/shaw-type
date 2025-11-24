@@ -135,6 +135,10 @@
         left: 0;
         max-width: 100%;
         border-radius: 12px 12px 0 0;
+        /* Safe area insets for notched devices and iOS home indicator */
+        padding-bottom: env(safe-area-inset-bottom);
+        padding-left: env(safe-area-inset-left);
+        padding-right: env(safe-area-inset-right);
     }
 
     .keyboard-body {

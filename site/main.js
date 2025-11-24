@@ -918,6 +918,28 @@ async function loadWords() {
     }
 }
 
+// Minimize Safari/browser UI chrome by scrolling slightly
+function minimizeBrowserUI() {
+    // Small delay to ensure page is fully loaded
+    setTimeout(() => {
+        // Scroll down slightly to trigger minimal UI mode in mobile browsers
+        window.scrollTo(0, 1);
+        // Scroll back to top smoothly
+        setTimeout(() => {
+            window.scrollTo(0, 0);
+        }, 10);
+    }, 100);
+}
+
+// Check if app is running in standalone mode (added to home screen)
+function isStandalone() {
+    // iOS
+    if (window.navigator.standalone) return true;
+    // Android
+    if (window.matchMedia('(display-mode: standalone)').matches) return true;
+    return false;
+}
+
 // Initialize
 async function init() {
     // Initialize virtual keyboard (encapsulated in virtual-keyboard.js)
@@ -934,6 +956,14 @@ async function init() {
         // Start on home screen - don't auto-load game
         // User will click Play or Practice to start
     }
+
+    // Minimize browser UI if not running in standalone mode
+    if (!isStandalone()) {
+        minimizeBrowserUI();
+    }
+
+    // Log standalone status for debugging
+    debug(`App running in ${isStandalone() ? 'standalone' : 'browser'} mode`);
 }
 
 // Countdown state
