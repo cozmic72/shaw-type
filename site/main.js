@@ -1416,7 +1416,7 @@ function showCompletionModal() {
         document.getElementById('finalAccuracy').textContent = accuracyFormatted;
         if (isNewAccuracyRecord) {
             accuracyRow.style.color = '#28a745';
-            document.getElementById('finalAccuracy').textContent = accuracyFormatted + pbText;
+            document.getElementById('finalAccuracy').textContent = accuracyFormatted + ' ' + t.personalBest;
         } else {
             accuracyRow.style.color = '';
         }
