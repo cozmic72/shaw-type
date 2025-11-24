@@ -10,7 +10,10 @@ let learnWordsJafl = {};
 let learnWordsJaflNoLig = {};
 let wordsLoaded = false;
 
-// Current level/lesson state
+// Game state - encapsulates all session state and statistics
+let gameState = new GameState();
+
+// Legacy global variables - TODO: migrate to gameState
 let currentLevelWordPool = []; // Source pool of words for current level/lesson
 let currentLevelWordCount = 5; // Number of words to complete this level/lesson
 let currentLevelTitle = ''; // Display title for current level/lesson
