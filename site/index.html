@@ -2355,17 +2355,13 @@
             } else {
                 const nextLevelNum = currentLevelNumber + 1;
                 debug(`[transitionToNextLevel] PLAY mode: currentLevelNumber=${currentLevelNumber}, nextLevelNum=${nextLevelNum}, levelCount=${levelCount}`);
-                if (nextLevelNum <= levelCount) {
-                    debug(`[transitionToNextLevel] Trying to get level data for level ${nextLevelNum}`);
-                    nextLevelData = getPlayLevelData(nextLevelNum);
-                    if (nextLevelData) {
-                        debug(`[transitionToNextLevel] Found next level data`);
-                        currentLevelNumber = nextLevelNum;
-                    } else {
-                        debug(`[transitionToNextLevel] getPlayLevelData returned null for level ${nextLevelNum}`);
-                    }
+                // Try to get next level data (getPlayLevelData will return null if beyond available levels)
+                nextLevelData = getPlayLevelData(nextLevelNum);
+                if (nextLevelData) {
+                    debug(`[transitionToNextLevel] Found next level data for level ${nextLevelNum}`);
+                    currentLevelNumber = nextLevelNum;
                 } else {
-                    debug(`[transitionToNextLevel] No more levels: nextLevelNum (${nextLevelNum}) > levelCount (${levelCount})`);
+                    debug(`[transitionToNextLevel] No more levels available after level ${currentLevelNumber}`);
                 }
             }
 
