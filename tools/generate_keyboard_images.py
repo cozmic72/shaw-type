@@ -163,10 +163,14 @@ async def generate_keyboard_screenshots(server_port=8765):
                 await keyboard.screenshot(path=output_path)
                 print(f"  ✓ Saved {layout}_base.png")
 
-                # Activate shift (if layout has shift layer)
-                # Check if shift layer exists by looking for shift-only characters
-                await page.click('.key[data-key="Shift"]')
-                await asyncio.sleep(0.2)
+                # Activate shift and update keyboard labels
+                await page.evaluate(f'''() => {{
+                    // Call toggleShift to activate shift mode
+                    if (typeof toggleShift === 'function') {{
+                        toggleShift();
+                    }}
+                }}''')
+                await asyncio.sleep(0.3)
 
                 # Check if this layout has a shift layer (non-empty shift characters)
                 has_shift_layer = await page.evaluate('''() => {
