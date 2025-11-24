@@ -1267,7 +1267,7 @@ function checkCompletion() {
         }
 
         // Check if level is complete
-        if (wordsInCurrentLevel === currentLevelWordCount) {
+        if (wordsInCurrentLevel >= currentLevelWordCount) {
             // Level completed - transition to next level
             debug(`[checkCompletion] ${currentLevelType.toUpperCase()} COMPLETED - calling transitionToNextLevel()`);
             transitionToNextLevel();
