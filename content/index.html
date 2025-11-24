@@ -775,6 +775,29 @@
             display: block;
             margin: 10px auto;
         }
+
+        /* Keyboard documentation styles */
+        .key-style {
+            background-color: #e8e8e8;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Inter-Alia', monospace;
+            border: 1px solid #ccc;
+            white-space: nowrap;
+        }
+
+        .modal-content ul {
+            background-color: #f5f5f5;
+            padding: 12px 20px 12px 40px;
+            border-left: 3px solid #555fdc;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+
+        .modal-content ul li {
+            margin: 6px 0;
+            color: #444;
+        }
     </style>
 </head>
 <body>
@@ -854,6 +877,7 @@
         <div class="completion-content">
             <span class="modal-close" onclick="goHome()">&times;</span>
             <h2 id="completionTitle">Congratulations!</h2>
+            <div id="personalBestLabel" style="color: #28a745; font-weight: bold; margin-top: 10px; display: none;"></div>
             <div class="final-score" id="finalScore">--</div>
             <div class="stat-row">WPM: <span id="finalWPM">--</span></div>
             <div class="stat-row">Letters/min: <span id="finalLPM">--</span></div>
@@ -2534,6 +2558,15 @@
             }
 
             // Update main display (time is the primary score)
+            // Show "New Personal Best:" label above time if it's a record
+            const pbLabel = document.getElementById('personalBestLabel');
+            if (isNewTimeRecord) {
+                pbLabel.textContent = t.newPersonalBest || 'New Personal Best:';
+                pbLabel.style.display = 'block';
+            } else {
+                pbLabel.style.display = 'none';
+            }
+
             document.getElementById('finalScore').textContent = timeFormatted;
             document.getElementById('finalScore').style.display = 'block';
 
