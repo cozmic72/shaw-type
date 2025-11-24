@@ -3111,7 +3111,7 @@
             }
 
             try {
-                const response = await fetch(filename);
+                const response = await fetch(versionedUrl(filename));
                 if (response.ok) {
                     const html = await response.text();
                     bodyEl.innerHTML = html;
@@ -3215,7 +3215,7 @@
                 const contentEl = document.getElementById('splashContent');
 
                 try {
-                    const response = await fetch(filename);
+                    const response = await fetch(versionedUrl(filename));
                     if (response.ok) {
                         const html = await response.text();
                         contentEl.innerHTML = html;
@@ -3570,7 +3570,7 @@
                 const lang = useShavianUI ? currentDialect : 'latin';
                 const filename = `whats_new_${lang}.html`;
                 const contentEl = document.getElementById('splashContent');
-                fetch(filename)
+                fetch(versionedUrl(filename))
                     .then(response => response.ok ? response.text() : '<p>Content not found.</p>')
                     .then(html => contentEl.innerHTML = html)
                     .catch(error => {
