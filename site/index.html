@@ -10,12 +10,12 @@
     <link rel="icon" type="image/png" sizes="192x192" href="favicon-192x192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="favicon-512x512.png">
     <link rel="shortcut icon" type="image/png" href="favicon.png">
-    <link rel="stylesheet" href="virtual-keyboard.css?v=2.0-beta-28">
+    <link rel="stylesheet" href="virtual-keyboard.css?v=2.0-beta-30">
 
     <!-- Load translations synchronously before anything else -->
     <script>
         // Version for cache-busting
-        const RESOURCE_VERSION = '2.0-beta-28';
+        const RESOURCE_VERSION = '2.0-beta-30';
 
         // Helper: Add version parameter to resource URLs (global)
         window.versionedUrl = function(url) {
@@ -779,7 +779,7 @@
         /* Keyboard documentation styles */
         .key-style {
             background-color: #e8e8e8;
-            padding: 2px 6px;
+            padding: 0px 0px;
             border-radius: 3px;
             font-family: 'Inter-Alia', monospace;
             border: 1px solid #ccc;
@@ -1070,7 +1070,7 @@
     <div id="virtualKeyboardContainer"></div>
 
     <!-- Load virtual keyboard before main script -->
-    <script src="virtual-keyboard.js?v=2.0-beta-28"></script>
+    <script src="virtual-keyboard.js?v=2.0-beta-30"></script>
 
     <script>
         // Words will be loaded from JSON file
@@ -3111,7 +3111,7 @@
             }
 
             try {
-                const response = await fetch(versionedUrl(filename));
+                const response = await fetch(filename);
                 if (response.ok) {
                     const html = await response.text();
                     bodyEl.innerHTML = html;
@@ -3185,7 +3185,7 @@
         }
 
         // Splash screen functions
-        const APP_VERSION = '2.0-beta-28';
+        const APP_VERSION = '2.0-beta-30';
 
         function closeSplashModal() {
             const dontShow = document.getElementById('dontShowSplash').checked;
@@ -3215,7 +3215,7 @@
                 const contentEl = document.getElementById('splashContent');
 
                 try {
-                    const response = await fetch(versionedUrl(filename));
+                    const response = await fetch(filename);
                     if (response.ok) {
                         const html = await response.text();
                         contentEl.innerHTML = html;
@@ -3570,7 +3570,7 @@
                 const lang = useShavianUI ? currentDialect : 'latin';
                 const filename = `whats_new_${lang}.html`;
                 const contentEl = document.getElementById('splashContent');
-                fetch(versionedUrl(filename))
+                fetch(filename)
                     .then(response => response.ok ? response.text() : '<p>Content not found.</p>')
                     .then(html => contentEl.innerHTML = html)
                     .catch(error => {
