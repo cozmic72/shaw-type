@@ -1314,15 +1314,52 @@
         // Track whether user is actively using virtual keyboard (touch only)
         let isUsingVirtualKeyboard = false;
 
-        // Prevent focus on mobile when using virtual keyboard (stops OS keyboard popup)
-        function handleInputFocus(e) {
-            const keyboard = document.getElementById('virtualKeyboard');
-            const isVirtualKeyboardVisible = keyboard && keyboard.style.display !== 'none';
+        // Handle physical keyboard input when in virtual keyboard mode
+        function handlePhysicalKeydown(e) {
+            const typingInput = document.getElementById('typingInput');
+            if (!typingInput || !typingInput.hasAttribute('readonly')) return;
 
-            if (isVirtualKeyboardVisible && isUsingVirtualKeyboard) {
-                // User is using virtual keyboard - blur to prevent OS keyboard
+            // Get the keyboard map for translation
+            const layout = KEYBOARD_MAPS[currentLayout];
+            const keyboardMap = layout ? layout.keys : null;
+            if (!keyboardMap) return;
+
+            // Handle printable characters
+            if (e.key.length === 1 && !e.ctrlKey && !e.metaKey) {
                 e.preventDefault();
-                e.target.blur();
+
+                // Get Shavian character for this key
+                const shavianChar = keyboardMap[e.key];
+                if (shavianChar) {
+                    // Insert character
+                    const start = typingInput.value.length;
+                    typingInput.value += shavianChar;
+
+                    // Trigger input event
+                    const inputEvent = new InputEvent('input', {
+                        bubbles: true,
+                        cancelable: true,
+                        inputType: 'insertText',
+                        data: shavianChar
+                    });
+                    typingInput.dispatchEvent(inputEvent);
+                }
+            } else if (e.key === 'Backspace') {
+                e.preventDefault();
+
+                // Delete last character
+                if (typingInput.value.length > 0) {
+                    const chars = Array.from(typingInput.value);
+                    typingInput.value = chars.slice(0, -1).join('');
+
+                    // Trigger input event
+                    const inputEvent = new InputEvent('input', {
+                        bubbles: true,
+                        cancelable: true,
+                        inputType: 'deleteContentBackward'
+                    });
+                    typingInput.dispatchEvent(inputEvent);
+                }
             }
         }
 
@@ -1331,15 +1368,18 @@
             const typingInput = document.getElementById('typingInput');
             if (!typingInput) return;
 
-            // Remove old listener
-            typingInput.removeEventListener('focus', handleInputFocus);
+            // Remove old listeners
+            document.removeEventListener('keydown', handlePhysicalKeydown);
 
             if (isUsingVirtualKeyboard) {
-                // Add focus prevention (for mobile OS keyboard)
-                typingInput.addEventListener('focus', handleInputFocus);
+                // Set readonly to prevent OS keyboard, but capture physical keyboard
+                typingInput.setAttribute('readonly', 'readonly');
                 typingInput.blur();
+                // Add keydown listener to capture physical keyboard input
+                document.addEventListener('keydown', handlePhysicalKeydown);
             } else {
-                // Allow normal focus
+                // Allow normal input
+                typingInput.removeAttribute('readonly');
                 if (typingInput.style.display !== 'none') {
                     typingInput.focus();
                 }
