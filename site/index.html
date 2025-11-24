@@ -10,12 +10,12 @@
     <link rel="icon" type="image/png" sizes="192x192" href="favicon-192x192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="favicon-512x512.png">
     <link rel="shortcut icon" type="image/png" href="favicon.png">
-    <link rel="stylesheet" href="virtual-keyboard.css?v=2.0-beta-2">
+    <link rel="stylesheet" href="virtual-keyboard.css?v=2.0-beta-3">
 
     <!-- Load translations synchronously before anything else -->
     <script>
         // Version for cache-busting
-        const RESOURCE_VERSION = '2.0-beta-2';
+        const RESOURCE_VERSION = '2.0-beta-3';
 
         // Helper: Add version parameter to resource URLs (global)
         window.versionedUrl = function(url) {
@@ -1055,7 +1055,7 @@
             <!-- Number row -->
             <div class="keyboard-row">
                 <div class="key desktop-only" data-key="`"></div>
-                <div class="key" data-key="1"></div>
+                <div class="key desktop-only" data-key="1"></div>
                 <div class="key" data-key="2"></div>
                 <div class="key" data-key="3"></div>
                 <div class="key" data-key="4"></div>
@@ -1120,11 +1120,9 @@
             </div>
             <!-- Space row -->
             <div class="keyboard-row">
-                <div class="key mobile-only" data-key="Shift" data-code="ShiftLeft">⇧</div>
-                <div class="key mobile-only" data-key="`"></div>
+                <div class="key key-wide-half mobile-only" data-key="Shift" data-code="ShiftLeft">⇧</div>
                 <div class="key key-space" data-key=" ">Space</div>
-                <div class="key mobile-only" data-key="\"></div>
-                <div class="key mobile-only" data-key="Shift" data-code="ShiftRight">⇧</div>
+                <div class="key key-wide-half mobile-only" data-key="Shift" data-code="ShiftRight">⇧</div>
             </div>
         </div>
     </div>
@@ -3258,7 +3256,7 @@
         }
 
         // Splash screen functions
-        const APP_VERSION = '2.0-beta-2';
+        const APP_VERSION = '2.0-beta-3';
 
         function closeSplashModal() {
             const dontShow = document.getElementById('dontShowSplash').checked;
@@ -3915,6 +3913,6 @@
         init();
         updateUILanguage();
     </script>
-    <script src="virtual-keyboard.js?v=2.0-beta-2"></script>
+    <script src="virtual-keyboard.js?v=2.0-beta-3">
 </body>
 </html>

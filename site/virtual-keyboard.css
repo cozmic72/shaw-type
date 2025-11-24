@@ -151,6 +151,11 @@
         flex: 1;
     }
 
+    /* 1.5x width key for mobile shift keys */
+    .key-wide-half {
+        min-width: 40px;
+    }
+
     /* Show/hide keys based on mobile/desktop */
     .key.desktop-only {
         display: none !important;
@@ -168,12 +173,12 @@
     }
 
     /* Row indentation for mobile (QWERTY-style stagger) */
-    /* Number row - no indent */
+    /* Number row - 0.75 key right of QWERTY row (starts with 2 on mobile) */
     .keyboard-body .keyboard-row:nth-child(1) {
-        padding-left: 0;
+        padding-left: 32px;
     }
 
-    /* QWERTY row - half key indent from number row */
+    /* QWERTY row - half key indent (base stagger) */
     .keyboard-body .keyboard-row:nth-child(2) {
         padding-left: 14px;
     }
