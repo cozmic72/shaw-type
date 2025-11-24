@@ -118,6 +118,15 @@
     display: none !important;
 }
 
+/* Spacers for mobile alignment */
+.spacer {
+    display: none;
+}
+
+.spacer.mobile-only {
+    display: none;
+}
+
 /* Mobile responsiveness */
 @media (max-width: 768px) {
     .virtual-keyboard {
@@ -173,6 +182,11 @@
 
     .key.mobile-only {
         display: flex !important;
+    }
+
+    /* Show spacers on mobile */
+    .spacer.mobile-only {
+        display: block !important;
     }
 
     /* Space row layout on mobile */
