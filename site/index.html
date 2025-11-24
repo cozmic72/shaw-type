@@ -10,10 +10,18 @@
     <link rel="icon" type="image/png" sizes="192x192" href="favicon-192x192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="favicon-512x512.png">
     <link rel="shortcut icon" type="image/png" href="favicon.png">
-    <link rel="stylesheet" href="virtual-keyboard.css?v=2.0.1">
+    <link rel="stylesheet" href="virtual-keyboard.css?v=4.0-beta">
 
     <!-- Load translations synchronously before anything else -->
     <script>
+        // Version for cache-busting
+        const RESOURCE_VERSION = '4.0-beta';
+
+        // Helper: Add version parameter to resource URLs (global)
+        window.versionedUrl = function(url) {
+            return `${url}?v=${RESOURCE_VERSION}`;
+        };
+
         // Global translations object - loaded synchronously
         window.translations = {
             latin: null,
@@ -31,7 +39,7 @@
 
             files.forEach(file => {
                 const xhr = new XMLHttpRequest();
-                xhr.open('GET', file.url, false); // false = synchronous
+                xhr.open('GET', versionedUrl(file.url), false); // false = synchronous
                 xhr.send();
                 if (xhr.status === 200) {
                     window.translations[file.key] = JSON.parse(xhr.responseText);
@@ -1899,7 +1907,7 @@
         async function loadWords() {
             try {
                 // Load practice words
-                const wordsResponse = await fetch(`words_${currentDialect}.json`);
+                const wordsResponse = await fetch(versionedUrl(`words_${currentDialect}.json`));
                 const wordsData = await wordsResponse.json();
                 // Convert string keys to numbers
                 Object.keys(wordsData).forEach(key => {
@@ -1907,7 +1915,7 @@
                 });
 
                 // Load learn mode words for Imperial
-                const learnImperialResponse = await fetch(`learn_words_imperial_${currentDialect}.json`);
+                const learnImperialResponse = await fetch(versionedUrl(`learn_words_imperial_${currentDialect}.json`));
                 const learnImperialData = await learnImperialResponse.json();
                 // Convert string keys to numbers
                 Object.keys(learnImperialData).forEach(key => {
@@ -1915,7 +1923,7 @@
                 });
 
                 // Load learn mode words for QWERTY
-                const learnQwertyResponse = await fetch(`learn_words_qwerty_${currentDialect}.json`);
+                const learnQwertyResponse = await fetch(versionedUrl(`learn_words_qwerty_${currentDialect}.json`));
                 const learnQwertyData = await learnQwertyResponse.json();
                 // Convert string keys to numbers
                 Object.keys(learnQwertyData).forEach(key => {
@@ -1923,7 +1931,7 @@
                 });
 
                 // Load learn mode words for Imperial (no ligatures)
-                const learnImperialNoLigResponse = await fetch(`learn_words_imperial_${currentDialect}_no_lig.json`);
+                const learnImperialNoLigResponse = await fetch(versionedUrl(`learn_words_imperial_${currentDialect}_no_lig.json`));
                 const learnImperialNoLigData = await learnImperialNoLigResponse.json();
                 // Convert string keys to numbers
                 Object.keys(learnImperialNoLigData).forEach(key => {
@@ -1931,7 +1939,7 @@
                 });
 
                 // Load learn mode words for New Imperial
-                const learnNewImperialResponse = await fetch(`learn_words_igc_${currentDialect}.json`);
+                const learnNewImperialResponse = await fetch(versionedUrl(`learn_words_igc_${currentDialect}.json`));
                 const learnNewImperialData = await learnNewImperialResponse.json();
                 // Convert string keys to numbers
                 Object.keys(learnNewImperialData).forEach(key => {
@@ -1939,7 +1947,7 @@
                 });
 
                 // Load learn mode words for New Imperial (no ligatures)
-                const learnNewImperialNoLigResponse = await fetch(`learn_words_igc_${currentDialect}_no_lig.json`);
+                const learnNewImperialNoLigResponse = await fetch(versionedUrl(`learn_words_igc_${currentDialect}_no_lig.json`));
                 const learnNewImperialNoLigData = await learnNewImperialNoLigResponse.json();
                 // Convert string keys to numbers
                 Object.keys(learnNewImperialNoLigData).forEach(key => {
@@ -1947,7 +1955,7 @@
                 });
 
                 // Load learn mode words for Shaw 2-layer
-                const learn2layerResponse = await fetch(`learn_words_2layer_${currentDialect}.json`);
+                const learn2layerResponse = await fetch(versionedUrl(`learn_words_2layer_${currentDialect}.json`));
                 const learn2layerData = await learn2layerResponse.json();
                 // Convert string keys to numbers
                 Object.keys(learn2layerData).forEach(key => {
@@ -1955,7 +1963,7 @@
                 });
 
                 // Load learn mode words for Shaw-JAFL (with ligatures)
-                const learnJaflResponse = await fetch(`learn_words_jafl_${currentDialect}.json`);
+                const learnJaflResponse = await fetch(versionedUrl(`learn_words_jafl_${currentDialect}.json`));
                 const learnJaflData = await learnJaflResponse.json();
                 // Convert string keys to numbers
                 Object.keys(learnJaflData).forEach(key => {
@@ -1963,7 +1971,7 @@
                 });
 
                 // Load learn mode words for Shaw-JAFL (no ligatures)
-                const learnJaflNoLigResponse = await fetch(`learn_words_jafl_${currentDialect}_no_lig.json`);
+                const learnJaflNoLigResponse = await fetch(versionedUrl(`learn_words_jafl_${currentDialect}_no_lig.json`));
                 const learnJaflNoLigData = await learnJaflNoLigResponse.json();
                 // Convert string keys to numbers
                 Object.keys(learnJaflNoLigData).forEach(key => {
@@ -3930,6 +3938,6 @@
         init();
         updateUILanguage();
     </script>
-    <script src="virtual-keyboard.js?v=2.0.0"></script>
+    <script src="virtual-keyboard.js?v=4.0-beta"></script>
 </body>
 </html>

@@ -3,8 +3,8 @@
 // Keyboard layouts - loaded from JSON
 let KEYBOARD_MAPS = {};
 
-// Load keyboard layouts from JSON
-fetch('keyboard_layouts.json')
+// Load keyboard layouts from JSON (using versionedUrl from main script)
+fetch(versionedUrl('keyboard_layouts.json'))
     .then(response => response.json())
     .then(data => {
         KEYBOARD_MAPS = data;
