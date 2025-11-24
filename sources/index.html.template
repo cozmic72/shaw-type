@@ -416,7 +416,7 @@
             background: rgba(0, 0, 0, 0.8);
             justify-content: center;
             align-items: center;
-            z-index: 1000;
+            z-index: 2000;
         }
 
         .completion-modal.show {
@@ -545,7 +545,7 @@
             background: rgba(0, 0, 0, 0.8);
             justify-content: center;
             align-items: center;
-            z-index: 1000;
+            z-index: 2000;
         }
 
         .settings-modal.show {
@@ -681,7 +681,7 @@
             min-width: 160px;
             box-shadow: 0 8px 16px rgba(0,0,0,0.2);
             border-radius: 8px;
-            z-index: 1000;
+            z-index: 2000;
             overflow: hidden;
         }
 
@@ -3913,6 +3913,6 @@
         init();
         updateUILanguage();
     </script>
-    <script src="virtual-keyboard.js?v={{VERSION}}">
+    <script src="virtual-keyboard.js?v={{VERSION}}"></script>
 </body>
 </html>
