@@ -388,7 +388,7 @@ def generate_learn_word_lists(readlex_file, learn_levels, output_file, layout_na
                     word_len = len(word)
                     # For Number Row Focus (level 5), use simpler scoring that doesn't favor multiple new chars
                     # This keeps words simpler and more approachable
-                    if level_num == 5 and level_info['name'] == 'Number Row Focus':
+                    if level_num == 5 and level_info['nameKey'] == 'lessonNumberRowFocus':
                         score = 1000 + (freq / 100) + (word_len * level_num)
                     else:
                         # Score combines: target char count (high priority), frequency (medium), length (grows with level)
