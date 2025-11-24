@@ -129,40 +129,41 @@
     }
 
     .keyboard-body {
-        padding: 5px;
+        padding: 3px;
     }
 
     .keyboard-row {
-        justify-content: flex-start;
+        justify-content: space-between;
+        width: 100%;
     }
 
     .key {
-        min-width: 24px;
-        height: 28px;
+        flex: 1;
+        min-width: 0;
+        height: 32px;
         padding: 4px;
-        font-size: 10px;
+        font-size: 11px;
     }
 
     .key-wide {
-        min-width: 36px;
+        flex: 1.5;
     }
 
     .key-wider {
-        min-width: 44px;
+        flex: 1.75;
     }
 
     .key-widest {
-        min-width: 56px;
+        flex: 2;
     }
 
     .key-space {
-        min-width: 150px;
-        max-width: 150px;
+        flex: 6;
     }
 
     /* 1.5x width key for mobile shift keys */
     .key-wide-half {
-        min-width: 40px;
+        flex: 1.5;
     }
 
     /* Show/hide keys based on mobile/desktop */
@@ -181,29 +182,12 @@
         gap: 4px;
     }
 
-    /* Row indentation for mobile (QWERTY-style stagger) */
-    /* Number row - 0.75 key right of QWERTY row (starts with 2 on mobile) */
-    .keyboard-body .keyboard-row:nth-child(1) {
-        padding-left: 32px;
-    }
-
-    /* QWERTY row - half key indent (base stagger) */
-    .keyboard-body .keyboard-row:nth-child(2) {
-        padding-left: 14px;
-    }
-
-    /* Home row - quarter key more than QWERTY */
-    .keyboard-body .keyboard-row:nth-child(3) {
-        padding-left: 21px;
-    }
-
-    /* Bottom row - half key more than home row */
-    .keyboard-body .keyboard-row:nth-child(4) {
-        padding-left: 47px;
-    }
-
-    /* Space row - align shift with z key + 1/4 */
+    /* Row indentation removed - keys fill full width */
+    .keyboard-body .keyboard-row:nth-child(1),
+    .keyboard-body .keyboard-row:nth-child(2),
+    .keyboard-body .keyboard-row:nth-child(3),
+    .keyboard-body .keyboard-row:nth-child(4),
     .keyboard-body .keyboard-row:nth-child(5) {
-        padding-left: 53px; /* z at 47px + 1/4 key (6px) = 53px */
+        padding-left: 0;
     }
 }
