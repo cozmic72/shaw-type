@@ -254,18 +254,14 @@ def main():
 
     import shutil
     for filename in content_files:
-        source_path = CONTENT_DIR / filename
         base_name = filename.replace('.html', '')
 
-        latin_output = SITE_DIR / f"{base_name}_latin.html"
+        source_path = SITE_DIR / f"{base_name}_latin.html"
         gb_output = SITE_DIR / f"{base_name}_gb.html"
         us_output = SITE_DIR / f"{base_name}_us.html"
 
         if source_path.exists():
             print(f"  Processing {filename}...")
-            # Copy source to Latin version
-            shutil.copy2(source_path, latin_output)
-            print(f"    ✓ Copied to {latin_output.name}")
             # Transliterate to GB and US
             transliterate_html(source_path, gb_output, us_output, shave_cmd)
         else:
