@@ -2781,7 +2781,7 @@
 
         // Helper: Check if last character is a pending ligature start
         function isPendingLigatureStart(inputChars, wordChars) {
-            if (!useLigatures || inputChars.length === 0) return false;
+            if (!areLigaturesActive() || inputChars.length === 0) return false;
 
             // Normalize arrays to treat char+VS1 as single units
             const normalizedInput = normalizeCharArray(inputChars);
@@ -2794,8 +2794,9 @@
             const lastChar = normalizedInput[lastIdx];
 
             // Check if the last character is the first of any pair that forms the expected ligature
-            if (LIGATURES[expectedChar]) {
-                return LIGATURES[expectedChar].some(pair => pair[0] === lastChar);
+            const ligatures = getCurrentLayoutLigatures();
+            if (ligatures[expectedChar]) {
+                return ligatures[expectedChar].some(pair => pair[0] === lastChar);
             }
 
             return false;
@@ -2947,7 +2948,8 @@
                 const normalizedChars = normalizeCharArray(chars);
                 if (normalizedChars.length > 0) {
                     const potentialPair = normalizedChars[normalizedChars.length - 1] + eventData;
-                    completesLigature = !!COMPONENT_TO_LIGATURE[potentialPair];
+                    const componentToLigature = getCurrentComponentToLigature();
+                    completesLigature = !!componentToLigature[potentialPair];
                 }
             }
 
