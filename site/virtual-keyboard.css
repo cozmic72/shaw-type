@@ -146,13 +146,13 @@
     }
 
     /* Hide number row and certain keys for non-imperial layouts on mobile */
-    .keyboard-body:not(.layout-shaw-imperial):not(.layout-imperial-good-companion) .hide-mobile-non-imperial {
+    .keyboard-body:not(.layout-imperial):not(.layout-igc) .hide-mobile-non-imperial {
         display: none !important;
     }
 
     /* Hide keys for imperial layouts only on mobile */
-    .keyboard-body.layout-shaw-imperial .hide-mobile-imperial,
-    .keyboard-body.layout-imperial-good-companion .hide-mobile-imperial {
+    .keyboard-body.layout-imperial .hide-mobile-imperial,
+    .keyboard-body.layout-igc .hide-mobile-imperial {
         display: none !important;
     }
 
