@@ -2297,7 +2297,7 @@
                 // Word completed correctly
                 wordsCompleted++;
                 wordsInCurrentLevel++;
-                debug(`[checkCompletion] Word ${wordsInCurrentLevel} of level completed (total: ${wordsCompleted})`);
+                debug(`[checkCompletion] Word ${wordsInCurrentLevel}/${currentLevelWordCount} of level completed (total: ${wordsCompleted}), currentMode=${currentMode}, currentLevelNumber=${currentLevelNumber}, levelCount=${levelCount}`);
                 updateStats();
 
                 // After first word, update subtitle with level/lesson info
@@ -2309,17 +2309,18 @@
                 // Check if level is complete
                 if (wordsInCurrentLevel === currentLevelWordCount) {
                     // Level completed - transition to next level
-                    debug(`[checkCompletion] ${currentLevelType.toUpperCase()} COMPLETED`);
+                    debug(`[checkCompletion] ${currentLevelType.toUpperCase()} COMPLETED - calling transitionToNextLevel()`);
                     transitionToNextLevel();
                 } else {
                     // Advance to next word
+                    debug(`[checkCompletion] Advancing to next word`);
                     advanceToNextWord();
                 }
             }
         }
 
         function transitionToNextLevel() {
-            console.log('[transitionToNextLevel] Starting transition');
+            debug(`[transitionToNextLevel] Starting transition - currentMode=${currentMode}, currentLevelNumber=${currentLevelNumber}, levelCount=${levelCount}, wordsInCurrentLevel=${wordsInCurrentLevel}, currentLevelWordCount=${currentLevelWordCount}, hasCallback=${!!currentLevelCompletionCallback}`);
 
             // Save stats for completed level
             const finalLevelAccuracy = currentLevelLettersTyped === 0 ? 100.0 :
@@ -2333,6 +2334,7 @@
 
             // If there's a completion callback, use it
             if (currentLevelCompletionCallback) {
+                debug(`[transitionToNextLevel] Calling completion callback`);
                 currentLevelCompletionCallback();
                 return;
             }
@@ -2341,20 +2343,34 @@
             let nextLevelData = null;
             if (currentMode === 'learn') {
                 const nextLessonIndex = parseInt(selectedLevel) + 1;
+                debug(`[transitionToNextLevel] LEARN mode: checking for next lesson ${nextLessonIndex}`);
                 nextLevelData = getLearnLessonData(nextLessonIndex);
                 if (nextLevelData) {
+                    debug(`[transitionToNextLevel] Found next lesson data`);
                     selectedLevel = nextLessonIndex.toString();
                     currentLevelNumber = nextLessonIndex;
+                } else {
+                    debug(`[transitionToNextLevel] No more lessons available`);
                 }
             } else {
                 const nextLevelNum = currentLevelNumber + 1;
+                debug(`[transitionToNextLevel] PLAY mode: currentLevelNumber=${currentLevelNumber}, nextLevelNum=${nextLevelNum}, levelCount=${levelCount}`);
                 if (nextLevelNum <= levelCount) {
+                    debug(`[transitionToNextLevel] Trying to get level data for level ${nextLevelNum}`);
                     nextLevelData = getPlayLevelData(nextLevelNum);
-                    currentLevelNumber = nextLevelNum;
+                    if (nextLevelData) {
+                        debug(`[transitionToNextLevel] Found next level data`);
+                        currentLevelNumber = nextLevelNum;
+                    } else {
+                        debug(`[transitionToNextLevel] getPlayLevelData returned null for level ${nextLevelNum}`);
+                    }
+                } else {
+                    debug(`[transitionToNextLevel] No more levels: nextLevelNum (${nextLevelNum}) > levelCount (${levelCount})`);
                 }
             }
 
             if (nextLevelData) {
+                debug(`[transitionToNextLevel] Starting next level`);
                 // Start new level with new words (no countdown between levels!)
                 const t = getCurrentTranslations();
                 const type = currentMode === 'learn' ? 'lesson' : 'level';
@@ -2373,6 +2389,7 @@
                 // Just start the level directly (both play and practice)
                 startLevel(nextLevelData.wordPool, nextLevelData.wordCount, type, nextLevelData.title, typeLabel, currentLevelCompletionCallback);
             } else {
+                debug(`[transitionToNextLevel] No more levels - showing completion modal`);
                 // No more levels/lessons - show completion modal
                 showCompletionModal();
             }
