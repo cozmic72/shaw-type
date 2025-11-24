@@ -40,14 +40,6 @@ if [ ! -f "readlex/readlex.json" ]; then
     echo
 fi
 
-# Generate keyboard images
-if [ -f "tools/generate_keyboard_images.py" ]; then
-    echo "Generating keyboard images..."
-    ~/.venv/bin/python3 tools/generate_keyboard_images.py
-    echo "✓ Keyboard images generated"
-    echo
-fi
-
 # Generate transliterations
 echo "Generating transliterations..."
 echo "(You may be prompted to resolve ambiguous words)"
