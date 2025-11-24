@@ -1,47 +1,71 @@
+<style>
+    .key-style {
+        background-color: #e8e8e8;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-family: 'Inter-Alia', monospace;
+        border: 1px solid #ccc;
+        white-space: nowrap;
+    }
+
+    ul {
+        background-color: #f5f5f5;
+        padding: 12px 20px 12px 40px;
+        border-left: 3px solid #555fdc;
+        margin: 10px 0;
+        border-radius: 4px;
+    }
+
+    ul li {
+        margin: 6px 0;
+        color: #444;
+    }
+</style>
+
 <h2>Keyboards</h2>
 <p>Shaw Type supports a number of different Shavian keyboard layouts,
     each with its own design philosophy and learning curve.  You can use the
     virtual keyboards provided by this app, or install your own, for example
     using the <a href="https://shavian.info/keyboards" target="_blank">shavian.info keyboards</a>.</p>
 <p>Inspired by the JAFL Keyman layout, the app supports automatic formation of ligatures for the compound letters.
-    That is, you can type 𐑩 then 𐑮 to create 𐑼, 𐑾+𐑮 to get 𐑽, and similarly to get
-    𐑸, 𐑹 and 𐑿.  Try it out, and you may find you will never want to turn back.</p>
+    That is, you can type <span class="key-style">𐑩</span> then <span class="key-style">𐑮</span> to create <span class="key-style">𐑼</span>, <span class="key-style">𐑾</span>+<span class="key-style">𐑮</span> to get <span class="key-style">𐑽</span>, and similarly to get
+    <span class="key-style">𐑸</span>, <span class="key-style">𐑹</span> and <span class="key-style">𐑿</span>.  Try it out, and you may find you will never want to turn back.</p>
 <h3><strong>Shaw Imperial</strong></h3>
     <p>Based on the original <a href="https://oztypewriter.blogspot.com/2014/04/history-of-shavian-keyboard-imperial.html" target="_blank">
         Shavian Imperial Good Companion typewriter</a>.  This version is the
         <a href="https://www.shavian.info/shaw_imperial_keyboard_layout/" target="_blank">Shavian.info Keyman layout</a>.
     </p>
     <ul><li>No extra ligatures, automatic ligatures off by default.</li></ul>
-    <img src="keyboard_images/imperial_base.png?v={{VERSION}}" alt="Shaw Imperial base layer" style="max-width: 100%; height: auto;">
-    <img src="keyboard_images/imperial_shift.png?v={{VERSION}}" alt="Shaw Imperial shift layer" style="max-width: 100%; height: auto;">
+    <img src="keyboard_images/imperial_base.png?v=2.0-beta-26" alt="Shaw Imperial base layer" style="max-width: 100%; height: auto;">
+    <img src="keyboard_images/imperial_shift.png?v=2.0-beta-26" alt="Shaw Imperial shift layer" style="max-width: 100%; height: auto;">
 <h3><strong>Imperial Good Companion</strong></h3>
     <p>Based on the original <a href="https://oztypewriter.blogspot.com/2014/04/history-of-shavian-keyboard-imperial.html" target="_blank">
         Shavian Imperial Good Companion typewriter</a>.  The current version in this app is actually my own variation on the
         layout, more strongly rooted in the original IGC layout.</p>
-    <p>IGC features the "yeah" vowel "𐑺︀" and the "oeuvre" vowel "𐑻︀", which
-        were used on the original keyboard for composing the "𐑺︀" and "𐑻" vowels.  This keyboard automatically forms these
-        ligatures as you type, along with the more familiar "𐑩 + 𐑮 → 𐑼", "𐑭 + 𐑮 → 𐑸", "𐑷 + 𐑮 → 𐑹", "𐑾 + 𐑮 → 𐑽" and "𐑘 + 𐑵 → 𐑿" pairs.
+    <p>IGC features the "yeah" vowel <span class="key-style">𐑺︀</span> and the "oeuvre" vowel <span class="key-style">𐑻︀</span>, which
+        were used on the original keyboard for composing the <span class="key-style">𐑺︀</span> and <span class="key-style">𐑻</span> vowels.  This keyboard automatically forms these
+        ligatures as you type, along with the more familiar <span class="key-style">𐑩</span> + <span class="key-style">𐑮</span> → <span class="key-style">𐑼</span>, <span class="key-style">𐑭</span> + <span class="key-style">𐑮</span> → <span class="key-style">𐑸</span>, <span class="key-style">𐑷</span> + <span class="key-style">𐑮</span> → <span class="key-style">𐑹</span>, <span class="key-style">𐑾</span> + <span class="key-style">𐑮</span> → <span class="key-style">𐑽</span> and <span class="key-style">𐑘</span> + <span class="key-style">𐑵</span> → <span class="key-style">𐑿</span> pairs.
     </p>
     <p>Due to all compound letters being typable on the base layer, there is no shift layer for IGC.</p>
-    <ul><li>Special ligatures: 𐑻︀ + 𐑮 → 𐑻, 𐑺︀ + 𐑮 → 𐑺.</li></ul>
-    <img src="keyboard_images/igc_base.png?v={{VERSION}}" alt="Imperial Good Companion base layer" style="max-width: 100%; height: auto;">
+    <ul><li>Special ligatures: <span class="key-style">𐑻︀</span> + <span class="key-style">𐑮</span> → <span class="key-style">𐑻</span>, <span class="key-style">𐑺︀</span> + <span class="key-style">𐑮</span> → <span class="key-style">𐑺</span>.</li></ul>
+    <img src="keyboard_images/igc_base.png?v=2.0-beta-26" alt="Imperial Good Companion base layer" style="max-width: 100%; height: auto;">
 <h3><strong>Shaw QWERTY</strong></h3>
     <p>Another Shavian.info layout, based on the familiar QWERTY layout, this makes it easier for beginners to transition
         to Shavian while keeping their existing muscle memory.  Find more info
         <a href="https://www.shavian.info/shaw_qwerty_keyboard_layout/" target="_blank">here</a>.</p>
     <ul><li>No extra ligatures, automatic ligatures off by default.</li></ul>
-    <img src="keyboard_images/qwerty_base.png?v={{VERSION}}" alt="Shaw QWERTY base layer" style="max-width: 100%; height: auto;">
-    <img src="keyboard_images/qwerty_shift.png?v={{VERSION}}" alt="Shaw QWERTY shift layer" style="max-width: 100%; height: auto;">
+    <img src="keyboard_images/qwerty_base.png?v=2.0-beta-26" alt="Shaw QWERTY base layer" style="max-width: 100%; height: auto;">
+    <img src="keyboard_images/qwerty_shift.png?v=2.0-beta-26" alt="Shaw QWERTY shift layer" style="max-width: 100%; height: auto;">
 <h3><strong>Shaw 2-layer (shift)</strong></h3>
     <p>A compact layout that uses the shift key to access the full character set, putting related characters on the same key,
     based on the Keaman layout of the same name.</p>
     <ul><li>No extra ligatures, automatic ligatures off by default.</li></ul>
-    <img src="keyboard_images/2layer_base.png?v={{VERSION}}" alt="Shaw 2-layer base layer" style="max-width: 100%; height: auto;">
-    <img src="keyboard_images/2layer_shift.png?v={{VERSION}}" alt="Shaw 2-layer shift layer" style="max-width: 100%; height: auto;">
+    <img src="keyboard_images/2layer_base.png?v=2.0-beta-26" alt="Shaw 2-layer base layer" style="max-width: 100%; height: auto;">
+    <img src="keyboard_images/2layer_shift.png?v=2.0-beta-26" alt="Shaw 2-layer shift layer" style="max-width: 100%; height: auto;">
 <h3><strong>Shaw-JAFL</strong></h3>
     <p>The "Just Another Friggin' Layout" - <a href="https://www.shavian.info/shaw_jafl_keyboard_layout/" target="_blank" style="max-width: 100%; height: auto;">
         Shavian.info's experimental layout</a> optimized for typing efficiency using the Carpalex tool.  Automatic ligatures
         are built in by default - which was the inspiration for my building them into the IGC layout too.</p>
-    <ul><li>Special ligatures: 𐑳 + 𐑮 → 𐑻</li></ul>
-    <img src="keyboard_images/jafl_base.png?v={{VERSION}}" alt="Shaw-JAFL base layer" style="max-width: 100%; height: auto;">
-    <img src="keyboard_images/jafl_shift.png?v={{VERSION}}" alt="Shaw-JAFL shift layer" style="max-width: 100%; height: auto;">
+    <ul><li>Special ligatures: <span class="key-style">𐑳</span> + <span class="key-style">𐑮</span> → <span class="key-style">𐑻</span></li></ul>
+    <img src="keyboard_images/jafl_base.png?v=2.0-beta-26" alt="Shaw-JAFL base layer" style="max-width: 100%; height: auto;">
+    <img src="keyboard_images/jafl_shift.png?v=2.0-beta-26" alt="Shaw-JAFL shift layer" style="max-width: 100%; height: auto;">
