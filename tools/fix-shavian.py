@@ -34,19 +34,27 @@ def apply_corrections(text, corrections):
     """Apply word-level corrections to text."""
     if not corrections:
         return text
-    
+
     # Create a regex pattern that matches whole words from the corrections dict
     # Sort by length (longest first) to handle overlapping corrections properly
     patterns = sorted(corrections.keys(), key=len, reverse=True)
-    pattern = '|'.join(re.escape(p) for p in patterns)
-    
-    if not pattern:
+
+    if not patterns:
         return text
-    
-    # Replace using word boundaries
+
+    # Build patterns with negative lookbehind for namer dot
+    # This ensures exact matches - pattern won't match if preceded by ·
+    escaped_patterns = []
+    for p in patterns:
+        # Add negative lookbehind for namer dot to ensure exact matches
+        escaped_patterns.append(f'(?<!·){re.escape(p)}')
+
+    pattern = '|'.join(escaped_patterns)
+
+    # Replace using the pattern
     def replacer(match):
         return corrections.get(match.group(0), match.group(0))
-    
+
     return re.sub(pattern, replacer, text)
 
 def main():
