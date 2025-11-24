@@ -175,8 +175,6 @@
         display: flex;
         justify-content: flex-start;
         gap: 4px;
-        /* Position shift key to align with z key + 1/4 */
-        padding-left: 13px; /* z at 47px, z+1/4 = 53px, 53-40 (shift width) = 13px */
     }
 
     /* Row indentation for mobile (QWERTY-style stagger) */
@@ -200,8 +198,8 @@
         padding-left: 47px;
     }
 
-    /* Space row - centered */
+    /* Space row - align shift with z key + 1/4 */
     .keyboard-body .keyboard-row:nth-child(5) {
-        padding-left: 0;
+        padding-left: 53px; /* z at 47px + 1/4 key (6px) = 53px */
     }
 }
