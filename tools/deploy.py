@@ -83,6 +83,12 @@ def deploy(version):
     print()
     print(f"Version: {version}")
 
+    # Write version to file for tracking
+    version_file = project_root / '.current-version'
+    with open(version_file, 'w', encoding='utf-8') as f:
+        f.write(version)
+    print(f"✓ Version written to {version_file.name}")
+
     return 0
 
 def main():
