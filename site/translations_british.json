@@ -121,5 +121,15 @@
   "layoutIGC": "·𐑦𐑥𐑐𐑽𐑾𐑤 𐑜𐑫𐑛 𐑒𐑩𐑥𐑐𐑨𐑯𐑘𐑩𐑯",
   "layoutQwerty": "·𐑖𐑷 QWERTY",
   "layout2layer": "·𐑖𐑷 2-𐑤𐑱𐑼 (𐑖𐑦𐑓𐑑)",
-  "layoutJafl": "·𐑖𐑷-·JAFL"
+  "layoutJafl": "·𐑖𐑷-·JAFL",
+  "shortWords": "·𐑖𐑹𐑑 𐑢𐑻𐑛𐑟",
+  "mediumWords": "·𐑥𐑰𐑛𐑾𐑥 𐑢𐑻𐑛𐑟",
+  "longWords": "·𐑤𐑪𐑙 𐑢𐑻𐑛𐑟",
+  "letter": "·𐑤𐑧𐑑𐑼",
+  "letters": "·𐑤𐑧𐑑𐑼𐑟",
+  "continueThisLesson": "𐑒𐑰𐑐 𐑐𐑮𐑨𐑒𐑑𐑦𐑕𐑦𐑙 𐑞𐑦𐑕 𐑤𐑧𐑕𐑩𐑯",
+  "nextLesson": "·𐑯𐑧𐑒𐑕𐑑 𐑤𐑧𐑕𐑩𐑯",
+  "chooseDifferentLesson": "𐑗𐑵𐑟 ·𐑛𐑦𐑓𐑼𐑩𐑯𐑑 𐑤𐑧𐑕𐑩𐑯",
+  "continueButton2": "𐑒𐑩𐑯𐑑𐑦𐑯𐑿",
+  "playAgainBtn": "𐑐𐑤𐑱 𐑩𐑜𐑧𐑯"
 }

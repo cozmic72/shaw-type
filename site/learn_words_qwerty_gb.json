@@ -1,7 +1,7 @@
 {
   "3": {
-    "name": "Home Row + Shift",
-    "description": "Home row with shift layer",
+    "nameKey": "lessonHomeRowShift",
+    "descKey": "desc8",
     "chars": "𐑩𐑕𐑛𐑓𐑜𐑣𐑘𐑒𐑤𐑨𐑖𐑼𐑲·𐑞𐑡",
     "words": [
       "𐑞",
@@ -107,8 +107,8 @@
     ]
   },
   "4": {
-    "name": "Add Upper Row",
-    "description": "Add upper row (both layers)",
+    "nameKey": "lessonAddUpperRow",
+    "descKey": "desc9",
     "chars": "𐑩𐑕𐑛𐑓𐑜𐑣𐑘𐑒𐑤𐑨𐑖𐑼𐑲·𐑞𐑡𐑧𐑮𐑑𐑦𐑪𐑱𐑸𐑔𐑰𐑴𐑹",
     "words": [
       "𐑑",
@@ -214,8 +214,8 @@
     ]
   },
   "5": {
-    "name": "Add Lower Row",
-    "description": "Add lower row (both layers)",
+    "nameKey": "lessonAddLowerRow",
+    "descKey": "desc10",
     "chars": "𐑩𐑕𐑛𐑓𐑜𐑣𐑘𐑒𐑤𐑨𐑖𐑼𐑲·𐑞𐑡𐑧𐑮𐑑𐑦𐑪𐑱𐑸𐑔𐑰𐑴𐑹𐑟𐑻𐑗𐑝𐑚𐑯𐑥𐑺𐑽𐑿𐑙𐑵",
     "words": [
       "𐑝",
@@ -321,8 +321,8 @@
     ]
   },
   "6": {
-    "name": "All Keys",
-    "description": "Complete keyboard (all layers)",
+    "nameKey": "lessonAllKeys",
+    "descKey": "desc6",
     "chars": "𐑩𐑕𐑛𐑓𐑜𐑣𐑘𐑒𐑤𐑨𐑖𐑼𐑲·𐑞𐑡𐑧𐑮𐑑𐑦𐑪𐑱𐑸𐑔𐑰𐑴𐑹𐑟𐑻𐑗𐑝𐑚𐑯𐑥𐑺𐑽𐑿𐑙𐑵𐑶𐑢𐑭𐑳𐑐𐑬𐑾𐑷𐑫𐑠⸰",
     "words": [
       "𐑢𐑦𐑞",

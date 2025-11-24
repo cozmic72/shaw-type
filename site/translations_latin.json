@@ -121,5 +121,16 @@
   "layoutIGC": "Imperial Good Companion",
   "layoutQwerty": "Shaw QWERTY",
   "layout2layer": "Shaw 2-layer (shift)",
-  "layoutJafl": "Shaw-JAFL"
+  "layoutJafl": "Shaw-JAFL",
+  "shortWords": "Short Words",
+  "mediumWords": "Medium Words",
+  "longWords": "Long Words",
+  "letter": "Letter",
+  "letters": "Letters",
+  "continueThisLesson": "Keep practicing this lesson",
+  "nextLesson": "Next lesson",
+  "chooseDifferentLesson": "Choose Different Lesson",
+  "chooseDifferentLesson2": "Choose Different Lesson",
+  "continueButton2": "Continue",
+  "playAgainBtn": "Play Again"
 }

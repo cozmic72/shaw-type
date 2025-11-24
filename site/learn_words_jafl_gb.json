@@ -1,7 +1,7 @@
 {
   "1": {
-    "name": "Core Foundation",
-    "description": "Build your foundation with essential sounds",
+    "nameKey": "lessonCoreFoundation",
+    "descKey": "desc17",
     "chars": "𐑩𐑯𐑑𐑛𐑕𐑤𐑮𐑦𐑝𐑞",
     "words": [
       "𐑞",
@@ -107,8 +107,8 @@
     ]
   },
   "2": {
-    "name": "Home Sweet Home",
-    "description": "Master the comfort of the home row",
+    "nameKey": "lessonHomeSweet",
+    "descKey": "desc18",
     "chars": "𐑪𐑨𐑩𐑦𐑳𐑤𐑮𐑕𐑯𐑢",
     "words": [
       "𐑪𐑯",
@@ -214,8 +214,8 @@
     ]
   },
   "3": {
-    "name": "Upper Expedition",
-    "description": "Journey to the upper reaches of your keyboard",
+    "nameKey": "lessonUpperExpedition",
+    "descKey": "desc19",
     "chars": "𐑪𐑨𐑩𐑦𐑳𐑤𐑮𐑕𐑯𐑢𐑱𐑧𐑰𐑥𐑒𐑐𐑑𐑛𐑓",
     "words": [
       "𐑓",
@@ -321,8 +321,8 @@
     ]
   },
   "4": {
-    "name": "Lower Exploration",
-    "description": "Explore the depths below home position",
+    "nameKey": "lessonLowerExploration",
+    "descKey": "desc20",
     "chars": "𐑪𐑨𐑩𐑦𐑳𐑤𐑮𐑕𐑯𐑢𐑱𐑧𐑰𐑥𐑒𐑐𐑑𐑛𐑓𐑲𐑴𐑞𐑟𐑣𐑝𐑚",
     "words": [
       "𐑲",
@@ -428,8 +428,8 @@
     ]
   },
   "5": {
-    "name": "Shift Introduction",
-    "description": "Discover new dimensions with the shift key",
+    "nameKey": "lessonShiftIntroduction",
+    "descKey": "desc21",
     "chars": "𐑪𐑨𐑩𐑦𐑳𐑤𐑮𐑕𐑯𐑢𐑱𐑧𐑰𐑥𐑒𐑐𐑑𐑛𐑓𐑲𐑴𐑞𐑟𐑣𐑝𐑚𐑷𐑭𐑵𐑫𐑖𐑙𐑘",
     "words": [
       "𐑿",
@@ -535,8 +535,8 @@
     ]
   },
   "6": {
-    "name": "Master Typist",
-    "description": "Achieve mastery over the complete keyboard",
+    "nameKey": "lessonMasterTypist",
+    "descKey": "desc22",
     "chars": "𐑪𐑨𐑩𐑦𐑳𐑤𐑮𐑕𐑯𐑢𐑱𐑧𐑰𐑥𐑒𐑐𐑑𐑛𐑓𐑲𐑴𐑞𐑟𐑣𐑝𐑚𐑷𐑭𐑵𐑫𐑖𐑙𐑘𐑬𐑹𐑸𐑿𐑜𐑗𐑡𐑶𐑔𐑠",
     "words": [
       "𐑢𐑦𐑗",

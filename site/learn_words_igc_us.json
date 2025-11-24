@@ -1,7 +1,7 @@
 {
   "1": {
-    "name": "Home Row Center",
-    "description": "Middle fingers only, home row",
+    "nameKey": "lessonHomeRowCenter",
+    "descKey": "desc1",
     "chars": "𐑦𐑩𐑧𐑐𐑯𐑑",
     "words": [
       "𐑯",
@@ -84,8 +84,8 @@
     ]
   },
   "2": {
-    "name": "Full Home Row",
-    "description": "All fingers, home row",
+    "nameKey": "lessonFullHomeRow",
+    "descKey": "desc2",
     "chars": "𐑪𐑨𐑦𐑩𐑧𐑐𐑯𐑑𐑮𐑕𐑛",
     "words": [
       "𐑪𐑯",
@@ -191,8 +191,8 @@
     ]
   },
   "3": {
-    "name": "Index Finger Reach",
-    "description": "Add index finger upper/lower reaches",
+    "nameKey": "lessonIndexFingerReach",
+    "descKey": "desc3",
     "chars": "𐑪𐑨𐑦𐑩𐑧𐑐𐑯𐑑𐑮𐑕𐑛𐑓𐑒𐑝𐑚",
     "words": [
       "𐑝",
@@ -298,8 +298,8 @@
     ]
   },
   "4": {
-    "name": "Upper & Lower Rows",
-    "description": "Extend to more keys above and below",
+    "nameKey": "lessonUpperLowerRows",
+    "descKey": "desc4",
     "chars": "𐑪𐑨𐑦𐑩𐑧𐑐𐑯𐑑𐑮𐑕𐑛𐑓𐑒𐑝𐑚𐑱𐑳𐑞𐑤𐑥𐑾𐑲𐑴𐑰",
     "words": [
       "𐑞",
@@ -405,8 +405,8 @@
     ]
   },
   "5": {
-    "name": "Number Row Focus",
-    "description": "Master the number row characters",
+    "nameKey": "lessonNumberRowFocus",
+    "descKey": "desc5",
     "chars": "𐑪𐑨𐑦𐑩𐑧𐑐𐑯𐑑𐑮𐑕𐑛𐑓𐑒𐑝𐑚𐑱𐑳𐑞𐑤𐑥𐑾𐑲𐑴𐑰𐑶𐑬𐑻𐑫𐑺𐑜𐑖𐑗𐑙𐑘𐑡𐑔",
     "words": [
       "𐑖𐑰",
@@ -512,8 +512,8 @@
     ]
   },
   "6": {
-    "name": "Hard to Reach",
-    "description": "Master the hard to reach characters",
+    "nameKey": "lessonHardToReach",
+    "descKey": "desc6",
     "chars": "𐑪𐑨𐑦𐑩𐑧𐑐𐑯𐑑𐑮𐑕𐑛𐑓𐑒𐑝𐑚𐑱𐑳𐑞𐑤𐑥𐑾𐑲𐑴𐑰𐑶𐑬𐑻𐑫𐑺𐑜𐑖𐑗𐑙𐑘𐑡𐑔𐑢𐑣𐑠",
     "words": [
       "𐑣𐑰",
@@ -619,8 +619,8 @@
     ]
   },
   "7": {
-    "name": "All Keys",
-    "description": "Complete keyboard",
+    "nameKey": "lessonAllKeys",
+    "descKey": "desc24",
     "chars": "𐑪𐑨𐑦𐑩𐑧𐑐𐑯𐑑𐑮𐑕𐑛𐑓𐑒𐑝𐑚𐑱𐑳𐑞𐑤𐑥𐑾𐑲𐑴𐑰𐑶𐑬𐑻𐑫𐑺𐑜𐑖𐑗𐑙𐑘𐑡𐑔𐑭𐑷𐑵𐑢𐑣𐑟𐑠",
     "words": [
       "𐑞",

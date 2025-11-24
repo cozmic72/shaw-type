@@ -1,7 +1,7 @@
 {
   "1": {
-    "name": "Essential Phonemes",
-    "description": "Master the 9 most common sounds in English",
+    "nameKey": "lessonEssentialPhonemes",
+    "descKey": "desc11",
     "chars": "𐑩𐑯𐑑𐑛𐑕𐑝𐑞𐑤𐑮",
     "words": [
       "𐑞",
@@ -21,8 +21,8 @@
     ]
   },
   "2": {
-    "name": "Vowel Voyage",
-    "description": "Navigate through English vowel sounds",
+    "nameKey": "lessonVowelVoyage",
+    "descKey": "desc12",
     "chars": "𐑩𐑯𐑑𐑛𐑕𐑝𐑞𐑤𐑮𐑦𐑧𐑨𐑪𐑳𐑴𐑵𐑬𐑭𐑷",
     "words": [
       "𐑦𐑯",
@@ -128,8 +128,8 @@
     ]
   },
   "3": {
-    "name": "Consonant Command",
-    "description": "Build confidence with base layer consonants",
+    "nameKey": "lessonConsonantCommand",
+    "descKey": "desc13",
     "chars": "𐑩𐑯𐑑𐑛𐑕𐑝𐑞𐑤𐑮𐑦𐑧𐑨𐑪𐑳𐑴𐑵𐑬𐑭𐑷𐑖𐑒𐑐𐑢𐑣𐑗",
     "words": [
       "𐑢𐑦𐑗",
@@ -235,8 +235,8 @@
     ]
   },
   "4": {
-    "name": "Ligature Power",
-    "description": "Harness the efficiency of compound letters",
+    "nameKey": "lessonLigaturePower",
+    "descKey": "desc14",
     "chars": "𐑩𐑯𐑑𐑛𐑕𐑝𐑞𐑤𐑮𐑦𐑧𐑨𐑪𐑳𐑴𐑵𐑬𐑭𐑷𐑖𐑒𐑐𐑢𐑣𐑗𐑼𐑸𐑹𐑽𐑺𐑻",
     "words": [
       "𐑹",
@@ -342,8 +342,8 @@
     ]
   },
   "5": {
-    "name": "Shift Mastery",
-    "description": "Unlock the full potential of the shift layer",
+    "nameKey": "lessonShiftMastery",
+    "descKey": "desc15",
     "chars": "𐑩𐑯𐑑𐑛𐑕𐑝𐑞𐑤𐑮𐑦𐑧𐑨𐑪𐑳𐑴𐑵𐑬𐑭𐑷𐑖𐑒𐑐𐑢𐑣𐑗𐑼𐑸𐑹𐑽𐑺𐑻𐑿𐑱𐑲𐑰𐑾𐑶𐑓𐑘𐑔𐑙𐑥𐑠𐑜𐑚𐑟𐑫𐑡",
     "words": [
       "𐑲",
@@ -449,8 +449,8 @@
     ]
   },
   "6": {
-    "name": "Complete Control",
-    "description": "Command every key with confidence",
+    "nameKey": "lessonCompleteControl",
+    "descKey": "desc16",
     "chars": "𐑩𐑯𐑑𐑛𐑕𐑝𐑞𐑤𐑮𐑦𐑧𐑨𐑪𐑳𐑴𐑵𐑬𐑭𐑷𐑖𐑒𐑐𐑢𐑣𐑗𐑼𐑸𐑹𐑽𐑺𐑻𐑿𐑱𐑲𐑰𐑾𐑶𐑓𐑘𐑔𐑙𐑥𐑠𐑜𐑚𐑟𐑫𐑡",
     "words": [
       "𐑞",

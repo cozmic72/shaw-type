@@ -369,6 +369,12 @@ function getCurrentLevel() {
 }
 
 // UI Navigation
+function closeAllCompletionModals() {
+    document.getElementById('lessonCompletionModal').classList.remove('show');
+    document.getElementById('sessionCompletionModal').classList.remove('show');
+    document.getElementById('playCompletionModal').classList.remove('show');
+}
+
 function goHome() {
     // Cancel any running countdown
     cancelCountdown();
@@ -388,7 +394,7 @@ function goHome() {
 
     // Clear any modals
     closeLessonModal();
-    document.getElementById('completionModal').classList.remove('show');
+    closeAllCompletionModals();
 }
 
 function showGameContent() {
@@ -435,7 +441,7 @@ function startPlay() {
 
 function playAgain() {
     // Hide completion modal
-    document.getElementById('completionModal').style.display = 'none';
+    closeAllCompletionModals();
 
     // Reset all stats
     wordsCompleted = 0;
@@ -1313,33 +1319,16 @@ function showLessonCompletionDialog() {
     const accuracy = totalLettersTyped === 0 ? 100.0 : ((correctLetters / totalLettersTyped) * 100);
     const accuracyFormatted = accuracy.toFixed(1) + '%';
 
-    // Set modal content for lesson completion
-    const t = getCurrentTranslations();
-    document.getElementById('congratulations').textContent = t.lessonComplete;
-
-    // Hide game-specific stats
-    document.getElementById('finalScore').style.display = 'none';
-    document.getElementById('finalWPM').parentElement.style.display = 'none';
-    document.getElementById('finalLPM').parentElement.style.display = 'none';
-    document.getElementById('levelReachedRow').style.display = 'none';
-    document.getElementById('levelStatsContainer').style.display = 'none';
-
     // Show accuracy
-    document.getElementById('finalAccuracy').textContent = accuracyFormatted;
-    document.getElementById('finalAccuracy').parentElement.style.display = 'block';
+    document.getElementById('lessonAccuracy').textContent = accuracyFormatted;
 
-    // Show lesson completion buttons
+    // Show/hide "Next lesson" button based on whether there's a next lesson
     const learnWords = getLearnWords();
     const maxLesson = learnWords ? Object.keys(learnWords).length : 6;
     const hasNextLesson = parseInt(selectedLevel) < maxLesson;
+    document.getElementById('nextLesson').style.display = hasNextLesson ? 'inline-block' : 'none';
 
-    document.getElementById('completionButtons').innerHTML = `
-        <button onclick="continueLesson()">Keep practicing this lesson</button>
-        ${hasNextLesson ? '<button onclick="nextLesson()" style="margin-left: 10px;">Next lesson</button>' : ''}
-        <button onclick="chooseDifferentLesson()" style="margin-left: 10px; background: white; color: #667eea; border: 2px solid #667eea;">Choose Different Lesson</button>
-    `;
-
-    document.getElementById('completionModal').classList.add('show');
+    document.getElementById('lessonCompletionModal').classList.add('show');
 }
 
 function showCompletionModal() {
@@ -1404,76 +1393,55 @@ function showCompletionModal() {
     // Get translations
     const t = getCurrentTranslations();
 
-    // Customize modal based on mode
+    // Show different modal based on mode
     if (currentMode === 'learn') {
-        document.getElementById('congratulations').textContent = t.sessionComplete;
-        document.getElementById('levelReachedRow').style.display = 'none';
-        document.getElementById('levelStatsContainer').style.display = 'none';
-
-        // Show buttons for continue or choose lesson
-        document.getElementById('completionButtons').innerHTML = `
-            <button onclick="continueLesson()">Continue</button>
-            <button onclick="chooseDifferentLesson()" style="margin-left: 10px; background: white; color: #667eea; border: 2px solid #667eea;">Choose Different Lesson</button>
-        `;
+        // Show session completion modal for learn mode
+        document.getElementById('sessionAccuracy').textContent = accuracyFormatted;
+        document.getElementById('sessionCompletionModal').classList.add('show');
     } else {
-        document.getElementById('congratulations').textContent = t.congratulations;
-        document.getElementById('levelReachedRow').style.display = 'block';
-        document.getElementById('levelStatsContainer').style.display = 'block';
+        // Show play completion modal
+        const pbLabel = document.getElementById('personalBestLabel');
+        if (isNewTimeRecord) {
+            pbLabel.textContent = t.newPersonalBest || 'New Personal Best:';
+            pbLabel.style.display = 'block';
+        } else {
+            pbLabel.style.display = 'none';
+        }
 
+        document.getElementById('finalScore').textContent = timeFormatted;
         document.getElementById('finalLevel').textContent = currentLevelNumber;
+
+        // Update stats with personal best highlighting
+        const accuracyRow = document.getElementById('finalAccuracy').parentElement;
+        document.getElementById('finalAccuracy').textContent = accuracyFormatted;
+        if (isNewAccuracyRecord) {
+            accuracyRow.style.color = '#28a745';
+            document.getElementById('finalAccuracy').textContent = accuracyFormatted + pbText;
+        } else {
+            accuracyRow.style.color = '';
+        }
+
+        const wpmRow = document.getElementById('finalWPM').parentElement;
+        document.getElementById('finalWPM').textContent = wpm.toFixed(1);
+        if (isNewWPMRecord) {
+            wpmRow.style.color = '#28a745';
+        } else {
+            wpmRow.style.color = '';
+        }
+
+        document.getElementById('finalLPM').textContent = lettersPerMinute.toFixed(0);
 
         // Generate per-level stats HTML
         let levelStatsHTML = '';
         levelStats.forEach(stat => {
             const levelAccuracyFormatted = stat.accuracy.toFixed(1);
-            const levelLabel = currentMode === 'learn' ? t.lesson_label : t.level_label;
+            const levelLabel = t.level_label;
             levelStatsHTML += `<div class="level-stat">${levelLabel} ${stat.level}: ${levelAccuracyFormatted}%</div>`;
         });
         document.getElementById('levelStatsContainer').innerHTML = levelStatsHTML;
 
-        document.getElementById('completionButtons').innerHTML = `
-            <button onclick="playAgain()">${t.practiceAgain}</button>
-        `;
+        document.getElementById('playCompletionModal').classList.add('show');
     }
-
-    // Update main display (time is the primary score)
-    // Show "New Personal Best:" label above time if it's a record
-    const pbLabel = document.getElementById('personalBestLabel');
-    if (isNewTimeRecord) {
-        pbLabel.textContent = t.newPersonalBest || 'New Personal Best:';
-        pbLabel.style.display = 'block';
-    } else {
-        pbLabel.style.display = 'none';
-    }
-
-    document.getElementById('finalScore').textContent = timeFormatted;
-    document.getElementById('finalScore').style.display = 'block';
-
-    // Update all stat rows and show them for play mode
-    const accuracyRow = document.getElementById('finalAccuracy').parentElement;
-    document.getElementById('finalAccuracy').textContent = accuracyFormatted;
-    accuracyRow.style.display = 'block';
-    if (isNewAccuracyRecord) {
-        accuracyRow.style.color = '#28a745';
-        document.getElementById('finalAccuracy').textContent = accuracyFormatted + pbText;
-    } else {
-        accuracyRow.style.color = '';
-        document.getElementById('finalAccuracy').textContent = accuracyFormatted;
-    }
-
-    const wpmRow = document.getElementById('finalWPM').parentElement;
-    document.getElementById('finalWPM').textContent = wpm.toFixed(1);
-    wpmRow.style.display = 'block';
-    if (isNewWPMRecord) {
-        wpmRow.style.color = '#28a745';
-    } else {
-        wpmRow.style.color = '';
-    }
-
-    document.getElementById('finalLPM').textContent = lettersPerMinute.toFixed(0);
-    document.getElementById('finalLPM').parentElement.style.display = 'block';
-
-    document.getElementById('completionModal').classList.add('show');
 }
 
 function resetPractice() {
@@ -1486,7 +1454,7 @@ function resetPractice() {
     levelStats = [];
 
     // Hide modal
-    document.getElementById('completionModal').classList.remove('show');
+    closeAllCompletionModals();
 
     // Update display
     updateStats();
@@ -1520,7 +1488,7 @@ function continueLesson() {
     correctLetters = 0;
 
     // Hide modal
-    document.getElementById('completionModal').classList.remove('show');
+    closeAllCompletionModals();
 
     // Update display
     updateStats();
@@ -1540,7 +1508,7 @@ function nextLesson() {
         selectedLevel = nextLessonNum.toString();
 
         // Hide modal
-        document.getElementById('completionModal').classList.remove('show');
+        closeAllCompletionModals();
 
         // Reset session stats
         wordsCompleted = 0;
@@ -1564,7 +1532,7 @@ function nextLesson() {
 
 function chooseDifferentLesson() {
     // Hide completion modal
-    document.getElementById('completionModal').classList.remove('show');
+    closeAllCompletionModals();
 
     // Reset session stats
     wordsCompleted = 0;
@@ -2587,12 +2555,16 @@ function loadPreferences() {
 // Keyboard support for dialogs
 document.addEventListener('keydown', (e) => {
     // Check which modal is open
-    const completionModal = document.getElementById('completionModal');
+    const lessonCompletionModal = document.getElementById('lessonCompletionModal');
+    const sessionCompletionModal = document.getElementById('sessionCompletionModal');
+    const playCompletionModal = document.getElementById('playCompletionModal');
     const settingsModal = document.getElementById('settingsModal');
     const lessonModal = document.getElementById('lessonModal');
     const contentModal = document.getElementById('contentModal');
 
-    const isModalOpen = completionModal.classList.contains('show') ||
+    const isModalOpen = lessonCompletionModal.classList.contains('show') ||
+                       sessionCompletionModal.classList.contains('show') ||
+                       playCompletionModal.classList.contains('show') ||
                        settingsModal.classList.contains('show') ||
                        lessonModal.classList.contains('show') ||
                        contentModal.classList.contains('show');
@@ -2602,7 +2574,9 @@ document.addEventListener('keydown', (e) => {
     // Handle Escape key - close/back action
     if (e.key === 'Escape') {
         e.preventDefault();
-        if (completionModal.classList.contains('show')) {
+        if (lessonCompletionModal.classList.contains('show') ||
+            sessionCompletionModal.classList.contains('show') ||
+            playCompletionModal.classList.contains('show')) {
             goHome();
         } else if (settingsModal.classList.contains('show')) {
             closeSettings();
@@ -2617,8 +2591,13 @@ document.addEventListener('keydown', (e) => {
     // Handle Enter key - activate first/default button
     if (e.key === 'Enter') {
         e.preventDefault();
-        if (completionModal.classList.contains('show')) {
-            const firstButton = completionModal.querySelector('button');
+        let activeCompletionModal = null;
+        if (lessonCompletionModal.classList.contains('show')) activeCompletionModal = lessonCompletionModal;
+        else if (sessionCompletionModal.classList.contains('show')) activeCompletionModal = sessionCompletionModal;
+        else if (playCompletionModal.classList.contains('show')) activeCompletionModal = playCompletionModal;
+
+        if (activeCompletionModal) {
+            const firstButton = activeCompletionModal.querySelector('button');
             if (firstButton) firstButton.click();
         } else if (lessonModal.classList.contains('show')) {
             // In lesson selector, no default button action
@@ -2628,7 +2607,9 @@ document.addEventListener('keydown', (e) => {
 
     // Handle Tab key - cycle between buttons
     if (e.key === 'Tab') {
-        const activeModal = completionModal.classList.contains('show') ? completionModal :
+        const activeModal = lessonCompletionModal.classList.contains('show') ? lessonCompletionModal :
+                          sessionCompletionModal.classList.contains('show') ? sessionCompletionModal :
+                          playCompletionModal.classList.contains('show') ? playCompletionModal :
                           settingsModal.classList.contains('show') ? settingsModal :
                           lessonModal.classList.contains('show') ? lessonModal :
                           contentModal;
