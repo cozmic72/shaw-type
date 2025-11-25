@@ -189,34 +189,34 @@
     <div class="settings-modal" id="settingsModal">
         <div class="settings-content">
             <span class="modal-close" onclick="closeSettings()">&times;</span>
-            <h2>Settings</h2>
+            <h2 id="settings">Settings</h2>
 
             <div class="settings-option">
-                <label id="settingsDialectLabel" style="display: block; margin-bottom: 10px; color: #666; font-weight: normal;">
+                <label id="dialectLabel" style="display: block; margin-bottom: 10px; color: #666; font-weight: normal;">
                     Choose spelling
                 </label>
                 <div style="display: flex; gap: 20px;">
                     <label style="cursor: pointer;">
                         <input type="radio" name="dialectSettings" value="gb" checked onchange="onDialectChangeSettings()" style="margin-right: 8px;">
-                        <span id="settingsDialectBritish">British</span>
+                        <span id="dialectBritish">British</span>
                     </label>
                     <label style="cursor: pointer;">
                         <input type="radio" name="dialectSettings" value="us" onchange="onDialectChangeSettings()" style="margin-right: 8px;">
-                        <span id="settingsDialectAmerican">American</span>
+                        <span id="dialectAmerican">American</span>
                     </label>
                 </div>
             </div>
 
             <div class="settings-option">
-                <label style="display: block; margin-bottom: 10px; color: #666; font-weight: normal;" id="settingsKeyboardLayoutLabel">
+                <label style="display: block; margin-bottom: 10px; color: #666; font-weight: normal;" id="keyboardLayout">
                     Keyboard Layout
                 </label>
                 <select id="layoutSelectSettings" onchange="onLayoutChangeSettings()" style="width: 100%; padding: 8px; font-size: 16px; border: 2px solid #e0e0e0; border-radius: 8px;">
-                    <option value="imperial">Shaw Imperial</option>
-                    <option value="igc">Imperial Good Companion</option>
-                    <option value="qwerty">Shaw QWERTY</option>
-                    <option value="2layer">Shaw 2-layer (shift)</option>
-                    <option value="jafl">Shaw-JAFL</option>
+                    <option id="layoutImperial" value="imperial">Shaw Imperial</option>
+                    <option id="layoutIGC" value="igc">Imperial Good Companion</option>
+                    <option id="layoutQwerty" value="qwerty">Shaw QWERTY</option>
+                    <option id="layout2layer" value="2layer">Shaw 2-layer (shift)</option>
+                    <option id="layoutJafl" value="jafl">Shaw-JAFL</option>
                 </select>
             </div>
 
@@ -242,13 +242,13 @@
             </div>
 
             <div class="settings-option">
-                <label style="display: block; margin-bottom: 10px; color: #666; font-weight: normal;" id="settingsLevelCountLabel">
+                <label style="display: block; margin-bottom: 10px; color: #666; font-weight: normal;" id="levelCountLabel">
                     Play Mode Level Count
                 </label>
                 <select id="levelCountSelect" onchange="onLevelCountChange()" style="width: 100%; padding: 8px; font-size: 16px; border: 2px solid #e0e0e0; border-radius: 8px;">
-                    <option value="3">3 levels (15 words)</option>
-                    <option value="6" selected>6 levels (30 words)</option>
-                    <option value="10">10 levels (50 words)</option>
+                    <option id="levelCount3" value="3">3 levels (15 words)</option>
+                    <option id="levelCount6" value="6" selected>6 levels (30 words)</option>
+                    <option id="levelCount10" value="10">10 levels (50 words)</option>
                 </select>
             </div>
 
