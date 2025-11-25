@@ -100,6 +100,7 @@ function updateLigatureToggleState() {
     const ligatureToggle = document.getElementById('ligatureToggleSettings');
     const ligatureLabel = document.getElementById('ligatures');
     const autoLigatures = KEYBOARD_MAPS[currentLayout].autoLigatures;
+    const t = getCurrentTranslations();
 
     // Always show the option
     ligatureOption.style.display = 'block';
@@ -110,14 +111,14 @@ function updateLigatureToggleState() {
         ligatureToggle.disabled = true;
         ligatureToggle.style.opacity = '0.5';
         ligatureToggle.style.cursor = 'not-allowed';
-        ligatureLabel.textContent = 'Ligatures not supported';
+        ligatureLabel.textContent = t ? t.ligaturesNotSupported : 'Ligatures not supported';
     } else if (autoLigatures === 'always') {
         // Grey out and show "built in" for layouts with forced ligatures
         // Don't change checked state - just visual display
         ligatureToggle.disabled = true;
         ligatureToggle.style.opacity = '0.5';
         ligatureToggle.style.cursor = 'not-allowed';
-        ligatureLabel.textContent = 'Ligatures built in';
+        ligatureLabel.textContent = t ? t.ligaturesBuiltIn : 'Ligatures built in';
     } else {
         // 'optional' - show and enable toggle with normal label
         // Restore user's preference from useLigatures variable
@@ -125,7 +126,7 @@ function updateLigatureToggleState() {
         ligatureToggle.disabled = false;
         ligatureToggle.style.opacity = '1';
         ligatureToggle.style.cursor = 'pointer';
-        ligatureLabel.textContent = 'Automatic ligatures (𐑩+𐑮→𐑼, 𐑘+𐑵→𐑿)';
+        ligatureLabel.textContent = t ? t.ligatures : 'Automatic ligatures (𐑩+𐑮→𐑼, 𐑘+𐑵→𐑿)';
     }
 }
 
@@ -158,11 +159,36 @@ function updateVirtualKeyboardLabels(retryCount = 0) {
 
         // Update ligature toggle state when keyboard maps are available
         updateLigatureToggleState();
+
+        // Update virtual keyboard title
+        updateVirtualKeyboardTitle();
     } else if (retryCount < 20) {
         // Functions not loaded yet, try again soon
         setTimeout(() => updateVirtualKeyboardLabels(retryCount + 1), 50);
     } else {
         console.error('Virtual keyboard functions not available after retries');
+    }
+}
+
+function updateVirtualKeyboardTitle() {
+    const titleElement = document.getElementById('virtualKeyboardTitle');
+    if (!titleElement) return;
+
+    const t = getCurrentTranslations();
+    if (!t) return;
+
+    // Map layout codes to translation keys
+    const titleKeys = {
+        'imperial': 'virtualKeyboardTitleImperial',
+        'igc': 'virtualKeyboardTitleIGC',
+        'qwerty': 'virtualKeyboardTitleQwerty',
+        '2layer': 'virtualKeyboardTitle2layer',
+        'jafl': 'virtualKeyboardTitleJafl'
+    };
+
+    const titleKey = titleKeys[currentLayout];
+    if (titleKey && t[titleKey]) {
+        titleElement.textContent = t[titleKey];
     }
 }
 
@@ -1405,6 +1431,12 @@ function showLessonCompletionDialog() {
     // Hide virtual keyboard temporarily while modal is shown
     hideVirtualKeyboardTemporarily();
 
+    // Blur typing input to prevent mobile keyboard from appearing
+    const typingInput = document.getElementById('typingInput');
+    if (typingInput) {
+        typingInput.blur();
+    }
+
     // Calculate stats for this lesson
     const accuracy = totalLettersTyped === 0 ? 100.0 : ((correctLetters / totalLettersTyped) * 100);
     const accuracyFormatted = accuracy.toFixed(1) + '%';
@@ -1424,6 +1456,12 @@ function showLessonCompletionDialog() {
 function showCompletionModal() {
     // Hide virtual keyboard temporarily while modal is shown
     hideVirtualKeyboardTemporarily();
+
+    // Blur typing input to prevent mobile keyboard from appearing
+    const typingInput = document.getElementById('typingInput');
+    if (typingInput) {
+        typingInput.blur();
+    }
 
     // Stats already saved in transitionToNextLevel
     const accuracy = totalLettersTyped === 0 ? 100.0 : ((correctLetters / totalLettersTyped) * 100);
@@ -2013,6 +2051,12 @@ async function openContentModal(page) {
     // Hide virtual keyboard temporarily while modal is shown
     hideVirtualKeyboardTemporarily();
 
+    // Blur typing input to prevent mobile keyboard from appearing
+    const typingInput = document.getElementById('typingInput');
+    if (typingInput) {
+        typingInput.blur();
+    }
+
     // Pause timer if in play mode
     if (currentMode === 'play') {
         pauseTimer();
@@ -2193,6 +2237,12 @@ function openSettings() {
     // Hide virtual keyboard temporarily while modal is shown
     hideVirtualKeyboardTemporarily();
 
+    // Blur typing input to prevent mobile keyboard from appearing
+    const typingInput = document.getElementById('typingInput');
+    if (typingInput) {
+        typingInput.blur();
+    }
+
     // Pause timer if in play mode
     if (currentMode === 'play') {
         pauseTimer();
@@ -2232,6 +2282,12 @@ function closeSettings() {
 function openHighScores() {
     // Hide virtual keyboard temporarily while modal is shown
     hideVirtualKeyboardTemporarily();
+
+    // Blur typing input to prevent mobile keyboard from appearing
+    const typingInput = document.getElementById('typingInput');
+    if (typingInput) {
+        typingInput.blur();
+    }
 
     // Pause timer if in play mode
     if (currentMode === 'play') {
@@ -2303,6 +2359,12 @@ function closeHighScores() {
 
 // Lesson selector functions
 function openLessonSelector() {
+    // Blur typing input to prevent mobile keyboard from appearing
+    const typingInput = document.getElementById('typingInput');
+    if (typingInput) {
+        typingInput.blur();
+    }
+
     // Get current translations
     const t = getCurrentTranslations();
 
@@ -2433,6 +2495,9 @@ function updateUIWithTranslations(t) {
 
     // Update layout select options
     updateLayoutSelectOptions();
+
+    // Special case: virtual keyboard title - depends on current layout
+    updateVirtualKeyboardTitle();
 }
 
 function updateLayoutSelectOptions() {

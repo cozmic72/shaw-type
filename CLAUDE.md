@@ -53,3 +53,6 @@ from a previous session.
 - Avoid using too many tokens!  Do not read entire files without conferring with the user.  Be smart: use grep or 
   write ad hoc scripts if needed.
 - Important: Always ask the user to run the regeneration tools!   Not doing so corrupts the context!
+- Don't run any build scripts, leave that up to the user
+- Only commit changes after the user has rebuilt and validated your change.  Include any files changed by the build process in the commit.
+- Important: all html source files are in the `content` directory. When you need to edit a html file edit them there!  The build script will overwrite the ones in site.

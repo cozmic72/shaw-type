@@ -58,7 +58,7 @@
     <div class="container">
         <div class="header-bar">
             <button class="back-btn hidden" id="backBtn" onclick="goHome()">←</button>
-            <h1 id="mainTitle">Shaw Type</h1>
+            <h1 id="title">Shaw Type</h1>
             <div class="burger-menu">
                 <button class="burger-btn" onclick="toggleBurgerMenu()">☰</button>
                 <div class="burger-dropdown" id="burgerDropdown">
@@ -189,7 +189,7 @@
     <div class="settings-modal" id="settingsModal">
         <div class="settings-content">
             <span class="modal-close" onclick="closeSettings()">&times;</span>
-            <h2 id="settings">Settings</h2>
+            <h2 id="settingsTitle">Settings</h2>
 
             <div class="settings-option">
                 <label id="dialectLabel" style="display: block; margin-bottom: 10px; color: #666; font-weight: normal;">
@@ -352,6 +352,9 @@
 
     <!-- Load virtual keyboard before main script -->
     <script src="virtual-keyboard.js?v={{VERSION}}"></script>
+
+    <!-- Load game state class before main script -->
+    <script src="game-state.js?v={{VERSION}}"></script>
 
     <script src="main.js?v={{VERSION}}"></script>
 </body>
