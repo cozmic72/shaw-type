@@ -103,36 +103,24 @@ LEARN_LEVELS_NEW_IMPERIAL = {
 # Define progressive levels for Shaw QWERTY
 LEARN_LEVELS_QWERTY = {
     1: {
-        'nameKey': 'lessonHomeRowCenter',
-        'chars': '𐑛𐑓𐑜𐑣𐑘𐑒',  # Middle 6 keys of home row
-        'focus': '𐑛𐑓𐑜𐑣𐑘𐑒',  # All chars are new
-        'descKey': 'desc1'
-    },
-    2: {
-        'nameKey': 'lessonFullHomeRow',
-        'chars': '𐑩𐑕𐑛𐑓𐑜𐑣𐑘𐑒𐑤',  # All home row (base layer)
-        'focus': '𐑩𐑕𐑤',  # New chars: outer home row keys
-        'descKey': 'desc23'
-    },
-    3: {
         'nameKey': 'lessonHomeRowShift',
         'chars': '𐑩𐑕𐑛𐑓𐑜𐑣𐑘𐑒𐑤𐑨𐑖𐑼𐑲·𐑞𐑡',  # Home row both layers
         'focus': '𐑨𐑖𐑼𐑲·𐑞𐑡',  # New chars: shift layer home row
         'descKey': 'desc8'
     },
-    4: {
+    2: {
         'nameKey': 'lessonAddUpperRow',
         'chars': '𐑩𐑕𐑛𐑓𐑜𐑣𐑘𐑒𐑤𐑨𐑖𐑼𐑲·𐑞𐑡𐑧𐑮𐑑𐑦𐑪𐑱𐑸𐑔𐑰𐑴𐑹',  # Add upper row
         'focus': '𐑧𐑮𐑑𐑦𐑪𐑱𐑸𐑔𐑰𐑴𐑹',  # New chars: upper row both layers
         'descKey': 'desc9'
     },
-    5: {
+    3: {
         'nameKey': 'lessonAddLowerRow',
         'chars': '𐑩𐑕𐑛𐑓𐑜𐑣𐑘𐑒𐑤𐑨𐑖𐑼𐑲·𐑞𐑡𐑧𐑮𐑑𐑦𐑪𐑱𐑸𐑔𐑰𐑴𐑹𐑟𐑻𐑗𐑝𐑚𐑯𐑥𐑺𐑽𐑿𐑙𐑵',  # Add lower row
         'focus': '𐑟𐑻𐑗𐑝𐑚𐑯𐑥𐑺𐑽𐑿𐑙𐑵',  # New chars: lower row both layers
         'descKey': 'desc10'
     },
-    6: {
+    4: {
         'nameKey': 'lessonAllKeys',
         'chars': '𐑩𐑕𐑛𐑓𐑜𐑣𐑘𐑒𐑤𐑨𐑖𐑼𐑲·𐑞𐑡𐑧𐑮𐑑𐑦𐑪𐑱𐑸𐑔𐑰𐑴𐑹𐑟𐑻𐑗𐑝𐑚𐑯𐑥𐑺𐑽𐑿𐑙𐑵𐑶𐑢𐑭𐑳𐑐𐑬𐑾𐑷𐑫𐑠⸰',  # All
         'focus': '𐑶𐑢𐑭𐑳𐑐𐑬𐑾𐑷𐑫𐑠⸰',  # New chars: remaining keys

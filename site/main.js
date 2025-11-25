@@ -680,12 +680,6 @@ function onLayoutChangeSettings() {
     updateLigatureToggleState();
     updateLevelSelector();
 
-    // Only reinitialize if not in an active game
-    const isGameActive = !document.getElementById('gameContent').classList.contains('hidden');
-    if (!isGameActive) {
-        initializeGame();
-    }
-
     // Update virtual keyboard labels
     updateVirtualKeyboardLabels();
 }
@@ -694,12 +688,6 @@ function onLigatureToggleSettings() {
     useLigatures = document.getElementById('ligatureToggleSettings').checked;
     localStorage.setItem('useLigatures', useLigatures);
     updateLevelSelector();
-
-    // Only reinitialize if not in an active game
-    const isGameActive = !document.getElementById('gameContent').classList.contains('hidden');
-    if (!isGameActive) {
-        initializeGame();
-    }
 }
 
 function onLevelCountChange() {
@@ -709,7 +697,6 @@ function onLevelCountChange() {
 
 function onLevelChange() {
     selectedLevel = document.getElementById('levelSelect').value;
-    initializeGame();
 }
 
 function getLearnWords() {
