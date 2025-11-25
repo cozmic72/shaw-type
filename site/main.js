@@ -195,101 +195,6 @@ function updateVirtualKeyboardTitle() {
     }
 }
 
-// Nudge main container to reduce overlap with virtual keyboard
-function nudgeContainerForKeyboard(immediate = false) {
-    const keyboard = document.getElementById('virtualKeyboard');
-    const container = document.querySelector('.container');
-
-    if (!keyboard || !container || keyboard.style.display === 'none') {
-        return;
-    }
-
-    // If immediate, force a reflow first to ensure we measure the new layout
-    if (immediate) {
-        container.offsetHeight;
-    }
-
-    const keyboardRect = keyboard.getBoundingClientRect();
-    const containerRect = container.getBoundingClientRect();
-    const viewportHeight = window.innerHeight;
-
-    // Determine if keyboard is in top or bottom half of screen
-    const keyboardCenter = keyboardRect.top + keyboardRect.height / 2;
-    const isKeyboardInBottomHalf = keyboardCenter > viewportHeight / 2;
-
-    const topMargin = 20; // Desired margin at top of viewport
-    let shift = 0;
-
-    if (isKeyboardInBottomHalf) {
-        // Keyboard is in bottom half - check for overlap
-        const overlap = containerRect.bottom - keyboardRect.top;
-        if (overlap > 0) {
-            // Move container up so its top is at topMargin from viewport top
-            shift = topMargin - containerRect.top;
-            // Don't move down if already above target position
-            shift = Math.min(shift, 0);
-        }
-    } else {
-        // Keyboard is in top half - check for overlap
-        const overlap = keyboardRect.bottom - containerRect.top;
-        if (overlap > 0) {
-            // Move container down by the overlap amount plus some padding
-            shift = overlap + 20;
-        }
-    }
-
-    // Apply transform
-    if (immediate) {
-        // Disable transition temporarily for immediate positioning
-        const originalTransition = container.style.transition;
-        container.style.transition = 'none';
-        container.style.transform = shift !== 0 ? `translateY(${shift}px)` : '';
-        // Force reflow
-        container.offsetHeight;
-        // Re-enable transition
-        container.style.transition = originalTransition;
-    } else {
-        container.style.transform = shift !== 0 ? `translateY(${shift}px)` : '';
-    }
-}
-
-// Reset container position
-function resetContainerPosition() {
-    const container = document.querySelector('.container');
-    if (container) {
-        container.style.transform = '';
-    }
-}
-
-// Helper to apply nudge if keyboard is visible
-function applyNudgeIfKeyboardVisible(immediate = false) {
-    const keyboard = document.getElementById('virtualKeyboard');
-    if (keyboard && keyboard.style.display !== 'none') {
-        nudgeContainerForKeyboard(immediate);
-    }
-}
-
-// Helper to recalculate nudge after layout changes (debounced for non-immediate calls)
-let recalculateNudgeScheduled = false;
-function recalculateNudgeAfterLayoutChange(immediate = false) {
-    if (immediate) {
-        // When immediate, apply synchronously without delay
-        applyNudgeIfKeyboardVisible(true);
-    } else {
-        // Debounce: only schedule if not already scheduled
-        if (!recalculateNudgeScheduled) {
-            recalculateNudgeScheduled = true;
-            // Use double requestAnimationFrame to ensure layout has fully updated
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    applyNudgeIfKeyboardVisible(false);
-                    recalculateNudgeScheduled = false;
-                });
-            });
-        }
-    }
-}
-
 function toggleVirtualKeyboard() {
     const keyboard = document.getElementById('virtualKeyboard');
     const toggle = document.getElementById('virtualKeyboardToggle');
@@ -308,8 +213,6 @@ function toggleVirtualKeyboard() {
         updateVirtualKeyboardLabels();
         if (toggle) toggle.checked = true;
         localStorage.setItem('showVirtualKeyboard', 'true');
-
-        recalculateNudgeAfterLayoutChange();
     } else {
         // Hide keyboard and reset position/scale
         hideVirtualKeyboard();
@@ -318,9 +221,6 @@ function toggleVirtualKeyboard() {
         }
         if (toggle) toggle.checked = false;
         localStorage.setItem('showVirtualKeyboard', 'false');
-
-        // Reset container position
-        resetContainerPosition();
     }
 }
 
@@ -392,8 +292,6 @@ function showVirtualKeyboardIfEnabled() {
         // Don't force readonly - let user choose by clicking
         isUsingVirtualKeyboard = false;
         updateInputFocusMode('auto'); // Only restore focus if input had it before modal
-
-        recalculateNudgeAfterLayoutChange();
     }
 }
 
@@ -402,9 +300,6 @@ function hideVirtualKeyboardTemporarily() {
     hideVirtualKeyboard();
     isUsingVirtualKeyboard = false;
     updateInputFocusMode(false); // Don't restore focus when hiding for modals
-
-    // Reset container position
-    resetContainerPosition();
 }
 
 // Form ligatures in a word by replacing component pairs with ligatures
@@ -1088,14 +983,6 @@ function isStandalone() {
     return false;
 }
 
-// Handle window resize and orientation change
-window.addEventListener('resize', () => {
-    const keyboard = document.getElementById('virtualKeyboard');
-    if (keyboard && keyboard.style.display !== 'none') {
-        nudgeContainerForKeyboard();
-    }
-});
-
 // Initialize
 async function init() {
     // Initialize virtual keyboard (encapsulated in virtual-keyboard.js)
@@ -1169,10 +1056,6 @@ function showCountdown(wordPool, wordCount, type, title, typeLabel, completionCa
             // Hide countdown, show game content
             countdownScreen.classList.add('hidden');
             gameContent.classList.remove('hidden');
-
-            // Recalculate immediately without animation to prevent snap
-            recalculateNudgeAfterLayoutChange(true);
-
             // Call startLevel with the parameters
             startLevel(wordPool, wordCount, type, title, typeLabel, completionCallback);
         }
@@ -1227,9 +1110,6 @@ function startLevel(wordPool, wordCount, type, title, typeLabel, completionCallb
     if (savedShowKeyboard !== 'true') {
         typingInput.focus();
     }
-
-    // Recalculate nudge (debounced, so won't duplicate if already scheduled from countdown)
-    recalculateNudgeAfterLayoutChange();
 }
 
 function pickRandomWord() {
