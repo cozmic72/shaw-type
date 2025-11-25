@@ -227,7 +227,7 @@ h1 {
     position: absolute;
     top: 50%;
     font-size: 48px;
-    font-family: 'Ormin', 'Inter-Alia', sans-serif;
+    font-family: 'Inter-Alia', sans-serif;
     letter-spacing: 4px;
     white-space: nowrap;
     transition: transform 0.3s ease, opacity 0.3s ease;
@@ -256,7 +256,7 @@ h1 {
 
 .word-display .word {
     font-size: 48px;
-    font-family: 'Ormin', 'Inter-Alia', sans-serif;
+    font-family: Inter-Alia', sans-serif;
     letter-spacing: 4px;
 }
 
