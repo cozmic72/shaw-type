@@ -152,6 +152,7 @@ function makeKeyboardDraggable() {
     const header = keyboard.querySelector('.keyboard-header');
     let isDragging = false;
     let startX, startY;
+    let initialPosX, initialPosY;
 
     // Apply saved state
     loadKeyboardState();
@@ -172,6 +173,10 @@ function makeKeyboardDraggable() {
                 return; // Don't drag when clicking close button
             }
             isDragging = true;
+
+            // Save initial position to detect if keyboard actually moved
+            initialPosX = keyboardPosition.x;
+            initialPosY = keyboardPosition.y;
 
             if (e.type === 'touchstart') {
                 startX = e.touches[0].clientX - keyboardPosition.x;
@@ -203,6 +208,12 @@ function makeKeyboardDraggable() {
         if (isDragging) {
             isDragging = false;
             saveKeyboardState();
+
+            // Only recalculate nudge if keyboard actually moved
+            const hasMoved = keyboardPosition.x !== initialPosX || keyboardPosition.y !== initialPosY;
+            if (hasMoved && typeof nudgeContainerForKeyboard === 'function') {
+                nudgeContainerForKeyboard();
+            }
         }
     }
 }
