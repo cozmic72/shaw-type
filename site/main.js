@@ -47,6 +47,9 @@ let shadowInput = '';
 let pendingReplacementStart = -1;
 let pendingReplacementEnd = -1;
 
+// Track if input had focus before opening a modal (for mobile keyboard management)
+let inputHadFocusBeforeModal = false;
+
 // Ligature mappings are now loaded from keyboard_layouts.json
 // Each layout specifies its own ligatures and whether they're always on, optional, or never
 
@@ -225,7 +228,9 @@ function toggleVirtualKeyboard() {
 let isUsingVirtualKeyboard = false;
 
 // Central focus management: configure input based on virtual keyboard usage
-function updateInputFocusMode() {
+// restoreFocus parameter controls whether to restore focus (true/false/'auto')
+// 'auto' means restore focus based on inputHadFocusBeforeModal flag
+function updateInputFocusMode(restoreFocus = true) {
     const typingInput = document.getElementById('typingInput');
     if (!typingInput) return;
 
@@ -239,8 +244,17 @@ function updateInputFocusMode() {
     } else {
         // Allow physical keyboard input
         typingInput.removeAttribute('readonly');
-        if (typingInput.style.display !== 'none') {
+
+        // Determine whether to restore focus
+        const shouldRestoreFocus = restoreFocus === 'auto' ? inputHadFocusBeforeModal : restoreFocus;
+
+        if (typingInput.style.display !== 'none' && shouldRestoreFocus) {
             typingInput.focus();
+        }
+
+        // Reset the flag if we used 'auto' mode
+        if (restoreFocus === 'auto') {
+            inputHadFocusBeforeModal = false;
         }
     }
 }
@@ -277,7 +291,7 @@ function showVirtualKeyboardIfEnabled() {
         updateVirtualKeyboardLabels();
         // Don't force readonly - let user choose by clicking
         isUsingVirtualKeyboard = false;
-        updateInputFocusMode();
+        updateInputFocusMode('auto'); // Only restore focus if input had it before modal
     }
 }
 
@@ -285,7 +299,7 @@ function showVirtualKeyboardIfEnabled() {
 function hideVirtualKeyboardTemporarily() {
     hideVirtualKeyboard();
     isUsingVirtualKeyboard = false;
-    updateInputFocusMode();
+    updateInputFocusMode(false); // Don't restore focus when hiding for modals
 }
 
 // Form ligatures in a word by replacing component pairs with ligatures
@@ -1428,11 +1442,14 @@ function transitionToNextLevel() {
 }
 
 function showLessonCompletionDialog() {
+    // Track if input had focus before opening modal
+    const typingInput = document.getElementById('typingInput');
+    inputHadFocusBeforeModal = typingInput && document.activeElement === typingInput;
+
     // Hide virtual keyboard temporarily while modal is shown
     hideVirtualKeyboardTemporarily();
 
     // Blur typing input to prevent mobile keyboard from appearing
-    const typingInput = document.getElementById('typingInput');
     if (typingInput) {
         typingInput.blur();
     }
@@ -1454,11 +1471,14 @@ function showLessonCompletionDialog() {
 }
 
 function showCompletionModal() {
+    // Track if input had focus before opening modal
+    const typingInput = document.getElementById('typingInput');
+    inputHadFocusBeforeModal = typingInput && document.activeElement === typingInput;
+
     // Hide virtual keyboard temporarily while modal is shown
     hideVirtualKeyboardTemporarily();
 
     // Blur typing input to prevent mobile keyboard from appearing
-    const typingInput = document.getElementById('typingInput');
     if (typingInput) {
         typingInput.blur();
     }
@@ -2048,11 +2068,14 @@ window.addEventListener('click', function(e) {
 async function openContentModal(page) {
     closeBurgerMenu();
 
+    // Track if input had focus before opening modal
+    const typingInput = document.getElementById('typingInput');
+    inputHadFocusBeforeModal = typingInput && document.activeElement === typingInput;
+
     // Hide virtual keyboard temporarily while modal is shown
     hideVirtualKeyboardTemporarily();
 
     // Blur typing input to prevent mobile keyboard from appearing
-    const typingInput = document.getElementById('typingInput');
     if (typingInput) {
         typingInput.blur();
     }
@@ -2234,11 +2257,14 @@ function resumeTimer() {
 }
 
 function openSettings() {
+    // Track if input had focus before opening modal
+    const typingInput = document.getElementById('typingInput');
+    inputHadFocusBeforeModal = typingInput && document.activeElement === typingInput;
+
     // Hide virtual keyboard temporarily while modal is shown
     hideVirtualKeyboardTemporarily();
 
     // Blur typing input to prevent mobile keyboard from appearing
-    const typingInput = document.getElementById('typingInput');
     if (typingInput) {
         typingInput.blur();
     }
@@ -2280,11 +2306,14 @@ function closeSettings() {
 }
 
 function openHighScores() {
+    // Track if input had focus before opening modal
+    const typingInput = document.getElementById('typingInput');
+    inputHadFocusBeforeModal = typingInput && document.activeElement === typingInput;
+
     // Hide virtual keyboard temporarily while modal is shown
     hideVirtualKeyboardTemporarily();
 
     // Blur typing input to prevent mobile keyboard from appearing
-    const typingInput = document.getElementById('typingInput');
     if (typingInput) {
         typingInput.blur();
     }
@@ -2359,8 +2388,11 @@ function closeHighScores() {
 
 // Lesson selector functions
 function openLessonSelector() {
-    // Blur typing input to prevent mobile keyboard from appearing
+    // Track if input had focus before opening modal
     const typingInput = document.getElementById('typingInput');
+    inputHadFocusBeforeModal = typingInput && document.activeElement === typingInput;
+
+    // Blur typing input to prevent mobile keyboard from appearing
     if (typingInput) {
         typingInput.blur();
     }
