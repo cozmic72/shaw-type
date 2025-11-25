@@ -210,12 +210,16 @@ function makeKeyboardDraggable() {
 // Show/hide keyboard - these are now just UI helpers called from main script
 function showVirtualKeyboard() {
     const keyboard = document.getElementById('virtualKeyboard');
-    keyboard.style.display = 'block';
+    if (keyboard) {
+        keyboard.style.display = 'block';
+    }
 }
 
 function hideVirtualKeyboard() {
     const keyboard = document.getElementById('virtualKeyboard');
-    keyboard.style.display = 'none';
+    if (keyboard) {
+        keyboard.style.display = 'none';
+    }
 }
 
 // Update keyboard labels with Shavian characters based on current layout
