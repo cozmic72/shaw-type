@@ -6,7 +6,7 @@ Generate favicon PNGs with Shavian text in Ormin font at multiple sizes.
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 import os
 
-def generate_favicon_size(size, font_path, shaw_char='𐑖', tee_char='𐑑', dark_mode=False):
+def generate_favicon_size(size, font_path, shaw_char='𐑖', tee_char='𐑑'):
     """Generate a single favicon at the given size with nestled 𐑖 and 𐑑."""
     # Create image with white background
     img = Image.new('RGBA', (size, size), (255, 255, 255, 255))
