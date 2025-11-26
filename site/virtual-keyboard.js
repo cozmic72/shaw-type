@@ -267,11 +267,14 @@ function updateKeyboardLabels(keyboardMap, layoutName) {
     keys.forEach(key => {
         let keyValue = key.getAttribute('data-key');
 
-        // If shift is active, try to get the shifted version
-        let actualKey = keyValue;
-        if (isShiftActive && keyValue.length === 1) {
+        // Get base character
+        const baseChar = keyboardMap[keyValue];
+
+        // Get shifted character
+        let shiftedKey = keyValue;
+        if (keyValue.length === 1) {
             if (keyValue.match(/[a-z]/)) {
-                actualKey = keyValue.toUpperCase();
+                shiftedKey = keyValue.toUpperCase();
             } else {
                 // Map number row and punctuation to their shifted equivalents
                 const shiftMap = {
@@ -283,54 +286,49 @@ function updateKeyboardLabels(keyboardMap, layoutName) {
                     ',': '<', '.': '>', '/': '?'
                 };
                 if (shiftMap[keyValue]) {
-                    actualKey = shiftMap[keyValue];
+                    shiftedKey = shiftMap[keyValue];
                 }
             }
         }
+        const shiftChar = keyboardMap[shiftedKey];
 
-        const shavianChar = keyboardMap[actualKey];
+        // Special keys (non-character keys)
+        const specialKeys = {
+            'Backspace': '⌫',
+            'Tab': '⇥',
+            'CapsLock': '⇪',
+            'Enter': '⏎',
+            'Shift': '⇧',
+            ' ': 'Space'
+        };
 
-        if (isShiftActive) {
-            // When shift is active, ONLY show Shavian characters that have shift mappings
-            // Everything else is blank
-            if (shavianChar) {
-                key.innerHTML = shavianChar;
-                key.setAttribute('data-shavian', shavianChar);
-                key.setAttribute('data-actual-key', actualKey);
+        if (specialKeys[keyValue]) {
+            // Special keys don't have dual legends
+            key.innerHTML = specialKeys[keyValue];
+            key.removeAttribute('data-shavian');
+            key.removeAttribute('data-shavian-shift');
+        } else if (baseChar || shiftChar) {
+            // Create dual-legend structure
+            const mainLegend = baseChar || '';
+            const shiftLegend = shiftChar || '';
+
+            // Update key content with dual legends
+            if (isShiftActive) {
+                // In shift mode, show shift legend prominently
+                key.innerHTML = `<span class="key-main">${shiftLegend}</span><span class="key-shift">${mainLegend}</span>`;
             } else {
-                // No shift mapping - leave blank (except Shift key itself)
-                if (keyValue === 'Shift') {
-                    key.innerHTML = '⇧';
-                } else {
-                    key.innerHTML = '';
-                }
-                key.removeAttribute('data-shavian');
-                key.removeAttribute('data-actual-key');
+                // Normal mode: main legend on top, shift legend below
+                key.innerHTML = `<span class="key-main">${mainLegend}</span><span class="key-shift">${shiftLegend}</span>`;
             }
+
+            // Store both characters as data attributes
+            key.setAttribute('data-shavian', baseChar || '');
+            key.setAttribute('data-shavian-shift', shiftChar || '');
         } else {
-            // Normal (non-shift) mode
-            if (shavianChar) {
-                // Set the Shavian character as the key's content
-                // Use innerHTML to preserve VS1 (U+FE00) characters
-                key.innerHTML = shavianChar;
-                key.setAttribute('data-shavian', shavianChar);
-                key.setAttribute('data-actual-key', actualKey);
-            } else {
-                // For keys without mappings (Tab, Enter, etc.), restore special symbols
-                const specialKeys = {
-                    'Backspace': '⌫',
-                    'Tab': '⇥',
-                    'CapsLock': '⇪',
-                    'Enter': '⏎',
-                    'Shift': '⇧',
-                    ' ': 'Space'
-                };
-                if (specialKeys[keyValue]) {
-                    key.innerHTML = specialKeys[keyValue];
-                }
-                key.removeAttribute('data-shavian');
-                key.removeAttribute('data-actual-key');
-            }
+            // No mapping for this key
+            key.innerHTML = '';
+            key.removeAttribute('data-shavian');
+            key.removeAttribute('data-shavian-shift');
         }
     });
 }
@@ -384,11 +382,156 @@ function toggleShift() {
 // keyboardMap passed from main script
 function makeKeysClickable(keyboardMap) {
     const keys = document.querySelectorAll('.key[data-key]');
+    const SLIDE_THRESHOLD = 15; // pixels to slide down before activating shift
+
     keys.forEach(key => {
-        // Remove existing click listeners
+        // Remove existing event listeners
         const newKey = key.cloneNode(true);
         key.parentNode.replaceChild(newKey, key);
 
+        // Track touch state for slide-down gesture
+        let touchState = {
+            active: false,
+            startY: 0,
+            isSlideDown: false
+        };
+
+        // Touch start handler
+        newKey.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const keyValue = newKey.getAttribute('data-key');
+
+            // Notify that user is using virtual keyboard (to prevent OS keyboard)
+            if (typeof activateVirtualKeyboardMode === 'function') {
+                activateVirtualKeyboardMode();
+            }
+
+            // Handle shift key specially
+            if (keyValue === 'Shift') {
+                toggleShift();
+                return;
+            }
+
+            // Initialize touch state
+            touchState.active = true;
+            touchState.startY = e.touches[0].clientY;
+            touchState.isSlideDown = false;
+
+            // Highlight the key
+            highlightKey(keyValue);
+        });
+
+        // Touch move handler - detect slide-down gesture
+        newKey.addEventListener('touchmove', (e) => {
+            if (!touchState.active) return;
+
+            // Only allow slide-down if there's a shift character available
+            const shiftChar = newKey.getAttribute('data-shavian-shift');
+            if (!shiftChar || shiftChar === '') return;
+
+            const currentY = e.touches[0].clientY;
+            const deltaY = currentY - touchState.startY;
+
+            // Check if user has slid down beyond threshold
+            if (deltaY > SLIDE_THRESHOLD && !touchState.isSlideDown) {
+                touchState.isSlideDown = true;
+                newKey.classList.add('slide-down');
+            } else if (deltaY <= SLIDE_THRESHOLD && touchState.isSlideDown) {
+                // User slid back up - restore to normal
+                touchState.isSlideDown = false;
+                newKey.classList.remove('slide-down');
+            }
+        });
+
+        // Touch end handler - type the appropriate character
+        newKey.addEventListener('touchend', (e) => {
+            if (!touchState.active) return;
+            e.preventDefault();
+
+            const keyValue = newKey.getAttribute('data-key');
+            const typingInput = document.getElementById('typingInput');
+
+            // Remove slide-down class
+            newKey.classList.remove('slide-down');
+
+            // Remove highlight
+            setTimeout(() => unhighlightKey(keyValue), 150);
+
+            if (!typingInput) {
+                touchState.active = false;
+                return;
+            }
+
+            // Determine which character to type based on slide state
+            let shavianChar;
+            if (touchState.isSlideDown) {
+                // Slide-down: type shift character
+                shavianChar = newKey.getAttribute('data-shavian-shift');
+            } else {
+                // Normal: type base character
+                shavianChar = newKey.getAttribute('data-shavian');
+            }
+
+            if (shavianChar) {
+                // Insert character using helper
+                withEditableInput(typingInput, () => {
+                    const start = typingInput.selectionStart || typingInput.value.length;
+                    const end = typingInput.selectionEnd || typingInput.value.length;
+
+                    typingInput.value = typingInput.value.substring(0, start) +
+                                       shavianChar +
+                                       typingInput.value.substring(end);
+
+                    setSelectionSafe(typingInput, start + shavianChar.length);
+                });
+
+                // Trigger input event so the game logic processes it
+                dispatchInputEvent(typingInput, 'insertText', shavianChar);
+
+                // Auto-release shift after typing a character
+                if (isShiftActive) {
+                    isShiftActive = false;
+                    if (typeof updateVirtualKeyboardLabels === 'function') {
+                        updateVirtualKeyboardLabels();
+                    }
+                }
+
+            } else if (keyValue === 'Backspace') {
+                // Delete character using helper
+                withEditableInput(typingInput, () => {
+                    const start = typingInput.selectionStart || typingInput.value.length;
+                    const end = typingInput.selectionEnd || typingInput.value.length;
+
+                    if (start !== end) {
+                        // Delete selection
+                        typingInput.value = typingInput.value.substring(0, start) +
+                                           typingInput.value.substring(end);
+                        setSelectionSafe(typingInput, start);
+                    } else if (start > 0) {
+                        // Delete one character before cursor
+                        const chars = Array.from(typingInput.value);
+                        typingInput.value = chars.slice(0, start - 1).join('') +
+                                           chars.slice(start).join('');
+                        setSelectionSafe(typingInput, start - 1);
+                    }
+                });
+
+                dispatchInputEvent(typingInput, 'deleteContentBackward');
+
+                // Auto-release shift after backspace
+                if (isShiftActive) {
+                    isShiftActive = false;
+                    if (typeof updateVirtualKeyboardLabels === 'function') {
+                        updateVirtualKeyboardLabels();
+                    }
+                }
+            }
+
+            // Reset touch state
+            touchState.active = false;
+        });
+
+        // Click handler for desktop/mouse users
         newKey.addEventListener('click', (e) => {
             e.preventDefault();
             const keyValue = newKey.getAttribute('data-key');
@@ -411,11 +554,8 @@ function makeKeysClickable(keyboardMap) {
             highlightKey(keyValue);
             setTimeout(() => unhighlightKey(keyValue), 150);
 
-            // Get the actual key (considering shift state)
-            const actualKey = newKey.getAttribute('data-actual-key') || keyValue;
-
-            // Get the Shavian character for this key
-            const shavianChar = keyboardMap ? keyboardMap[actualKey] : null;
+            // Get the Shavian character for this key (use base character for clicks)
+            const shavianChar = newKey.getAttribute('data-shavian');
 
             if (shavianChar) {
                 // Insert character using helper
