@@ -65,3 +65,6 @@
 
 #strange
 ·default, 𐑛𐑰𐑓𐑷𐑤𐑑
+
+#interpolation
+{{·𐑝𐑻𐑠𐑩𐑯}}, {{VERSION}}

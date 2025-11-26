@@ -1,104 +1,127 @@
 #!/usr/bin/env python3
 """
 Deploy script for Shaw Type
-Replaces {{VERSION}} placeholder in template files with actual version number
-and copies to the site directory.
+Copies site/ directory to build output, replacing {{VERSION}} placeholders
+in both HTML and JSON files.
+
+Usage:
+    python deploy.py <version> [output_dir]
+
+Examples:
+    python deploy.py 2.0.1                  # Deploys to build/site/
+    python deploy.py 2.0.1 dist/            # Deploys to dist/
 """
 
 import sys
 import os
+import shutil
 from pathlib import Path
 
-def deploy(version):
-    """Deploy files with the specified version."""
+def deploy(version, output_dir='build/site'):
+    """Deploy files with the specified version to output directory."""
     project_root = Path(__file__).parent.parent
-    content_dir = project_root / 'content'
     site_dir = project_root / 'site'
+    output_path = project_root / output_dir
 
-    # Ensure directories exist
-    if not content_dir.exists():
-        print(f"Error: Content directory not found: {content_dir}")
-        return 1
-
+    # Ensure source directory exists
     if not site_dir.exists():
         print(f"Error: Site directory not found: {site_dir}")
         return 1
 
-    print(f"Deploying version {version}...")
+    # Create output directory (remove if exists)
+    if output_path.exists():
+        print(f"Removing existing output directory: {output_path}")
+        shutil.rmtree(output_path)
+
+    output_path.mkdir(parents=True, exist_ok=True)
+
+    print(f"Deploying Shaw Type v{version}")
+    print(f"  Source: {site_dir}")
+    print(f"  Output: {output_path}")
     print()
 
-    # Process index.html
-    template_file = content_dir / 'index.html'
-    output_file = site_dir / 'index.html'
+    # Track statistics
+    stats = {
+        'html': 0,
+        'json': 0,
+        'other': 0
+    }
 
-    if not template_file.exists():
-        print(f"Error: Template file not found: {template_file}")
-        return 1
+    # Walk through site directory
+    for source_file in site_dir.rglob('*'):
+        if source_file.is_file():
+            # Calculate relative path
+            rel_path = source_file.relative_to(site_dir)
+            dest_file = output_path / rel_path
 
-    # Read template
-    with open(template_file, 'r', encoding='utf-8') as f:
-        content = f.read()
+            # Create parent directory if needed
+            dest_file.parent.mkdir(parents=True, exist_ok=True)
 
-    # Replace version placeholder
-    content = content.replace('{{VERSION}}', version)
+            # Process based on file type
+            if source_file.suffix == '.html':
+                # Read HTML file
+                with open(source_file, 'r', encoding='utf-8') as f:
+                    content = f.read()
 
-    # Write output
-    with open(output_file, 'w', encoding='utf-8') as f:
-        f.write(content)
+                # Replace version placeholder
+                content = content.replace('{{VERSION}}', version)
 
-    print(f"✓ Deployed {template_file.name} → {output_file}")
-
-    # Process content/*.html files - deploy to site/*_latin.html
-    # (transliteration tool will read these and create _gb and _us versions)
-    # Skip index.html since it's already processed above
-    # Special case: virtual-keyboard.html is deployed directly without _latin suffix
-    if content_dir.exists():
-        html_files = list(content_dir.glob('*.html'))
-        for source_file in html_files:
-            # Skip index.html - already processed
-            if source_file.name == 'index.html':
-                continue
-
-            # Read source
-            with open(source_file, 'r', encoding='utf-8') as f:
-                content = f.read()
-
-            # Replace version placeholder
-            content = content.replace('{{VERSION}}', version)
-
-            # Special case: virtual-keyboard.html is deployed directly (no _latin suffix)
-            if source_file.name == 'virtual-keyboard.html':
-                output_file = site_dir / source_file.name
-                with open(output_file, 'w', encoding='utf-8') as f:
+                # Write to output
+                with open(dest_file, 'w', encoding='utf-8') as f:
                     f.write(content)
-                print(f"✓ Deployed {source_file.name} → {output_file.name}")
+
+                stats['html'] += 1
+                print(f"  ✓ {rel_path}")
+
+            elif source_file.suffix == '.json':
+                # Read JSON file
+                with open(source_file, 'r', encoding='utf-8') as f:
+                    content = f.read()
+
+                # Replace version placeholder in JSON (quoted)
+                content = content.replace('"{{VERSION}}"', f'"{version}"')
+
+                # Write to output
+                with open(dest_file, 'w', encoding='utf-8') as f:
+                    f.write(content)
+
+                stats['json'] += 1
+                print(f"  ✓ {rel_path}")
+
             else:
-                # Write to site/*_latin.html
-                base_name = source_file.stem
-                output_file = site_dir / f"{base_name}_latin.html"
-                with open(output_file, 'w', encoding='utf-8') as f:
-                    f.write(content)
-                print(f"✓ Deployed {source_file.name} → {output_file.name}")
+                # Copy other files as-is
+                shutil.copy2(source_file, dest_file)
+                stats['other'] += 1
 
     print()
-    print(f"Version: {version}")
+    print(f"Deployed {stats['html']} HTML files, {stats['json']} JSON files, "
+          f"{stats['other']} other files")
 
     # Write version to file for tracking
-    version_file = project_root / '.current-version'
+    version_file = output_path / '.version'
     with open(version_file, 'w', encoding='utf-8') as f:
         f.write(version)
-    print(f"✓ Version written to {version_file.name}")
+    print(f"  ✓ Version written to {version_file.name}")
+
+    print()
+    print("✅ Deployment complete!")
+    print()
+    print(f"To test: python3 -m http.server 8000 --directory {output_path}")
 
     return 0
 
 def main():
-    if len(sys.argv) != 2:
-        print("Usage: python deploy.py <version>")
-        print("Example: python deploy.py 2.0-beta-4")
+    if len(sys.argv) < 2:
+        print("Usage: python deploy.py <version> [output_dir]")
+        print("Examples:")
+        print("  python deploy.py 2.0.1")
+        print("  python deploy.py 2.0.1 dist/")
         return 1
 
     version = sys.argv[1]
-    return deploy(version)
+    output_dir = sys.argv[2] if len(sys.argv) > 2 else 'build/site'
+
+    return deploy(version, output_dir)
 
 if __name__ == '__main__':
     sys.exit(main())
