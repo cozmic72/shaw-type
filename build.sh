@@ -3,33 +3,72 @@
 # Build script for Shaw Type
 # Deploys site/ to build/site/ with version replacement
 #
-# Usage: ./build.sh [version] [output_dir]
-# Examples:
-#   ./build.sh                    # Uses version from current-version, builds to build/site/
-#   ./build.sh 2.0.2              # Uses specified version, builds to build/site/
-#   ./build.sh 2.0.2 dist/        # Uses specified version, builds to dist/
 
 set -e  # Exit on error
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
-# Get version from argument or current-version file
-if [ -n "$1" ]; then
-    VERSION="$1"
-    shift  # Remove first argument so $1 becomes output_dir if provided
-else
+# Default values
+VERSION=""
+OUTPUT_DIR="build/site"
+
+# Help function
+show_help() {
+    cat << EOF
+Usage: ./build.sh [OPTIONS]
+
+Build Shaw Type by deploying site/ to output directory with version replacement.
+
+OPTIONS:
+    -h, --help                  Show this help message and exit
+    -v, --version VERSION       Specify version number (if not provided, reads from current-version file)
+    -o, --output-directory DIR  Specify output directory (default: build/site)
+
+EXAMPLES:
+    ./build.sh                              # Use current-version, output to build/site/
+    ./build.sh -v 2.0.2                     # Use version 2.0.2, output to build/site/
+    ./build.sh -v 2.0.2 -o dist/            # Use version 2.0.2, output to dist/
+    ./build.sh --version 2.0.3 --output-directory production/
+
+EOF
+}
+
+# Parse arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -h|--help)
+            show_help
+            exit 0
+            ;;
+        -v|--version)
+            VERSION="$2"
+            shift 2
+            ;;
+        -o|--output-directory)
+            OUTPUT_DIR="$2"
+            shift 2
+            ;;
+        *)
+            echo "Error: Unknown option: $1"
+            echo "Run './build.sh --help' for usage information"
+            exit 1
+            ;;
+    esac
+done
+
+# Get version from current-version file if not specified
+if [ -z "$VERSION" ]; then
     if [ -f "current-version" ]; then
         VERSION=$(cat current-version)
         echo "Using version from current-version: $VERSION"
     else
         echo "Error: No version specified and current-version file not found"
-        echo "Usage: ./build.sh [version] [output_dir]"
+        echo "Use -v/--version to specify a version, or create a current-version file"
+        echo "Run './build.sh --help' for usage information"
         exit 1
     fi
 fi
-
-OUTPUT_DIR="${1:-build/site}"
 
 echo "=========================================="
 echo "Building Shaw Type v${VERSION}"
