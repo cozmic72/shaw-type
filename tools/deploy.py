@@ -44,6 +44,7 @@ def deploy(version, output_dir='build/site'):
     stats = {
         'html': 0,
         'json': 0,
+        'js': 0,
         'other': 0
     }
 
@@ -88,14 +89,29 @@ def deploy(version, output_dir='build/site'):
                 stats['json'] += 1
                 print(f"  ✓ {rel_path}")
 
+            elif source_file.suffix == '.js':
+                # Read JavaScript file
+                with open(source_file, 'r', encoding='utf-8') as f:
+                    content = f.read()
+
+                # Replace version placeholder (both quoted and unquoted)
+                content = content.replace('{{VERSION}}', version)
+
+                # Write to output
+                with open(dest_file, 'w', encoding='utf-8') as f:
+                    f.write(content)
+
+                stats['js'] += 1
+                print(f"  ✓ {rel_path}")
+
             else:
                 # Copy other files as-is
                 shutil.copy2(source_file, dest_file)
                 stats['other'] += 1
 
     print()
-    print(f"Deployed {stats['html']} HTML files, {stats['json']} JSON files, "
-          f"{stats['other']} other files")
+    print(f"Deployed {stats['html']} HTML files, {stats['js']} JS files, "
+          f"{stats['json']} JSON files, {stats['other']} other files")
 
     # Write version to file for tracking
     version_file = output_path / '.version'
