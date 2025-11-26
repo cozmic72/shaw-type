@@ -8,8 +8,16 @@ import os
 
 def generate_favicon_size(size, font_path, shaw_char='𐑖', tee_char='𐑑'):
     """Generate a single favicon at the given size with nestled 𐑖 and 𐑑."""
-    # Create image with white background
-    img = Image.new('RGBA', (size, size), (255, 255, 255, 255))
+    # Create transparent image
+    img = Image.new('RGBA', (size, size), (0, 0, 0, 0))
+
+    # Draw rounded rectangle with white fill (no border)
+    draw = ImageDraw.Draw(img)
+    corner_radius = size // 4  # 25% corner radius (more extreme than before which was 20%)
+
+    # Draw white rounded rectangle
+    draw.rounded_rectangle([(0, 0), (size-1, size-1)], radius=corner_radius,
+                          fill=(255, 255, 255, 255))
 
     # Use blue text color
     text_color = (85, 95, 220)  # #555fdc
