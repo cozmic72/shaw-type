@@ -1386,6 +1386,21 @@ function transitionToNextLevel() {
     }
 }
 
+// Track completion event (simple pixel tracking)
+function trackCompletion(params) {
+    try {
+        const queryString = Object.keys(params)
+            .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
+            .join('&');
+
+        const img = new Image();
+        img.src = `track.gif?${queryString}`;
+        // No need to append to DOM or wait for load
+    } catch (e) {
+        // Silently fail - tracking is optional
+    }
+}
+
 function showLessonCompletionDialog() {
     // Track if input had focus before opening modal
     const typingInput = document.getElementById('typingInput');
@@ -1402,6 +1417,15 @@ function showLessonCompletionDialog() {
     // Calculate stats for this lesson
     const accuracy = gameState.totalLettersTyped === 0 ? 100.0 : ((gameState.correctLetters / gameState.totalLettersTyped) * 100);
     const accuracyFormatted = accuracy.toFixed(1) + '%';
+
+    // Track lesson completion
+    trackCompletion({
+        m: 'l',  // mode: lesson
+        k: currentLayout,  // keyboard layout
+        d: currentDialect,  // dialect
+        n: selectedLevel,  // lesson number
+        v: isUsingVirtualKeyboard ? '1' : '0'  // virtual keyboard used
+    });
 
     // Show accuracy
     document.getElementById('lessonAccuracy').textContent = accuracyFormatted;
@@ -1526,6 +1550,17 @@ function showCompletionModal() {
         levelStatsHTML += `<div class="level-stat">${levelLabel} ${stat.level}: ${levelAccuracyFormatted}%</div>`;
     });
     document.getElementById('levelStatsContainer').innerHTML = levelStatsHTML;
+
+    // Track game completion
+    trackCompletion({
+        m: 'p',  // mode: play
+        k: currentLayout,  // keyboard layout
+        d: currentDialect,  // dialect
+        l: levelCount,  // level count
+        t: Math.round(elapsedSeconds),  // time in seconds (rounded)
+        a: Math.round(accuracy),  // accuracy percentage (rounded)
+        v: isUsingVirtualKeyboard ? '1' : '0'  // virtual keyboard used
+    });
 
     document.getElementById('playCompletionModal').classList.add('show');
 }
