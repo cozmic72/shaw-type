@@ -13,32 +13,12 @@ let wordsLoaded = false;
 // Game state - encapsulates all session state and statistics
 let gameState = new GameState();
 
-// Legacy global variables - TODO: migrate to gameState
-let currentLevelWordPool = []; // Source pool of words for current level/lesson
-let currentLevelWordCount = 5; // Number of words to complete this level/lesson
-let currentLevelTitle = ''; // Display title for current level/lesson
-let currentLevelType = 'level'; // 'level' or 'lesson' for UI labels
-let currentLevelTypeLabel = 'Level'; // Display label for UI
-let currentLevelNumber = 1;
-let currentLevelCompletionCallback = null; // Function to call when level completes
-
 // Carousel: 4 slots, we track which slot index maps to which position
 let carouselOffset = 0; // Current slot index for "current" word
 let words = ['', '', '', '']; // Words in slots [0, 1, 2, 3]
 let currentWord = ''; // The actual current word being typed
-let wordsCompleted = 0;
-let wordsInCurrentLevel = 0; // Words completed in current level
-let totalLettersTyped = 0;
-let correctLetters = 0;
 let recentWords = []; // Track recent words to avoid repeats
-let startTime = null; // Session start time
-let pauseStartTime = null; // When timer was paused
-let totalPausedTime = 0; // Cumulative paused time in milliseconds
-let bestTime = null; // Legacy - migrated to highScores
-let highScores = {}; // High scores keyed by level count: { '3': {time, wpm, accuracy}, '6': {...}, '10': {...} }
-let levelStats = []; // Per-level statistics
-let currentLevelLettersTyped = 0; // Letters typed in current level
-let currentLevelCorrectLetters = 0; // Correct letters in current level
+let bestTime = null; // Legacy - migrated to gameState.highScores
 
 // Shadow input: faithful representation of what user typed (browsers may strip combining chars)
 let shadowInput = '';
@@ -366,9 +346,9 @@ window.setLevel = function(targetLevel) {
     console.log(`Jumping to ${levelType} ${targetLevel}...`);
 
     // Calculate stats as if we completed all previous levels
-    levelStats = [];
+    gameState.levelStats = [];
     for (let i = 1; i < targetLevel; i++) {
-        levelStats.push({
+        gameState.levelStats.push({
             level: i,
             accuracy: 95 + Math.random() * 5, // Random accuracy 95-100%
             lettersTyped: 50,
@@ -378,19 +358,19 @@ window.setLevel = function(targetLevel) {
 
     // Set word counts as if we completed previous levels
     const wordsPerLevel = isPlayMode ? 5 : 10;
-    wordsCompleted = (targetLevel - 1) * wordsPerLevel;
-    totalLettersTyped = (targetLevel - 1) * 50;
-    correctLetters = Math.floor(totalLettersTyped * 0.97); // 97% accuracy
+    gameState.wordsCompleted = (targetLevel - 1) * wordsPerLevel;
+    gameState.totalLettersTyped = (targetLevel - 1) * 50;
+    gameState.correctLetters = Math.floor(gameState.totalLettersTyped * 0.97); // 97% accuracy
 
     // Update level number
-    currentLevelNumber = targetLevel;
+    gameState.currentLevelNumber = targetLevel;
     if (!isPlayMode) {
         selectedLevel = targetLevel.toString();
     }
 
     // For play mode, start the timer if it hasn't been started
-    if (isPlayMode && !startTime) {
-        startTime = Date.now();
+    if (isPlayMode && !gameState.startTime) {
+        gameState.startTime = Date.now();
     }
 
     // Get level data and start it
@@ -412,7 +392,7 @@ window.setLevel = function(targetLevel) {
     updateLevel();
 
     console.log(`Now on ${levelType} ${targetLevel}: ${levelData.title}`);
-    console.log(`State: ${wordsCompleted} words completed, ${levelStats.length} ${levelType}s in stats`);
+    console.log(`State: ${gameState.wordsCompleted} words completed, ${gameState.levelStats.length} ${levelType}s in stats`);
     return true;
 };
 
@@ -443,20 +423,20 @@ const levelDisplayEl = document.getElementById('levelDisplay');
 function getCurrentLevel() {
     if (currentMode === 'learn' && currentLayout === 'imperial' && areLigaturesActive()) {
         // Imperial with ligatures has 7 levels (compound letters at level 5)
-        if (wordsCompleted < 5) return 1;
-        if (wordsCompleted < 10) return 2;
-        if (wordsCompleted < 15) return 3;
-        if (wordsCompleted < 20) return 4;
-        if (wordsCompleted < 25) return 5; // Compound letters lesson
-        if (wordsCompleted < 30) return 6; // Almost Complete
+        if (gameState.wordsCompleted < 5) return 1;
+        if (gameState.wordsCompleted < 10) return 2;
+        if (gameState.wordsCompleted < 15) return 3;
+        if (gameState.wordsCompleted < 20) return 4;
+        if (gameState.wordsCompleted < 25) return 5; // Compound letters lesson
+        if (gameState.wordsCompleted < 30) return 6; // Almost Complete
         return 7; // All Keys
     } else {
         // Other modes use 6 levels (5 words per level = 30 words total)
-        if (wordsCompleted < 5) return 1;
-        if (wordsCompleted < 10) return 2;
-        if (wordsCompleted < 15) return 3;
-        if (wordsCompleted < 20) return 4;
-        if (wordsCompleted < 25) return 5;
+        if (gameState.wordsCompleted < 5) return 1;
+        if (gameState.wordsCompleted < 10) return 2;
+        if (gameState.wordsCompleted < 15) return 3;
+        if (gameState.wordsCompleted < 20) return 4;
+        if (gameState.wordsCompleted < 25) return 5;
         return 6;
     }
 }
@@ -506,14 +486,14 @@ function startPlay() {
     document.getElementById('backBtn').classList.remove('hidden');
 
     // Reset all stats
-    wordsCompleted = 0;
-    totalLettersTyped = 0;
-    correctLetters = 0;
-    currentLevelNumber = 1;
+    gameState.wordsCompleted = 0;
+    gameState.totalLettersTyped = 0;
+    gameState.correctLetters = 0;
+    gameState.currentLevelNumber = 1;
     recentWords = [];
-    levelStats = [];
-    pauseStartTime = null;
-    totalPausedTime = 0;
+    gameState.levelStats = [];
+    gameState.pauseStartTime = null;
+    gameState.totalPausedTime = 0;
 
     // Update display
     updateStats();
@@ -534,19 +514,19 @@ function startPlay() {
 
 // Completion callback for play mode - handles advancing to next level or showing final modal
 function onPlayLevelComplete() {
-    debug(`[onPlayLevelComplete] Level ${currentLevelNumber} complete, checking for next level`);
+    debug(`[onPlayLevelComplete] Level ${gameState.currentLevelNumber} complete, checking for next level`);
 
-    const nextLevelNum = currentLevelNumber + 1;
+    const nextLevelNum = gameState.currentLevelNumber + 1;
     const nextLevelData = getPlayLevelData(nextLevelNum);
 
     if (nextLevelData) {
         // There's another level - start it immediately
         debug(`[onPlayLevelComplete] Starting next level ${nextLevelNum}`);
-        currentLevelNumber = nextLevelNum;
+        gameState.currentLevelNumber = nextLevelNum;
 
         const t = getCurrentTranslations();
         document.getElementById('mainSubtitle').textContent =
-            `${t.level_label} ${currentLevelNumber}: ${nextLevelData.title}`;
+            `${t.level_label} ${gameState.currentLevelNumber}: ${nextLevelData.title}`;
 
         startLevel(nextLevelData.wordPool, nextLevelData.wordCount, 'level',
                    nextLevelData.title, t.level_label, onPlayLevelComplete);
@@ -562,14 +542,14 @@ function playAgain() {
     closeAllCompletionModals();
 
     // Reset all stats
-    wordsCompleted = 0;
-    totalLettersTyped = 0;
-    correctLetters = 0;
-    currentLevelNumber = 1;
+    gameState.wordsCompleted = 0;
+    gameState.totalLettersTyped = 0;
+    gameState.correctLetters = 0;
+    gameState.currentLevelNumber = 1;
     recentWords = [];
-    levelStats = [];
-    pauseStartTime = null;
-    totalPausedTime = 0;
+    gameState.levelStats = [];
+    gameState.pauseStartTime = null;
+    gameState.totalPausedTime = 0;
 
     // Update display
     updateStats();
@@ -598,7 +578,7 @@ function updateSubtitleForGame() {
     const subtitle = document.getElementById('mainSubtitle');
 
     if (currentMode === 'play') {
-        subtitle.textContent = `${t.level_label} ${currentLevelNumber}`;
+        subtitle.textContent = `${t.level_label} ${gameState.currentLevelNumber}`;
     } else if (currentMode === 'learn') {
         // Lesson name will be set when lesson is selected
         subtitle.textContent = '';
@@ -1034,15 +1014,15 @@ function startLevel(wordPool, wordCount, type, title, typeLabel, completionCallb
     debug(`[startLevel] Starting ${type}: "${title}" (${wordCount} words from pool of ${wordPool.length})`);
 
     // Set level state
-    currentLevelWordPool = wordPool;
-    currentLevelWordCount = wordCount;
-    currentLevelType = type;
-    currentLevelTitle = title;
-    currentLevelTypeLabel = typeLabel;
-    currentLevelCompletionCallback = completionCallback;
-    wordsInCurrentLevel = 0;
-    currentLevelLettersTyped = 0;
-    currentLevelCorrectLetters = 0;
+    gameState.currentLevelWordPool = wordPool;
+    gameState.currentLevelWordCount = wordCount;
+    gameState.currentLevelType = type;
+    gameState.currentLevelTitle = title;
+    gameState.currentLevelTypeLabel = typeLabel;
+    gameState.currentLevelCompletionCallback = completionCallback;
+    gameState.wordsInCurrentLevel = 0;
+    gameState.currentLevelLettersTyped = 0;
+    gameState.currentLevelCorrectLetters = 0;
     recentWords = [];
 
     // Initialize game (loads words)
@@ -1052,8 +1032,8 @@ function startLevel(wordPool, wordCount, type, title, typeLabel, completionCallb
     clearInputState();
 
     // Start timer only for play mode at level 1 (beginning of game)
-    if (currentMode === 'play' && currentLevelNumber === 1 && wordsCompleted === 0) {
-        startTime = Date.now();
+    if (currentMode === 'play' && gameState.currentLevelNumber === 1 && gameState.wordsCompleted === 0) {
+        gameState.startTime = Date.now();
     }
 
     // Show virtual keyboard if setting is enabled
@@ -1086,7 +1066,7 @@ function startLevel(wordPool, wordCount, type, title, typeLabel, completionCallb
 }
 
 function pickRandomWord() {
-    const pool = currentLevelWordPool;
+    const pool = gameState.currentLevelWordPool;
     if (!pool || pool.length === 0) {
         console.error('No word pool available!');
         return '';
@@ -1113,9 +1093,9 @@ function pickRandomWord() {
 
 function loadNewWord() {
     // Check if this is the last word of the level
-    const isLastWordOfLevel = (wordsInCurrentLevel === currentLevelWordCount - 1);
+    const isLastWordOfLevel = (gameState.wordsInCurrentLevel === gameState.currentLevelWordCount - 1);
 
-    debug(`[loadNewWord] wordsInCurrentLevel=${wordsInCurrentLevel}, wordCount=${currentLevelWordCount}, isLastWord=${isLastWordOfLevel}`);
+    debug(`[loadNewWord] gameState.wordsInCurrentLevel=${gameState.wordsInCurrentLevel}, wordCount=${gameState.currentLevelWordCount}, isLastWord=${isLastWordOfLevel}`);
 
     // BEFORE advancing: update the slot that will become "next" after rotation
     // The slot at prev-prev position will rotate to next position
@@ -1199,7 +1179,7 @@ function loadNewWord() {
 }
 
 function initializeGame() {
-    debug(`[initializeGame] wordPool length: ${currentLevelWordPool.length}, wordCount: ${currentLevelWordCount}`);
+    debug(`[initializeGame] wordPool length: ${gameState.currentLevelWordPool.length}, wordCount: ${gameState.currentLevelWordCount}`);
     // Reset carousel completely
     words = ['', '', '', ''];
     carouselOffset = 2; // Will advance to 3, then 0
@@ -1215,7 +1195,7 @@ function advanceToNextWord() {
 
 function updateLevel() {
     // Display the current level/lesson number
-    levelDisplayEl.textContent = currentLevelNumber;
+    levelDisplayEl.textContent = gameState.currentLevelNumber;
 }
 
 // Calculate appropriate font size based on max word length
@@ -1234,8 +1214,8 @@ function updateWordDisplay() {
 
     // Calculate max word length in current pool for font sizing
     let maxWordLength = 4;
-    if (currentLevelWordPool && currentLevelWordPool.length > 0) {
-        maxWordLength = Math.max(...currentLevelWordPool.map(w => Array.from(w).length));
+    if (gameState.currentLevelWordPool && gameState.currentLevelWordPool.length > 0) {
+        maxWordLength = Math.max(...gameState.currentLevelWordPool.map(w => Array.from(w).length));
     }
     const fontSize = getFontSizeForMaxLength(maxWordLength);
 
@@ -1349,8 +1329,8 @@ function updateWordDisplay() {
 }
 
 function updateStats() {
-    wordCountEl.textContent = wordsCompleted;
-    const accuracy = totalLettersTyped === 0 ? 100 : ((correctLetters / totalLettersTyped) * 100).toFixed(1);
+    wordCountEl.textContent = gameState.wordsCompleted;
+    const accuracy = gameState.totalLettersTyped === 0 ? 100 : ((gameState.correctLetters / gameState.totalLettersTyped) * 100).toFixed(1);
     accuracyEl.textContent = accuracy + '%';
 }
 
@@ -1360,21 +1340,21 @@ function checkCompletion() {
     // Check if user typed the complete word correctly
     if (userInput === currentWord) {
         // Word completed correctly
-        wordsCompleted++;
-        wordsInCurrentLevel++;
-        debug(`[checkCompletion] Word ${wordsInCurrentLevel}/${currentLevelWordCount} of level completed (total: ${wordsCompleted}), currentMode=${currentMode}, currentLevelNumber=${currentLevelNumber}, levelCount=${levelCount}`);
+        gameState.wordsCompleted++;
+        gameState.wordsInCurrentLevel++;
+        debug(`[checkCompletion] Word ${gameState.wordsInCurrentLevel}/${gameState.currentLevelWordCount} of level completed (total: ${gameState.wordsCompleted}), currentMode=${currentMode}, gameState.currentLevelNumber=${gameState.currentLevelNumber}, levelCount=${levelCount}`);
         updateStats();
 
         // After first word, update subtitle with level/lesson info
-        if (wordsCompleted === 1) {
+        if (gameState.wordsCompleted === 1) {
             document.getElementById('mainSubtitle').textContent =
-                `${currentLevelTypeLabel} ${currentLevelNumber}: ${currentLevelTitle}`;
+                `${gameState.currentLevelTypeLabel} ${gameState.currentLevelNumber}: ${gameState.currentLevelTitle}`;
         }
 
         // Check if level is complete
-        if (wordsInCurrentLevel >= currentLevelWordCount) {
+        if (gameState.wordsInCurrentLevel >= gameState.currentLevelWordCount) {
             // Level completed - transition to next level
-            debug(`[checkCompletion] ${currentLevelType.toUpperCase()} COMPLETED - calling transitionToNextLevel()`);
+            debug(`[checkCompletion] ${gameState.currentLevelType.toUpperCase()} COMPLETED - calling transitionToNextLevel()`);
             transitionToNextLevel();
         } else {
             // Advance to next word
@@ -1386,25 +1366,25 @@ function checkCompletion() {
 
 // Unified level completion handler - simply saves stats and delegates to callback
 function transitionToNextLevel() {
-    debug(`[transitionToNextLevel] Level ${currentLevelNumber} complete - saving stats and calling callback`);
+    debug(`[transitionToNextLevel] Level ${gameState.currentLevelNumber} complete - saving stats and calling callback`);
 
     // Save stats for completed level
-    const finalLevelAccuracy = currentLevelLettersTyped === 0 ? 100.0 :
-        ((currentLevelCorrectLetters / currentLevelLettersTyped) * 100);
-    levelStats.push({
-        level: currentLevelNumber,
+    const finalLevelAccuracy = gameState.currentLevelLettersTyped === 0 ? 100.0 :
+        ((gameState.currentLevelCorrectLetters / gameState.currentLevelLettersTyped) * 100);
+    gameState.levelStats.push({
+        level: gameState.currentLevelNumber,
         accuracy: finalLevelAccuracy,
-        lettersTyped: currentLevelLettersTyped,
-        correctLetters: currentLevelCorrectLetters
+        lettersTyped: gameState.currentLevelLettersTyped,
+        correctLetters: gameState.currentLevelCorrectLetters
     });
 
     // Delegate to the completion callback
     // The callback is responsible for deciding what happens next:
     // - For play mode: advance to next level or show final completion modal
     // - For practice mode: show lesson completion dialog
-    if (currentLevelCompletionCallback) {
+    if (gameState.currentLevelCompletionCallback) {
         debug(`[transitionToNextLevel] Calling completion callback`);
-        currentLevelCompletionCallback();
+        gameState.currentLevelCompletionCallback();
     } else {
         console.error('[transitionToNextLevel] No completion callback set! This should not happen.');
     }
@@ -1424,7 +1404,7 @@ function showLessonCompletionDialog() {
     }
 
     // Calculate stats for this lesson
-    const accuracy = totalLettersTyped === 0 ? 100.0 : ((correctLetters / totalLettersTyped) * 100);
+    const accuracy = gameState.totalLettersTyped === 0 ? 100.0 : ((gameState.correctLetters / gameState.totalLettersTyped) * 100);
     const accuracyFormatted = accuracy.toFixed(1) + '%';
 
     // Show accuracy
@@ -1453,16 +1433,16 @@ function showCompletionModal() {
     }
 
     // Stats already saved in transitionToNextLevel
-    const accuracy = totalLettersTyped === 0 ? 100.0 : ((correctLetters / totalLettersTyped) * 100);
+    const accuracy = gameState.totalLettersTyped === 0 ? 100.0 : ((gameState.correctLetters / gameState.totalLettersTyped) * 100);
     const accuracyFormatted = accuracy.toFixed(1) + '%';
 
     // Calculate time-based metrics (excluding paused time)
     const endTime = Date.now();
-    const elapsedMilliseconds = (endTime - startTime) - totalPausedTime;
+    const elapsedMilliseconds = (endTime - gameState.startTime) - gameState.totalPausedTime;
     const elapsedSeconds = elapsedMilliseconds / 1000;
     const elapsedMinutes = elapsedSeconds / 60;
-    const wpm = wordsCompleted / elapsedMinutes;
-    const lettersPerMinute = totalLettersTyped / elapsedMinutes;
+    const wpm = gameState.wordsCompleted / elapsedMinutes;
+    const lettersPerMinute = gameState.totalLettersTyped / elapsedMinutes;
 
     // Format time as MM:SS
     const minutes = Math.floor(elapsedSeconds / 60);
@@ -1471,11 +1451,11 @@ function showCompletionModal() {
 
     // Track high scores per level count
     const levelCountKey = levelCount.toString();
-    if (!highScores[levelCountKey]) {
-        highScores[levelCountKey] = { time: null, wpm: null, accuracy: null };
+    if (!gameState.highScores[levelCountKey]) {
+        gameState.highScores[levelCountKey] = { time: null, wpm: null, accuracy: null };
     }
 
-    const currentHighScores = highScores[levelCountKey];
+    const currentHighScores = gameState.highScores[levelCountKey];
     let isNewTimeRecord = false;
     let isNewWPMRecord = false;
     let isNewAccuracyRecord = false;
@@ -1499,7 +1479,7 @@ function showCompletionModal() {
     }
 
     // Save high scores
-    localStorage.setItem('highScores', JSON.stringify(highScores));
+    localStorage.setItem('highScores', JSON.stringify(gameState.highScores));
 
     // Legacy bestTime support
     const isNewBest = bestTime === null || elapsedSeconds < bestTime;
@@ -1520,7 +1500,7 @@ function showCompletionModal() {
     }
 
     document.getElementById('finalScore').textContent = timeFormatted;
-    document.getElementById('finalLevel').textContent = currentLevelNumber;
+    document.getElementById('finalLevel').textContent = gameState.currentLevelNumber;
 
     // Update stats with personal best highlighting
     const accuracyRow = document.getElementById('finalAccuracy').parentElement;
@@ -1544,7 +1524,7 @@ function showCompletionModal() {
 
     // Generate per-level stats HTML
     let levelStatsHTML = '';
-    levelStats.forEach(stat => {
+    gameState.levelStats.forEach(stat => {
         const levelAccuracyFormatted = stat.accuracy.toFixed(1);
         const levelLabel = t.level_label;
         levelStatsHTML += `<div class="level-stat">${levelLabel} ${stat.level}: ${levelAccuracyFormatted}%</div>`;
@@ -1556,12 +1536,12 @@ function showCompletionModal() {
 
 function resetPractice() {
     // Reset all stats
-    wordsCompleted = 0;
-    totalLettersTyped = 0;
-    correctLetters = 0;
-    currentLevelNumber = 1;
+    gameState.wordsCompleted = 0;
+    gameState.totalLettersTyped = 0;
+    gameState.correctLetters = 0;
+    gameState.currentLevelNumber = 1;
     recentWords = [];
-    levelStats = [];
+    gameState.levelStats = [];
 
     // Hide modal
     closeAllCompletionModals();
@@ -1581,7 +1561,7 @@ function resetPractice() {
         // In learn mode, use the selected lesson
         const levelData = getLearnLessonData(parseInt(selectedLevel));
         if (levelData) {
-            currentLevelNumber = parseInt(selectedLevel);
+            gameState.currentLevelNumber = parseInt(selectedLevel);
             startLevel(levelData.wordPool, levelData.wordCount, 'lesson', levelData.title, t.lesson_label, showLessonCompletionDialog);
         }
     }
@@ -1589,9 +1569,9 @@ function resetPractice() {
 
 function continueLesson() {
     // Reset session stats but keep same lesson
-    wordsCompleted = 0;
-    totalLettersTyped = 0;
-    correctLetters = 0;
+    gameState.wordsCompleted = 0;
+    gameState.totalLettersTyped = 0;
+    gameState.correctLetters = 0;
 
     // Hide modal
     closeAllCompletionModals();
@@ -1600,7 +1580,7 @@ function continueLesson() {
     updateStats();
 
     // Restart current level/lesson with same word pool
-    startLevel(currentLevelWordPool, currentLevelWordCount, currentLevelType, currentLevelTitle, currentLevelTypeLabel, currentLevelCompletionCallback);
+    startLevel(gameState.currentLevelWordPool, gameState.currentLevelWordCount, gameState.currentLevelType, gameState.currentLevelTitle, gameState.currentLevelTypeLabel, gameState.currentLevelCompletionCallback);
     // Note: startLevel handles focus based on virtual keyboard setting
 }
 
@@ -1617,19 +1597,19 @@ function nextLesson() {
         closeAllCompletionModals();
 
         // Reset session stats
-        wordsCompleted = 0;
-        totalLettersTyped = 0;
-        correctLetters = 0;
+        gameState.wordsCompleted = 0;
+        gameState.totalLettersTyped = 0;
+        gameState.correctLetters = 0;
         recentWords = [];
-        currentLevelLettersTyped = 0;
-        currentLevelCorrectLetters = 0;
+        gameState.currentLevelLettersTyped = 0;
+        gameState.currentLevelCorrectLetters = 0;
         updateStats();
 
         // Start next lesson
         const t = getCurrentTranslations();
         const levelData = getLearnLessonData(nextLessonNum);
         if (levelData) {
-            currentLevelNumber = nextLessonNum;
+            gameState.currentLevelNumber = nextLessonNum;
             startLevel(levelData.wordPool, levelData.wordCount, 'lesson', levelData.title, t.lesson_label, showLessonCompletionDialog);
             // Note: startLevel handles focus based on virtual keyboard setting
         }
@@ -1641,12 +1621,12 @@ function chooseDifferentLesson() {
     closeAllCompletionModals();
 
     // Reset session stats
-    wordsCompleted = 0;
-    totalLettersTyped = 0;
-    correctLetters = 0;
+    gameState.wordsCompleted = 0;
+    gameState.totalLettersTyped = 0;
+    gameState.correctLetters = 0;
     recentWords = [];
-    currentLevelLettersTyped = 0;
-    currentLevelCorrectLetters = 0;
+    gameState.currentLevelLettersTyped = 0;
+    gameState.currentLevelCorrectLetters = 0;
     updateStats();
 
     // Open lesson selector
@@ -1666,8 +1646,8 @@ window.loadWord = function(word) {
 
     // Temporarily modify word pool to include this word at max length for font sizing test
     const wordLength = Array.from(word).length;
-    const tempPool = [...(currentLevelWordPool || []), word];
-    currentLevelWordPool = tempPool;
+    const tempPool = [...(gameState.currentLevelWordPool || []), word];
+    gameState.currentLevelWordPool = tempPool;
 
     // Update display to show the word and apply font sizing
     updateWordDisplay();
@@ -1693,8 +1673,8 @@ window.setNextWord = function(word) {
 
     // Temporarily modify word pool to include this word at max length for font sizing test
     const wordLength = Array.from(word).length;
-    const tempPool = [...(currentLevelWordPool || []), word];
-    currentLevelWordPool = tempPool;
+    const tempPool = [...(gameState.currentLevelWordPool || []), word];
+    gameState.currentLevelWordPool = tempPool;
 
     // Update display to show the rotated carousel and apply font sizing
     updateWordDisplay();
@@ -1904,8 +1884,8 @@ function updateInputStatistics(effectiveLength, inputChars, wordChars) {
     } else if (effectiveLength > maxEffectiveLength) {
         // New characters to count
         const numNew = effectiveLength - maxEffectiveLength;
-        totalLettersTyped += numNew;
-        currentLevelLettersTyped += numNew;
+        gameState.totalLettersTyped += numNew;
+        gameState.currentLevelLettersTyped += numNew;
 
         // Check correctness
         let allCorrect = true;
@@ -1917,8 +1897,8 @@ function updateInputStatistics(effectiveLength, inputChars, wordChars) {
         }
 
         if (allCorrect) {
-            correctLetters += numNew;
-            currentLevelCorrectLetters += numNew;
+            gameState.correctLetters += numNew;
+            gameState.currentLevelCorrectLetters += numNew;
             isInErrorState = false;
         } else {
             isInErrorState = true;
@@ -2048,7 +2028,7 @@ typingInput.addEventListener('input', (e) => {
 
     // Debug: log final state
     debug('📊 POSTCONDITION: input=' + JSON.stringify(typingInput.value) +
-          ', correct=' + correctLetters + '/' + totalLettersTyped +
+          ', correct=' + gameState.correctLetters + '/' + gameState.totalLettersTyped +
           ', maxEffectiveLength=' + maxEffectiveLength +
           ', isInErrorState=' + isInErrorState);
 
@@ -2258,15 +2238,15 @@ function showSetupIfNeeded() {
 
 // Settings functions
 function pauseTimer() {
-    if (startTime !== null && pauseStartTime === null) {
-        pauseStartTime = Date.now();
+    if (gameState.startTime !== null && gameState.pauseStartTime === null) {
+        gameState.pauseStartTime = Date.now();
     }
 }
 
 function resumeTimer() {
-    if (pauseStartTime !== null) {
-        totalPausedTime += Date.now() - pauseStartTime;
-        pauseStartTime = null;
+    if (gameState.pauseStartTime !== null) {
+        gameState.totalPausedTime += Date.now() - gameState.pauseStartTime;
+        gameState.pauseStartTime = null;
     }
 }
 
@@ -2342,15 +2322,15 @@ function openHighScores() {
     // Populate high scores content
     let html = '';
 
-    if (Object.keys(highScores).length === 0) {
+    if (Object.keys(gameState.highScores).length === 0) {
         html = `<p style="text-align: center; color: #999;">${t.noScoresYet}</p>`;
     } else {
         html = '<div style="display: flex; flex-direction: column; gap: 20px;">';
 
         // Show high scores for each level count
         ['3', '6', '10'].forEach(levelCountKey => {
-            if (highScores[levelCountKey]) {
-                const scores = highScores[levelCountKey];
+            if (gameState.highScores[levelCountKey]) {
+                const scores = gameState.highScores[levelCountKey];
                 const totalWords = parseInt(levelCountKey) * 5;
 
                 html += `<div style="border: 2px solid #e0e0e0; border-radius: 8px; padding: 15px;">`;
@@ -2455,10 +2435,10 @@ function selectLesson(level) {
     showGameContent();
 
     // Reset session stats
-    wordsCompleted = 0;
-    totalLettersTyped = 0;
-    correctLetters = 0;
-    levelStats = [];
+    gameState.wordsCompleted = 0;
+    gameState.totalLettersTyped = 0;
+    gameState.correctLetters = 0;
+    gameState.levelStats = [];
 
     updateStats();
 
@@ -2470,7 +2450,7 @@ function selectLesson(level) {
 
     const levelData = getLearnLessonData(parseInt(level));
     if (levelData) {
-        currentLevelNumber = parseInt(level);
+        gameState.currentLevelNumber = parseInt(level);
         startLevel(levelData.wordPool, levelData.wordCount, 'lesson', levelData.title, t.lesson_label, showLessonCompletionDialog);
     }
 }
@@ -2596,18 +2576,18 @@ const PATCHES = [
         debug('Patch 1: Cleared bestTime from localStorage');
     }],
     [2, function patch2_migrateToHighScores() {
-        // Migrate old bestTime to new highScores structure
+        // Migrate old bestTime to new gameState.highScores structure
         const oldBestTime = localStorage.getItem('bestTime');
         if (oldBestTime !== null) {
             // Load existing high scores or create new object
             const highScoresJSON = localStorage.getItem('highScores');
-            const highScores = highScoresJSON ? JSON.parse(highScoresJSON) : {};
+            gameState.highScores = highScoresJSON ? JSON.parse(highScoresJSON) : {};
             const timeValue = parseFloat(oldBestTime);
             // Copy the old best time to the 6-level entry (only if not already set)
-            if (!highScores['6'] || highScores['6'].time === null) {
-                highScores['6'] = { time: timeValue, wpm: null, accuracy: null };
+            if (!gameState.highScores['6'] || gameState.highScores['6'].time === null) {
+                gameState.highScores['6'] = { time: timeValue, wpm: null, accuracy: null };
             }
-            localStorage.setItem('highScores', JSON.stringify(highScores));
+            localStorage.setItem('highScores', JSON.stringify(gameState.highScores));
             localStorage.removeItem('bestTime');
             debug('Patch 2: Migrated bestTime to highScores[6]');
         } else {
@@ -2676,7 +2656,7 @@ function loadPreferences() {
         currentMode = savedMode;
     }
 
-    // Load best time (legacy - now migrated to highScores)
+    // Load best time (legacy - now migrated to gameState.highScores)
     const savedBestTime = localStorage.getItem('bestTime');
     if (savedBestTime !== null) {
         bestTime = parseFloat(savedBestTime);
@@ -2686,10 +2666,10 @@ function loadPreferences() {
     const savedHighScores = localStorage.getItem('highScores');
     if (savedHighScores !== null) {
         try {
-            highScores = JSON.parse(savedHighScores);
+            gameState.highScores = JSON.parse(savedHighScores);
         } catch (e) {
             console.error('Failed to parse highScores:', e);
-            highScores = {};
+            gameState.highScores = {};
         }
     }
 
