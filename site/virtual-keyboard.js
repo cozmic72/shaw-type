@@ -433,6 +433,14 @@ function makeKeysClickable(keyboardMap) {
                 // Trigger input event so the game logic processes it
                 dispatchInputEvent(typingInput, 'insertText', shavianChar);
 
+                // Auto-release shift after typing a character
+                if (isShiftActive) {
+                    isShiftActive = false;
+                    if (typeof updateVirtualKeyboardLabels === 'function') {
+                        updateVirtualKeyboardLabels();
+                    }
+                }
+
             } else if (keyValue === 'Backspace') {
                 // Delete character using helper
                 withEditableInput(typingInput, () => {
@@ -454,6 +462,14 @@ function makeKeysClickable(keyboardMap) {
                 });
 
                 dispatchInputEvent(typingInput, 'deleteContentBackward');
+
+                // Auto-release shift after backspace
+                if (isShiftActive) {
+                    isShiftActive = false;
+                    if (typeof updateVirtualKeyboardLabels === 'function') {
+                        updateVirtualKeyboardLabels();
+                    }
+                }
             }
         });
     });
