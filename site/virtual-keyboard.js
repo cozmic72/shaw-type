@@ -1,5 +1,13 @@
 // Virtual Keyboard Functionality
 
+// Physical keyboard detection for mobile devices
+let hasPhysicalKeyboard = sessionStorage.getItem('hasPhysicalKeyboard') === 'true' ? true : null;
+
+// Helper: Check if physical keyboard has been detected on mobile
+function isPhysicalKeyboardDetected() {
+    return hasPhysicalKeyboard === true;
+}
+
 // Initialize virtual keyboard - loads HTML and sets up
 async function initVirtualKeyboard(containerElement, resourceVersion) {
     try {
@@ -444,6 +452,19 @@ function makeKeysClickable(keyboardMap) {
 document.addEventListener('DOMContentLoaded', () => {
     // Track physical Shift and Caps Lock keys to update virtual keyboard
     document.addEventListener('keydown', (e) => {
+        // Detect physical keyboard on mobile: if keydown fires when input doesn't have focus
+        if (hasPhysicalKeyboard === null && typeof isMobileDevice === 'function' && isMobileDevice()) {
+            const typingInput = document.getElementById('typingInput');
+            if (typingInput && document.activeElement !== typingInput) {
+                // Physical keyboard detected!
+                hasPhysicalKeyboard = true;
+                sessionStorage.setItem('hasPhysicalKeyboard', 'true');
+                if (typeof debug === 'function') {
+                    debug('🎹 Physical keyboard detected on mobile device');
+                }
+            }
+        }
+
         // Highlight the key being pressed (pass e.code to distinguish left/right shift)
         highlightKey(e.key, e.code);
 
