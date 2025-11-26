@@ -22,17 +22,37 @@ async function initVirtualKeyboard(containerElement, resourceVersion) {
 }
 
 // Keyboard layouts - loaded from JSON
+// Keyboard layout cache (lazy loaded)
 let KEYBOARD_MAPS = {};
 
-// Load keyboard layouts from JSON (using versionedUrl from main script)
-fetch(versionedUrl('keyboard_layouts.json'))
-    .then(response => response.json())
-    .then(data => {
-        KEYBOARD_MAPS = data;
-    })
-    .catch(error => {
-        console.error('Failed to load keyboard layouts:', error);
-    });
+// Lazy load a keyboard layout
+async function loadKeyboardLayout(layoutName) {
+    // Check if already loaded
+    if (KEYBOARD_MAPS[layoutName]) {
+        return KEYBOARD_MAPS[layoutName];
+    }
+
+    // Load from server
+    try {
+        const response = await fetch(versionedUrl(`keyboard_layout_${layoutName}.json`));
+        if (!response.ok) {
+            throw new Error(`Failed to load layout ${layoutName}: ${response.status}`);
+        }
+        const data = await response.json();
+
+        // Cache it
+        KEYBOARD_MAPS[layoutName] = data;
+        return data;
+    } catch (error) {
+        console.error(`Failed to load keyboard layout ${layoutName}:`, error);
+        return null;
+    }
+}
+
+// Get a keyboard layout (async - lazy loads if needed)
+async function getKeyboardLayout(layoutName) {
+    return await loadKeyboardLayout(layoutName);
+}
 
 // Helper: Execute function with input temporarily editable (removes readonly)
 function withEditableInput(input, fn) {

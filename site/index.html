@@ -78,7 +78,7 @@
         <div class="subtitle" id="mainSubtitle"></div>
 
         <!-- Home Screen -->
-        <div class="home-screen" id="homeScreen">
+        <div class="home-screen hidden" id="homeScreen">
             <button class="home-btn" id="play" onclick="startPlay()">Play</button>
             <button class="home-btn" id="practice" onclick="startPractice()">Practice</button>
             <button class="home-btn" id="settings" onclick="openSettings()">Settings</button>
@@ -233,7 +233,7 @@
 
             <div class="settings-option">
                 <label>
-                    <input type="checkbox" id="virtualKeyboardToggle" onchange="toggleVirtualKeyboard()">
+                    <input type="checkbox" id="virtualKeyboardToggle" onchange="onVirtualKeyboardSettingChange()">
                     <span id="showVirtualKeyboard">Show virtual keyboard</span>
                 </label>
             </div>

@@ -1,14 +1,7 @@
-// Words will be loaded from JSON file
-let wordsByLength = {};
-let learnWordsImperial = {};
-let learnWordsImperialNoLig = {};
-let learnWordsNewImperial = {};
-let learnWordsNewImperialNoLig = {};
-let learnWordsQwerty = {};
-let learnWords2layer = {};
-let learnWordsJafl = {};
-let learnWordsJaflNoLig = {};
-let wordsLoaded = false;
+// Words will be loaded from JSON file (lazy loading)
+let wordsByLength = {};  // Play mode words - loaded per dialect
+let learnWordsCache = {};  // Cache for learn mode words: key format "layout_dialect" or "layout_dialect_no_lig"
+let playWordsLoaded = false;  // Track if play mode words are loaded for current dialect
 
 // Game state - encapsulates all session state and statistics
 let gameState = new GameState();
@@ -68,15 +61,17 @@ function areLigaturesActive() {
 }
 
 // Update ligature toggle UI based on current layout's policy
-function updateLigatureToggleState() {
-    if (!KEYBOARD_MAPS || !KEYBOARD_MAPS[currentLayout]) {
+async function updateLigatureToggleState() {
+    // Ensure layout is loaded
+    const layout = await getKeyboardLayout(currentLayout);
+    if (!layout) {
         return;
     }
 
     const ligatureOption = document.getElementById('ligatureSettingOption');
     const ligatureToggle = document.getElementById('ligatureToggleSettings');
     const ligatureLabel = document.getElementById('ligatures');
-    const autoLigatures = KEYBOARD_MAPS[currentLayout].autoLigatures;
+    const autoLigatures = layout.autoLigatures;
     const t = getCurrentTranslations();
 
     // Always show the option
@@ -169,7 +164,20 @@ function updateVirtualKeyboardTitle() {
     }
 }
 
-function toggleVirtualKeyboard() {
+// Toggle virtual keyboard setting (from settings dialog - only updates preference)
+function onVirtualKeyboardSettingChange() {
+    const toggle = document.getElementById('virtualKeyboardToggle');
+    const isEnabled = toggle.checked;
+
+    // Save preference
+    localStorage.setItem('showVirtualKeyboard', isEnabled ? 'true' : 'false');
+
+    // Note: Don't actually show/hide the keyboard from settings
+    // The keyboard will show/hide automatically when returning to gameplay
+}
+
+// Toggle virtual keyboard visibility (during gameplay only)
+async function toggleVirtualKeyboard() {
     const keyboard = document.getElementById('virtualKeyboard');
     const toggle = document.getElementById('virtualKeyboardToggle');
 
@@ -182,6 +190,9 @@ function toggleVirtualKeyboard() {
             localStorage.setItem('showVirtualKeyboard', 'false');
             return;
         }
+
+        // Ensure keyboard layout is loaded before showing
+        await getKeyboardLayout(currentLayout);
 
         showVirtualKeyboard();
         updateVirtualKeyboardLabels();
@@ -258,9 +269,12 @@ function activatePhysicalKeyboardMode() {
 }
 
 // Show virtual keyboard if user preference is enabled
-function showVirtualKeyboardIfEnabled() {
+async function showVirtualKeyboardIfEnabled() {
     const savedShowKeyboard = localStorage.getItem('showVirtualKeyboard');
     if (savedShowKeyboard === 'true') {
+        // Ensure keyboard layout is loaded before showing
+        await getKeyboardLayout(currentLayout);
+
         showVirtualKeyboard();
         updateVirtualKeyboardLabels();
         // Don't force readonly - let user choose by clicking
@@ -314,7 +328,7 @@ let useVirtualKeyboard = true; // QWERTY virtual keyboard always enabled
 
 // Debug function to jump to a specific level/lesson for testing
 // Usage: setLevel(5) - jumps to level 5 with appropriate state
-window.setLevel = function(targetLevel) {
+window.setLevel = async function(targetLevel) {
     if (!currentMode) {
         console.error('No game in progress. Start a game first with startPlay() or startPractice()');
         return;
@@ -328,7 +342,7 @@ window.setLevel = function(targetLevel) {
     if (isPlayMode) {
         maxLevel = levelCount;
     } else {
-        const learnWords = getLearnWords();
+        const learnWords = await getLearnWords();
         maxLevel = learnWords ? Object.keys(learnWords).length : 0;
     }
 
@@ -368,7 +382,7 @@ window.setLevel = function(targetLevel) {
     }
 
     // Get level data and start it
-    const levelData = isPlayMode ? getPlayLevelData(targetLevel) : getLearnLessonData(targetLevel);
+    const levelData = isPlayMode ? getPlayLevelData(targetLevel) : await getLearnLessonData(targetLevel);
     if (!levelData) {
         console.error(`Could not load ${levelType} ${targetLevel} data`);
         return;
@@ -471,7 +485,7 @@ function showGameContent() {
     document.getElementById('backBtn').classList.remove('hidden');
 }
 
-function startPlay() {
+async function startPlay() {
     currentMode = 'play';
     localStorage.setItem('currentMode', currentMode);
 
@@ -499,6 +513,12 @@ function startPlay() {
 
     // Update UI language
     updateUILanguage();
+
+    // Ensure play words and keyboard layout are loaded
+    if (!playWordsLoaded) {
+        await loadPlayWords();
+    }
+    await getKeyboardLayout(currentLayout);  // Preload keyboard layout
 
     // Show countdown, then start game with callback
     const t = getCurrentTranslations();
@@ -531,7 +551,7 @@ function onPlayLevelComplete() {
     }
 }
 
-function playAgain() {
+async function playAgain() {
     // Hide completion modal
     closeAllCompletionModals();
 
@@ -552,6 +572,12 @@ function playAgain() {
 
     // Show/hide lesson info
     document.getElementById('currentLessonInfo').style.display = 'none';
+
+    // Ensure play words and keyboard layout are loaded
+    if (!playWordsLoaded) {
+        await loadPlayWords();
+    }
+    await getKeyboardLayout(currentLayout);  // Preload keyboard layout
 
     // Show countdown, then start game with callback
     const t = getCurrentTranslations();
@@ -610,21 +636,24 @@ function onDialectChangeSettings() {
         localStorage.setItem('dialect', currentDialect);
         // Update UI translations for new dialect
         updateUILanguage();
-        // Reload words with new dialect
-        loadWords().then(() => {
-            updateLevelSelector();
-            // Dialect change will take effect on next game
-        });
+        // Clear cached words for old dialect (will reload lazily on demand)
+        learnWordsCache = {};
+        playWordsLoaded = false;
+        // Update level selector (may load learn words if user is in learn mode)
+        updateLevelSelector();
     }
 }
 
-function onLayoutChangeSettings() {
+async function onLayoutChangeSettings() {
     currentLayout = document.getElementById('layoutSelectSettings').value;
     localStorage.setItem('keyboardLayout', currentLayout);
 
+    // Preload the new keyboard layout
+    await getKeyboardLayout(currentLayout);
+
     // Update ligature toggle visibility and state based on layout policy
-    updateLigatureToggleState();
-    updateLevelSelector();
+    await updateLigatureToggleState();
+    await updateLevelSelector();
 
     // Update virtual keyboard labels
     updateVirtualKeyboardLabels();
@@ -645,20 +674,10 @@ function onLevelChange() {
     selectedLevel = document.getElementById('levelSelect').value;
 }
 
-function getLearnWords() {
-    // Get the appropriate word list for current layout and ligature settings
-    if (currentLayout === 'imperial') {
-        return areLigaturesActive() ? learnWordsImperial : learnWordsImperialNoLig;
-    } else if (currentLayout === 'igc') {
-        return areLigaturesActive() ? learnWordsNewImperial : learnWordsNewImperialNoLig;
-    } else if (currentLayout === 'qwerty') {
-        return learnWordsQwerty;
-    } else if (currentLayout === '2layer') {
-        return learnWords2layer;
-    } else if (currentLayout === 'jafl') {
-        return areLigaturesActive() ? learnWordsJafl : learnWordsJaflNoLig;
-    }
-    return null;
+// Get learn words for current layout and settings (async - lazy loads if needed)
+async function getLearnWords() {
+    const withLigatures = areLigaturesActive();
+    return await loadLearnWordsForLayout(currentLayout, currentDialect, withLigatures);
 }
 
 function translateLessonName(nameKey) {
@@ -671,7 +690,7 @@ function translateLessonDescription(descKey) {
     return t[descKey] || descKey;
 }
 
-function updateLevelSelector() {
+async function updateLevelSelector() {
     const levelSelect = document.getElementById('levelSelect');
 
     // Level selector only exists in the main UI, not in settings
@@ -680,7 +699,7 @@ function updateLevelSelector() {
     }
 
     // Get the appropriate word list for current settings
-    const learnWords = getLearnWords();
+    const learnWords = await getLearnWords();
 
     // Clear existing options
     const t = getCurrentTranslations();
@@ -781,19 +800,11 @@ function getPlayLevelData(levelNum) {
 }
 
 // Get word pool and metadata for a learn lesson
-function getLearnLessonData(lessonIndex) {
-    let learnWords;
+async function getLearnLessonData(lessonIndex) {
+    const learnWords = await getLearnWords();
 
-    if (currentLayout === 'imperial') {
-        learnWords = areLigaturesActive() ? learnWordsImperial : learnWordsImperialNoLig;
-    } else if (currentLayout === 'igc') {
-        learnWords = areLigaturesActive() ? learnWordsNewImperial : learnWordsNewImperialNoLig;
-    } else if (currentLayout === 'qwerty') {
-        learnWords = learnWordsQwerty;
-    } else if (currentLayout === '2layer') {
-        learnWords = learnWords2layer;
-    } else if (currentLayout === 'jafl') {
-        learnWords = areLigaturesActive() ? learnWordsJafl : learnWordsJaflNoLig;
+    if (!learnWords) {
+        return null;
     }
 
     const levelData = learnWords[lessonIndex];
@@ -810,87 +821,74 @@ function getLearnLessonData(lessonIndex) {
     return null;
 }
 
-// Load words from JSON
-async function loadWords() {
+// Load play mode words from JSON (for current dialect only)
+async function loadPlayWords() {
     try {
-        // Load practice words
+        // Load practice words for current dialect
         const wordsResponse = await fetch(versionedUrl(`words_${currentDialect}.json`));
         const wordsData = await wordsResponse.json();
         // Convert string keys to numbers
+        wordsByLength = {};
         Object.keys(wordsData).forEach(key => {
             wordsByLength[parseInt(key)] = wordsData[key];
         });
 
-        // Load learn mode words for Imperial
-        const learnImperialResponse = await fetch(versionedUrl(`learn_words_imperial_${currentDialect}.json`));
-        const learnImperialData = await learnImperialResponse.json();
-        // Convert string keys to numbers
-        Object.keys(learnImperialData).forEach(key => {
-            learnWordsImperial[parseInt(key)] = learnImperialData[key];
-        });
-
-        // Load learn mode words for QWERTY
-        const learnQwertyResponse = await fetch(versionedUrl(`learn_words_qwerty_${currentDialect}.json`));
-        const learnQwertyData = await learnQwertyResponse.json();
-        // Convert string keys to numbers
-        Object.keys(learnQwertyData).forEach(key => {
-            learnWordsQwerty[parseInt(key)] = learnQwertyData[key];
-        });
-
-        // Load learn mode words for Imperial (no ligatures)
-        const learnImperialNoLigResponse = await fetch(versionedUrl(`learn_words_imperial_${currentDialect}_no_lig.json`));
-        const learnImperialNoLigData = await learnImperialNoLigResponse.json();
-        // Convert string keys to numbers
-        Object.keys(learnImperialNoLigData).forEach(key => {
-            learnWordsImperialNoLig[parseInt(key)] = learnImperialNoLigData[key];
-        });
-
-        // Load learn mode words for New Imperial
-        const learnNewImperialResponse = await fetch(versionedUrl(`learn_words_igc_${currentDialect}.json`));
-        const learnNewImperialData = await learnNewImperialResponse.json();
-        // Convert string keys to numbers
-        Object.keys(learnNewImperialData).forEach(key => {
-            learnWordsNewImperial[parseInt(key)] = learnNewImperialData[key];
-        });
-
-        // Load learn mode words for New Imperial (no ligatures)
-        const learnNewImperialNoLigResponse = await fetch(versionedUrl(`learn_words_igc_${currentDialect}_no_lig.json`));
-        const learnNewImperialNoLigData = await learnNewImperialNoLigResponse.json();
-        // Convert string keys to numbers
-        Object.keys(learnNewImperialNoLigData).forEach(key => {
-            learnWordsNewImperialNoLig[parseInt(key)] = learnNewImperialNoLigData[key];
-        });
-
-        // Load learn mode words for Shaw 2-layer
-        const learn2layerResponse = await fetch(versionedUrl(`learn_words_2layer_${currentDialect}.json`));
-        const learn2layerData = await learn2layerResponse.json();
-        // Convert string keys to numbers
-        Object.keys(learn2layerData).forEach(key => {
-            learnWords2layer[parseInt(key)] = learn2layerData[key];
-        });
-
-        // Load learn mode words for Shaw-JAFL (with ligatures)
-        const learnJaflResponse = await fetch(versionedUrl(`learn_words_jafl_${currentDialect}.json`));
-        const learnJaflData = await learnJaflResponse.json();
-        // Convert string keys to numbers
-        Object.keys(learnJaflData).forEach(key => {
-            learnWordsJafl[parseInt(key)] = learnJaflData[key];
-        });
-
-        // Load learn mode words for Shaw-JAFL (no ligatures)
-        const learnJaflNoLigResponse = await fetch(versionedUrl(`learn_words_jafl_${currentDialect}_no_lig.json`));
-        const learnJaflNoLigData = await learnJaflNoLigResponse.json();
-        // Convert string keys to numbers
-        Object.keys(learnJaflNoLigData).forEach(key => {
-            learnWordsJaflNoLig[parseInt(key)] = learnJaflNoLigData[key];
-        });
-
-        wordsLoaded = true;
+        playWordsLoaded = true;
         return true;
     } catch (error) {
-        console.error('Failed to load words:', error);
+        console.error('Failed to load play words:', error);
         alert('Failed to load word list. Please refresh the page.');
         return false;
+    }
+}
+
+// Lazy load learn mode words for a specific layout and dialect
+async function loadLearnWordsForLayout(layout, dialect, withLigatures) {
+    // Determine the filename and cache key
+    let filename;
+    let cacheKey;
+
+    if (layout === 'imperial') {
+        filename = withLigatures ? `learn_words_imperial_${dialect}.json` : `learn_words_imperial_${dialect}_no_lig.json`;
+        cacheKey = withLigatures ? `imperial_${dialect}` : `imperial_${dialect}_no_lig`;
+    } else if (layout === 'igc') {
+        filename = withLigatures ? `learn_words_igc_${dialect}.json` : `learn_words_igc_${dialect}_no_lig.json`;
+        cacheKey = withLigatures ? `igc_${dialect}` : `igc_${dialect}_no_lig`;
+    } else if (layout === 'qwerty') {
+        filename = `learn_words_qwerty_${dialect}.json`;
+        cacheKey = `qwerty_${dialect}`;
+    } else if (layout === '2layer') {
+        filename = `learn_words_2layer_${dialect}.json`;
+        cacheKey = `2layer_${dialect}`;
+    } else if (layout === 'jafl') {
+        filename = withLigatures ? `learn_words_jafl_${dialect}.json` : `learn_words_jafl_${dialect}_no_lig.json`;
+        cacheKey = withLigatures ? `jafl_${dialect}` : `jafl_${dialect}_no_lig`;
+    } else {
+        return null;
+    }
+
+    // Check if already loaded in cache
+    if (learnWordsCache[cacheKey]) {
+        return learnWordsCache[cacheKey];
+    }
+
+    // Load from server
+    try {
+        const response = await fetch(versionedUrl(filename));
+        const data = await response.json();
+
+        // Convert string keys to numbers
+        const words = {};
+        Object.keys(data).forEach(key => {
+            words[parseInt(key)] = data[key];
+        });
+
+        // Cache it
+        learnWordsCache[cacheKey] = words;
+        return words;
+    } catch (error) {
+        console.error(`Failed to load learn words for ${layout} (${dialect}):`, error);
+        return null;
     }
 }
 
@@ -924,14 +922,10 @@ async function init() {
         RESOURCE_VERSION
     );
 
-    await loadWords();
-    if (wordsLoaded) {
-        // Show splash for all users (first-time and returning)
-        // Splash will then show setup dialog for first-time users
-        showSplashIfNeeded();
-        // Start on home screen - don't auto-load game
-        // User will click Play or Practice to start
-    }
+    // Show splash for all users (first-time and returning)
+    // Splash will then show setup dialog for first-time users
+    // Word lists load lazily when user clicks Play or Practice
+    showSplashIfNeeded();
 
     // Minimize browser UI if not running in standalone mode
     if (!isStandalone()) {
@@ -1395,7 +1389,7 @@ function trackCompletion(params) {
     }
 }
 
-function showLessonCompletionDialog() {
+async function showLessonCompletionDialog() {
     // Track if input had focus before opening modal
     const typingInput = document.getElementById('typingInput');
     inputHadFocusBeforeModal = typingInput && document.activeElement === typingInput;
@@ -1425,7 +1419,7 @@ function showLessonCompletionDialog() {
     document.getElementById('lessonAccuracy').textContent = accuracyFormatted;
 
     // Show/hide "Next lesson" button based on whether there's a next lesson
-    const learnWords = getLearnWords();
+    const learnWords = await getLearnWords();
     const maxLesson = learnWords ? Object.keys(learnWords).length : 6;
     const hasNextLesson = parseInt(selectedLevel) < maxLesson;
     document.getElementById('nextLesson').style.display = hasNextLesson ? 'inline-block' : 'none';
@@ -1559,7 +1553,7 @@ function showCompletionModal() {
     document.getElementById('playCompletionModal').classList.add('show');
 }
 
-function resetPractice() {
+async function resetPractice() {
     // Reset all stats
     gameState.wordsCompleted = 0;
     gameState.totalLettersTyped = 0;
@@ -1584,7 +1578,7 @@ function resetPractice() {
         startLevel(levelData.wordPool, levelData.wordCount, 'level', levelData.title, t.level_label, onPlayLevelComplete);
     } else {
         // In learn mode, use the selected lesson
-        const levelData = getLearnLessonData(parseInt(selectedLevel));
+        const levelData = await getLearnLessonData(parseInt(selectedLevel));
         if (levelData) {
             gameState.currentLevelNumber = parseInt(selectedLevel);
             startLevel(levelData.wordPool, levelData.wordCount, 'lesson', levelData.title, t.lesson_label, showLessonCompletionDialog);
@@ -1609,10 +1603,10 @@ function continueLesson() {
     // Note: startLevel handles focus based on virtual keyboard setting
 }
 
-function nextLesson() {
+async function nextLesson() {
     // Advance to next lesson
     const nextLessonNum = parseInt(selectedLevel) + 1;
-    const learnWords = getLearnWords();
+    const learnWords = await getLearnWords();
     const maxLesson = learnWords ? Object.keys(learnWords).length : 6;
 
     if (nextLessonNum <= maxLesson) {
@@ -1632,7 +1626,7 @@ function nextLesson() {
 
         // Start next lesson
         const t = getCurrentTranslations();
-        const levelData = getLearnLessonData(nextLessonNum);
+        const levelData = await getLearnLessonData(nextLessonNum);
         if (levelData) {
             gameState.currentLevelNumber = nextLessonNum;
             startLevel(levelData.wordPool, levelData.wordCount, 'lesson', levelData.title, t.lesson_label, showLessonCompletionDialog);
@@ -1973,7 +1967,7 @@ function onDialectChangeSetup() {
         // Update UI translations for new dialect
         updateUILanguage();
         // Reload words with new dialect
-        loadWords().then(() => {
+        loadPlayWords().then(() => {
             updateLevelSelector();
             // Dialect change will take effect on next game
         });
@@ -1996,6 +1990,9 @@ function closeSplashModal() {
         localStorage.setItem('lastSeenVersion', APP_VERSION);
     }
     document.getElementById('splashModal').classList.remove('show');
+
+    // Show home screen now that splash is dismissed
+    document.getElementById('homeScreen').classList.remove('hidden');
 
     // After closing splash, show setup dialog for first-time users
     showSetupIfNeeded();
@@ -2032,6 +2029,9 @@ async function showSplashIfNeeded() {
         setTimeout(() => {
             document.getElementById('continueButton').focus();
         }, 100);
+    } else {
+        // No splash needed - show home screen immediately
+        document.getElementById('homeScreen').classList.remove('hidden');
     }
 }
 
@@ -2221,7 +2221,7 @@ function closeHighScores() {
 }
 
 // Lesson selector functions
-function openLessonSelector() {
+async function openLessonSelector() {
     // Track if input had focus before opening modal
     const typingInput = document.getElementById('typingInput');
     inputHadFocusBeforeModal = typingInput && document.activeElement === typingInput;
@@ -2235,7 +2235,7 @@ function openLessonSelector() {
     const t = getCurrentTranslations();
 
     // Get the appropriate word list for current settings
-    const learnWords = getLearnWords();
+    const learnWords = await getLearnWords();
 
     const lessonList = document.getElementById('lessonList');
     lessonList.innerHTML = '';
@@ -2267,7 +2267,7 @@ function openLessonSelector() {
     document.getElementById('lessonModal').classList.add('show');
 }
 
-function selectLesson(level) {
+async function selectLesson(level) {
     selectedLevel = level;
     closeLessonModal();
 
@@ -2288,7 +2288,10 @@ function selectLesson(level) {
     // Set instructions in subtitle
     document.getElementById('mainSubtitle').textContent = t.gameInstructions;
 
-    const levelData = getLearnLessonData(parseInt(level));
+    // Preload keyboard layout
+    await getKeyboardLayout(currentLayout);
+
+    const levelData = await getLearnLessonData(parseInt(level));
     if (levelData) {
         gameState.currentLevelNumber = parseInt(level);
         startLevel(levelData.wordPool, levelData.wordCount, 'lesson', levelData.title, t.lesson_label, showLessonCompletionDialog);
