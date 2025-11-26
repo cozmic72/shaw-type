@@ -1717,6 +1717,7 @@ let previousInput = '';  // For error state reversion
 let maxEffectiveLength = 0;  // High water mark for counting (excludes pending ligature starts)
 let isInErrorState = false; // Track if last typed character was incorrect
 let lastAutoLigatureComponents = []; // Track components if last char was auto-formed ligature (e.g., ['𐑩', '𐑮'])
+let justSplitLigature = false; // Track if we just split a ligature (to prevent re-forming it)
 
 // Helper: Clear all input state variables
 function clearInputState() {
@@ -1726,6 +1727,7 @@ function clearInputState() {
     maxEffectiveLength = 0;
     isInErrorState = false;
     lastAutoLigatureComponents = [];
+    justSplitLigature = false;
 }
 
 // Helper: Convert string to array of Unicode code points for debugging
@@ -1737,6 +1739,12 @@ function toCodePoints(str) {
 
 // Helper: Form ligatures in input string if enabled
 function formLigatures(input) {
+    // Don't re-form if we just split a ligature
+    if (justSplitLigature) {
+        justSplitLigature = false;
+        return input;
+    }
+
     if (!areLigaturesActive()) {
         lastAutoLigatureComponents = [];
         return input;
@@ -1828,6 +1836,7 @@ function updateShadowInput(inputType, eventData, currentShadow, browserValue) {
                 const normalizedChars = normalizeCharArray(chars);
                 const result = normalizedChars.slice(0, -1).join('') + lastAutoLigatureComponents.join('');
                 lastAutoLigatureComponents = []; // Clear the flag
+                justSplitLigature = true; // Prevent re-forming this ligature
                 return result;
             }
 
@@ -1835,16 +1844,19 @@ function updateShadowInput(inputType, eventData, currentShadow, browserValue) {
             if (chars.length >= 2 && chars[chars.length - 1].codePointAt(0) === 0xFE00) {
                 // Last code point is VS1, delete both base character and VS1
                 lastAutoLigatureComponents = []; // Clear flag on any deletion
+                justSplitLigature = false;
                 return chars.slice(0, -2).join('');
             }
 
             // Normal deletion - remove last code point
             lastAutoLigatureComponents = []; // Clear flag on any deletion
+            justSplitLigature = false;
             return chars.slice(0, -1).join('');
 
         case 'deleteContentForward':
             // Delete key - remove first character (shouldn't happen in our UI)
             lastAutoLigatureComponents = [];
+            justSplitLigature = false;
             const charsForward = Array.from(currentShadow);
             return charsForward.slice(1).join('');
 
@@ -1852,6 +1864,7 @@ function updateShadowInput(inputType, eventData, currentShadow, browserValue) {
             // Safari uses this for ligature formation from virtual keyboard
             // Use the replacement range captured from beforeinput event
             lastAutoLigatureComponents = [];
+            justSplitLigature = false;
             if (pendingReplacementStart >= 0 && pendingReplacementEnd >= 0) {
                 const chars = Array.from(currentShadow);
                 const before = chars.slice(0, pendingReplacementStart).join('');
@@ -1869,6 +1882,7 @@ function updateShadowInput(inputType, eventData, currentShadow, browserValue) {
         case 'insertFromDrop':
             // Paste or drop - replace entire content
             lastAutoLigatureComponents = [];
+            justSplitLigature = false;
             return eventData || browserValue;
 
         case 'deleteWordBackward':
@@ -1876,11 +1890,13 @@ function updateShadowInput(inputType, eventData, currentShadow, browserValue) {
         case 'deleteByCut':
             // Word deletion or cut - use browser's resulting value
             lastAutoLigatureComponents = [];
+            justSplitLigature = false;
             return browserValue;
 
         case 'insertCompositionText':
             // IME composition - trust browser value
             lastAutoLigatureComponents = [];
+            justSplitLigature = false;
             return browserValue;
 
         default:
