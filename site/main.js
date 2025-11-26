@@ -1040,29 +1040,13 @@ function startLevel(wordPool, wordCount, type, title, typeLabel, completionCallb
     // This will blur the input to prevent mobile OS keyboard
     showVirtualKeyboardIfEnabled();
 
-    // Auto-focus decision: focus if not using virtual keyboard AND either:
-    // - Not on mobile, OR
-    // - On mobile but physical keyboard detected in this session
+    // Auto-focus decision: if virtual keyboard is NOT enabled, auto-focus
+    // (user will type with OS keyboard - physical or mobile)
+    // If virtual keyboard IS enabled, don't auto-focus (user will tap virtual keys)
     const savedShowKeyboard = localStorage.getItem('showVirtualKeyboard');
-    const shouldAutoFocus = savedShowKeyboard !== 'true' &&
-                            (!isMobileDevice() || isPhysicalKeyboardDetected());
-
-    if (shouldAutoFocus) {
+    if (savedShowKeyboard !== 'true') {
         typingInput.focus();
-    } else if (isMobileDevice() && savedShowKeyboard !== 'true') {
-        // Mobile without detected physical keyboard: add visual indicator
-        // This shows the user where to tap/type before they start typing
-        typingInput.style.border = '3px solid #667eea';
     }
-
-    // Remove visual indicator when user interacts (they found it!)
-    const removeVisualIndicator = () => {
-        if (typingInput.style.border) {
-            typingInput.style.border = '';
-        }
-    };
-    typingInput.addEventListener('focus', removeVisualIndicator, { once: true });
-    typingInput.addEventListener('input', removeVisualIndicator, { once: true });
 }
 
 function pickRandomWord() {

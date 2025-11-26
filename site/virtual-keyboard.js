@@ -1,13 +1,5 @@
 // Virtual Keyboard Functionality
 
-// Physical keyboard detection for mobile devices
-let hasPhysicalKeyboard = sessionStorage.getItem('hasPhysicalKeyboard') === 'true' ? true : null;
-
-// Helper: Check if physical keyboard has been detected on mobile
-function isPhysicalKeyboardDetected() {
-    return hasPhysicalKeyboard === true;
-}
-
 // Initialize virtual keyboard - loads HTML and sets up
 async function initVirtualKeyboard(containerElement, resourceVersion) {
     try {
@@ -447,29 +439,17 @@ function makeKeysClickable(keyboardMap) {
     });
 }
 
-// Initialize keyboard UI - track physical keyboard state
+// Initialize keyboard UI
 // Note: makeKeyboardDraggable() is called from initVirtualKeyboard() after HTML loads
 document.addEventListener('DOMContentLoaded', () => {
-    // Track physical Shift and Caps Lock keys to update virtual keyboard
+    // Track keyboard keys to highlight virtual keyboard and auto-focus input
     document.addEventListener('keydown', (e) => {
-        // Detect physical keyboard on mobile: if keydown fires when input doesn't have focus
-        if (hasPhysicalKeyboard === null && isMobileDevice()) {
-            const typingInput = document.getElementById('typingInput');
-            debug(`[Physical KB Detection] Key pressed: ${e.key}, input exists: ${!!typingInput}, activeElement: ${document.activeElement?.id || 'none'}`);
+        const typingInput = document.getElementById('typingInput');
 
-            if (typingInput && document.activeElement !== typingInput) {
-                // Physical keyboard detected!
-                hasPhysicalKeyboard = true;
-                sessionStorage.setItem('hasPhysicalKeyboard', 'true');
-                debug('🎹 Physical keyboard detected on mobile device');
-
-                // Auto-focus the input now that we know there's a physical keyboard
-                // Remove visual border indicator and focus
-                if (typingInput.style.border) {
-                    typingInput.style.border = '';
-                }
-                typingInput.focus();
-            }
+        // If user presses a key and input doesn't have focus, focus it
+        // (this means they're using OS keyboard, not tapping virtual keys)
+        if (typingInput && document.activeElement !== typingInput) {
+            typingInput.focus();
         }
 
         // Highlight the key being pressed (pass e.code to distinguish left/right shift)
