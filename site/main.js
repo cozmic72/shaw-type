@@ -1046,7 +1046,19 @@ function startLevel(wordPool, wordCount, type, title, typeLabel, completionCallb
     const savedShowKeyboard = localStorage.getItem('showVirtualKeyboard');
     if (savedShowKeyboard !== 'true') {
         typingInput.focus();
+    } else {
+        // Add visual indicator to show where to tap/type
+        typingInput.style.border = '3px solid #667eea';
     }
+
+    // Remove visual indicator when user interacts
+    const removeVisualIndicator = () => {
+        if (typingInput.style.border) {
+            typingInput.style.border = '';
+        }
+    };
+    typingInput.addEventListener('focus', removeVisualIndicator, { once: true });
+    typingInput.addEventListener('input', removeVisualIndicator, { once: true });
 }
 
 function pickRandomWord() {
