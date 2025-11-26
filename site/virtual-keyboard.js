@@ -1,5 +1,11 @@
 // Virtual Keyboard Functionality
 
+// Helper: Detect if user is on a mobile device
+function isMobileDevice() {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+           (navigator.maxTouchPoints && navigator.maxTouchPoints > 2);
+}
+
 // Physical keyboard detection for mobile devices
 let hasPhysicalKeyboard = sessionStorage.getItem('hasPhysicalKeyboard') === 'true' ? true : null;
 
@@ -453,15 +459,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // Track physical Shift and Caps Lock keys to update virtual keyboard
     document.addEventListener('keydown', (e) => {
         // Detect physical keyboard on mobile: if keydown fires when input doesn't have focus
-        if (hasPhysicalKeyboard === null && typeof isMobileDevice === 'function' && isMobileDevice()) {
+        if (hasPhysicalKeyboard === null && isMobileDevice()) {
             const typingInput = document.getElementById('typingInput');
+            console.log(`[Physical KB Detection] Key pressed: ${e.key}, input exists: ${!!typingInput}, activeElement: ${document.activeElement?.id || 'none'}`);
+
             if (typingInput && document.activeElement !== typingInput) {
                 // Physical keyboard detected!
                 hasPhysicalKeyboard = true;
                 sessionStorage.setItem('hasPhysicalKeyboard', 'true');
-                if (typeof debug === 'function') {
-                    debug('🎹 Physical keyboard detected on mobile device');
-                }
+                console.log('🎹 Physical keyboard detected on mobile device');
 
                 // Auto-focus the input now that we know there's a physical keyboard
                 // Remove visual border indicator and focus
