@@ -56,6 +56,12 @@ let inputHadFocusBeforeModal = false;
 // Variation Selector 1 - used in some ligature combinations (especially IGC)
 const VS1 = '\uFE00';
 
+// Helper: Detect if user is on a mobile device
+function isMobileDevice() {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+           (navigator.maxTouchPoints && navigator.maxTouchPoints > 2);
+}
+
 // Get ligatures for current layout
 function getCurrentLayoutLigatures() {
     if (!KEYBOARD_MAPS || !KEYBOARD_MAPS[currentLayout]) {
@@ -1088,9 +1094,9 @@ function startLevel(wordPool, wordCount, type, title, typeLabel, completionCallb
     // This will blur the input to prevent mobile OS keyboard
     showVirtualKeyboardIfEnabled();
 
-    // Only focus input if virtual keyboard is NOT enabled
+    // Only focus input if virtual keyboard is NOT enabled AND not on mobile
     const savedShowKeyboard = localStorage.getItem('showVirtualKeyboard');
-    if (savedShowKeyboard !== 'true') {
+    if (savedShowKeyboard !== 'true' && !isMobileDevice()) {
         typingInput.focus();
     }
 }
