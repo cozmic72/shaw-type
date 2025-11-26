@@ -12,6 +12,7 @@ let wordsLoaded = false;
 
 // Game state - encapsulates all session state and statistics
 let gameState = new GameState();
+let inputHandler = new InputHandler();
 
 // Carousel: 4 slots, we track which slot index maps to which position
 let carouselOffset = 0; // Current slot index for "current" word
@@ -19,13 +20,6 @@ let words = ['', '', '', '']; // Words in slots [0, 1, 2, 3]
 let currentWord = ''; // The actual current word being typed
 let recentWords = []; // Track recent words to avoid repeats
 let bestTime = null; // Legacy - migrated to gameState.highScores
-
-// Shadow input: faithful representation of what user typed (browsers may strip combining chars)
-let shadowInput = '';
-
-// Track replacement info from beforeinput event (for insertReplacementText)
-let pendingReplacementStart = -1;
-let pendingReplacementEnd = -1;
 
 // Track if input had focus before opening a modal (for mobile keyboard management)
 let inputHadFocusBeforeModal = false;
@@ -1029,7 +1023,7 @@ function startLevel(wordPool, wordCount, type, title, typeLabel, completionCallb
     initializeGame();
 
     // Clear input state
-    clearInputState();
+    typingInput.value = ''; inputHandler.clearState();
 
     // Start timer only for play mode at level 1 (beginning of game)
     if (currentMode === 'play' && gameState.currentLevelNumber === 1 && gameState.wordsCompleted === 0) {
@@ -1168,7 +1162,7 @@ function loadNewWord() {
     // Store the processed word back (with ligatures if enabled, and space if needed)
     words[carouselOffset] = currentWord;
 
-    clearInputState();
+    typingInput.value = ''; inputHandler.clearState();
     updateWordDisplay();
 
     updateLevel();
@@ -1240,9 +1234,9 @@ function updateWordDisplay() {
             const inputChars = Array.from(userInput);
 
             // Normalize arrays to treat char+VS1 as single units for comparison
-            const normalizedWordChars = normalizeCharArray(wordChars);
-            const normalizedInputChars = normalizeCharArray(inputChars);
-            const isPending = isPendingLigatureStart(inputChars, wordChars);
+            const normalizedWordChars = inputHandler.normalizeCharArray(wordChars);
+            const normalizedInputChars = inputHandler.normalizeCharArray(inputChars);
+            const isPending = inputHandler.isPendingLigatureStart(inputChars, wordChars, areLigaturesActive(), getCurrentLayoutLigatures());
 
             for (let j = 0; j < normalizedWordChars.length; j++) {
                 const char = normalizedWordChars[j];
@@ -1673,7 +1667,7 @@ window.loadWord = function(word) {
     currentWord = word;
 
     // Clear input state
-    clearInputState();
+    typingInput.value = ''; inputHandler.clearState();
 
     // Temporarily modify word pool to include this word at max length for font sizing test
     const wordLength = Array.from(word).length;
@@ -1700,7 +1694,7 @@ window.setNextWord = function(word) {
     currentWord = words[carouselOffset];
 
     // Clear input state for new word
-    clearInputState();
+    typingInput.value = ''; inputHandler.clearState();
 
     // Temporarily modify word pool to include this word at max length for font sizing test
     const wordLength = Array.from(word).length;
@@ -1714,22 +1708,6 @@ window.setNextWord = function(word) {
 };
 
 // Event listeners
-let previousInput = '';  // For error state reversion
-let maxEffectiveLength = 0;  // High water mark for counting (excludes pending ligature starts)
-let isInErrorState = false; // Track if last typed character was incorrect
-let lastAutoLigatureComponents = []; // Track components if last char was auto-formed ligature (e.g., ['𐑩', '𐑮'])
-let justSplitLigature = false; // Track if we just split a ligature (to prevent re-forming it)
-
-// Helper: Clear all input state variables
-function clearInputState() {
-    typingInput.value = '';
-    shadowInput = '';
-    previousInput = '';
-    maxEffectiveLength = 0;
-    isInErrorState = false;
-    lastAutoLigatureComponents = [];
-    justSplitLigature = false;
-}
 
 // Helper: Convert string to array of Unicode code points for debugging
 function toCodePoints(str) {
@@ -1738,189 +1716,21 @@ function toCodePoints(str) {
     ).join(' ');
 }
 
-// Helper: Form ligatures in input string if enabled
-function formLigatures(input) {
-    // Don't re-form if we just split a ligature
-    if (justSplitLigature) {
-        justSplitLigature = false;
-        return input;
-    }
-
-    if (!areLigaturesActive()) {
-        lastAutoLigatureComponents = [];
-        return input;
-    }
-
-    const componentToLigature = getCurrentComponentToLigature();
-    const chars = Array.from(input);
-
-    // Normalize to treat base+VS1 as single units
-    const normalizedChars = normalizeCharArray(chars);
-
-    // Check if last 2 normalized characters form a ligature
-    if (normalizedChars.length >= 2) {
-        const lastTwo = normalizedChars[normalizedChars.length - 2] + normalizedChars[normalizedChars.length - 1];
-        debug('🔗 LIGATURE CHECK: lastTwo="' + lastTwo + '" [' + toCodePoints(lastTwo) + ']' +
-              ' | maps to: ' + (componentToLigature[lastTwo] || 'none'));
-        if (componentToLigature[lastTwo]) {
-            const result = normalizedChars.slice(0, -2).join('') + componentToLigature[lastTwo];
-            debug('✅ LIGATURE FORMED: "' + result + '" [' + toCodePoints(result) + ']');
-            // Track components for backspace splitting
-            lastAutoLigatureComponents = [
-                normalizedChars[normalizedChars.length - 2],
-                normalizedChars[normalizedChars.length - 1]
-            ];
-            return result;
-        }
-    }
-
-    lastAutoLigatureComponents = [];
-    return input;
-}
-
-// Helper: Normalize character array to merge VS1 with preceding character
-// Converts ['𐑻', '︀', '𐑮'] to ['𐑻︀', '𐑮']
-function normalizeCharArray(chars) {
-    const result = [];
-    for (let i = 0; i < chars.length; i++) {
-        const char = chars[i];
-        // Check if this is VS1 and we have a previous character
-        if (char === VS1 && result.length > 0) {
-            // Merge VS1 with the previous character
-            result[result.length - 1] = result[result.length - 1] + VS1;
-        } else {
-            result.push(char);
-        }
-    }
-    return result;
-}
-
-// Helper: Check if last character is a pending ligature start
-function isPendingLigatureStart(inputChars, wordChars) {
-    if (!areLigaturesActive() || inputChars.length === 0) return false;
-
-    // Normalize arrays to treat char+VS1 as single units
-    const normalizedInput = normalizeCharArray(inputChars);
-    const normalizedWord = normalizeCharArray(wordChars);
-
-    const lastIdx = normalizedInput.length - 1;
-    if (lastIdx >= normalizedWord.length) return false;
-
-    const expectedChar = normalizedWord[lastIdx];
-    const lastChar = normalizedInput[lastIdx];
-
-    // Check if the last character is the first of any pair that forms the expected ligature
-    const ligatures = getCurrentLayoutLigatures();
-    if (ligatures[expectedChar]) {
-        return ligatures[expectedChar].some(pair => pair[0] === lastChar);
-    }
-
-    return false;
-}
-
-// Helper: Update shadow input based on InputEvent
-// Returns the updated shadow input string
-// browserValue is what the browser's input field currently shows (after the event)
-function updateShadowInput(inputType, eventData, currentShadow, browserValue) {
-    switch (inputType) {
-        case 'insertText':
-            // Normal typing - append what was actually typed (preserves VS1)
-            return currentShadow + (eventData || '');
-
-        case 'deleteContentBackward':
-            // Backspace - check if last character was auto-formed ligature
-            const chars = Array.from(currentShadow); // Split into code points
-            if (chars.length === 0) return '';
-
-            // If last character was auto-formed ligature, split it back to components
-            if (lastAutoLigatureComponents.length > 0 && chars.length > 0) {
-                const normalizedChars = normalizeCharArray(chars);
-                const result = normalizedChars.slice(0, -1).join('') + lastAutoLigatureComponents.join('');
-                lastAutoLigatureComponents = []; // Clear the flag
-                justSplitLigature = true; // Prevent re-forming this ligature
-                return result;
-            }
-
-            // Check if last code point is VS1 (U+FE00)
-            if (chars.length >= 2 && chars[chars.length - 1].codePointAt(0) === 0xFE00) {
-                // Last code point is VS1, delete both base character and VS1
-                lastAutoLigatureComponents = []; // Clear flag on any deletion
-                justSplitLigature = false;
-                return chars.slice(0, -2).join('');
-            }
-
-            // Normal deletion - remove last code point
-            lastAutoLigatureComponents = []; // Clear flag on any deletion
-            justSplitLigature = false;
-            return chars.slice(0, -1).join('');
-
-        case 'deleteContentForward':
-            // Delete key - remove first character (shouldn't happen in our UI)
-            lastAutoLigatureComponents = [];
-            justSplitLigature = false;
-            const charsForward = Array.from(currentShadow);
-            return charsForward.slice(1).join('');
-
-        case 'insertReplacementText':
-            // Safari uses this for ligature formation from virtual keyboard
-            // Use the replacement range captured from beforeinput event
-            lastAutoLigatureComponents = [];
-            justSplitLigature = false;
-            if (pendingReplacementStart >= 0 && pendingReplacementEnd >= 0) {
-                const chars = Array.from(currentShadow);
-                const before = chars.slice(0, pendingReplacementStart).join('');
-                const after = chars.slice(pendingReplacementEnd).join('');
-                const result = before + (eventData || '') + after;
-                // Reset pending replacement
-                pendingReplacementStart = -1;
-                pendingReplacementEnd = -1;
-                return result;
-            }
-            // Fallback if we didn't capture the range
-            return browserValue;
-
-        case 'insertFromPaste':
-        case 'insertFromDrop':
-            // Paste or drop - replace entire content
-            lastAutoLigatureComponents = [];
-            justSplitLigature = false;
-            return eventData || browserValue;
-
-        case 'deleteWordBackward':
-        case 'deleteWordForward':
-        case 'deleteByCut':
-            // Word deletion or cut - use browser's resulting value
-            lastAutoLigatureComponents = [];
-            justSplitLigature = false;
-            return browserValue;
-
-        case 'insertCompositionText':
-            // IME composition - trust browser value
-            lastAutoLigatureComponents = [];
-            justSplitLigature = false;
-            return browserValue;
-
-        default:
-            // Unknown or null inputType - trust browser value
-            return browserValue;
-    }
-}
-
 // Helper: Update statistics based on new input length
 function updateInputStatistics(effectiveLength, inputChars, wordChars) {
-    if (effectiveLength < maxEffectiveLength) {
+    if (effectiveLength < inputHandler.maxEffectiveLength) {
         // Backspace or deletion - clear error state
-        isInErrorState = false;
-        maxEffectiveLength = effectiveLength;
-    } else if (effectiveLength > maxEffectiveLength) {
+        inputHandler.isInErrorState = false;
+        inputHandler.maxEffectiveLength = effectiveLength;
+    } else if (effectiveLength > inputHandler.maxEffectiveLength) {
         // New characters to count
-        const numNew = effectiveLength - maxEffectiveLength;
+        const numNew = effectiveLength - inputHandler.maxEffectiveLength;
         gameState.totalLettersTyped += numNew;
         gameState.currentLevelLettersTyped += numNew;
 
         // Check correctness
         let allCorrect = true;
-        for (let i = maxEffectiveLength; i < effectiveLength; i++) {
+        for (let i = inputHandler.maxEffectiveLength; i < effectiveLength; i++) {
             if (i >= wordChars.length || inputChars[i] !== wordChars[i]) {
                 allCorrect = false;
                 break;
@@ -1930,12 +1740,12 @@ function updateInputStatistics(effectiveLength, inputChars, wordChars) {
         if (allCorrect) {
             gameState.correctLetters += numNew;
             gameState.currentLevelCorrectLetters += numNew;
-            isInErrorState = false;
+            inputHandler.isInErrorState = false;
         } else {
-            isInErrorState = true;
+            inputHandler.isInErrorState = true;
         }
 
-        maxEffectiveLength = effectiveLength;
+        inputHandler.maxEffectiveLength = effectiveLength;
     }
 }
 
@@ -1960,11 +1770,11 @@ typingInput.addEventListener('beforeinput', (e) => {
 
         // Convert to character positions for shadow input
         const currentValue = typingInput.value;
-        pendingReplacementStart = codeUnitPosToCharIndex(currentValue, startCodeUnit);
-        pendingReplacementEnd = codeUnitPosToCharIndex(currentValue, endCodeUnit);
+        inputHandler.pendingReplacementStart = codeUnitPosToCharIndex(currentValue, startCodeUnit);
+        inputHandler.pendingReplacementEnd = codeUnitPosToCharIndex(currentValue, endCodeUnit);
 
         debug('🔍 BEFOREINPUT: replacing code units ' + startCodeUnit + '-' + endCodeUnit +
-              ' (chars ' + pendingReplacementStart + '-' + pendingReplacementEnd + ')' +
+              ' (chars ' + inputHandler.pendingReplacementStart + '-' + inputHandler.pendingReplacementEnd + ')' +
               ' with "' + (e.data || '') + '" [' + toCodePoints(e.data || '') + ']');
     }
 });
@@ -1983,8 +1793,8 @@ typingInput.addEventListener('input', (e) => {
     // Check if this character would complete a ligature
     let completesLigature = false;
     if (areLigaturesActive() && e.inputType === 'insertText' && eventData) {
-        const chars = Array.from(shadowInput);
-        const normalizedChars = normalizeCharArray(chars);
+        const chars = Array.from(inputHandler.getShadowInput());
+        const normalizedChars = inputHandler.normalizeCharArray(chars);
         if (normalizedChars.length > 0) {
             const potentialPair = normalizedChars[normalizedChars.length - 1] + eventData;
             const componentToLigature = getCurrentComponentToLigature();
@@ -1998,9 +1808,9 @@ typingInput.addEventListener('input', (e) => {
                               e.inputType === 'insertFromPaste' ||
                               e.inputType === 'insertReplacementText';
 
-    if (isInErrorState && isAddingCharacters && !completesLigature) {
+    if (inputHandler.isInErrorState && isAddingCharacters && !completesLigature) {
         // Block the input - revert and flash red
-        typingInput.value = previousInput;
+        typingInput.value = inputHandler.previousInput;
         typingInput.style.animation = 'none';
         setTimeout(() => {
             typingInput.style.animation = 'error-flash 0.4s ease-out';
@@ -2010,35 +1820,34 @@ typingInput.addEventListener('input', (e) => {
     }
 
     if (completesLigature) {
-        debug('✅ ALLOWING: completes ligature' + (isInErrorState ? ' (in error state)' : ''));
+        debug('✅ ALLOWING: completes ligature' + (inputHandler.isInErrorState ? ' (in error state)' : ''));
     }
 
     // Update shadow input based on what was actually typed
-    shadowInput = updateShadowInput(e.inputType, eventData, shadowInput, browserInput);
+    inputHandler.setShadowInput(inputHandler.updateShadowInput(e.inputType, eventData, inputHandler.getShadowInput(), browserInput));
 
     // Debug: log raw input with Unicode code points
     debug('📥 INPUT: browser="' + browserInput + '" [' + toCodePoints(browserInput) + ']' +
           ' | inputType=' + e.inputType +
           ' | event.data="' + eventData + '" [' + toCodePoints(eventData) + ']' +
-          ' | shadow="' + shadowInput + '" [' + toCodePoints(shadowInput) + ']' +
+          ' | shadow="' + inputHandler.getShadowInput() + '" [' + toCodePoints(inputHandler.getShadowInput()) + ']' +
           ' | expected="' + currentWord + '" [' + toCodePoints(currentWord) + ']');
 
     // Use shadow input as source of truth
-    let userInput = shadowInput;
+    let userInput = inputHandler.getShadowInput();
 
     // Ignore leading spaces at the start of the level
-    if (maxEffectiveLength === 0 && userInput.trim() === '') {
-        shadowInput = '';
+    if (inputHandler.maxEffectiveLength === 0 && userInput.trim() === '') {
+        inputHandler.setShadowInput('');
         typingInput.value = '';
-        lastAutoLigatureComponents = [];
         return;
     }
 
     // Form ligatures if enabled (for keyboards that don't do it themselves)
-    userInput = formLigatures(userInput);
+    userInput = inputHandler.formLigatures(userInput, areLigaturesActive(), getCurrentComponentToLigature(), debug);
 
     // Update both shadow and display to match formed ligatures
-    shadowInput = userInput;
+    inputHandler.setShadowInput(userInput);
     typingInput.value = userInput;
 
     // Get character arrays for comparison
@@ -2046,22 +1855,22 @@ typingInput.addEventListener('input', (e) => {
     const wordChars = Array.from(currentWord);
 
     // Normalize to treat char+VS1 as single units
-    const normalizedInputChars = normalizeCharArray(inputChars);
-    const normalizedWordChars = normalizeCharArray(wordChars);
+    const normalizedInputChars = inputHandler.normalizeCharArray(inputChars);
+    const normalizedWordChars = inputHandler.normalizeCharArray(wordChars);
 
     // Calculate effective length (excludes pending ligature start)
-    const pendingLigature = isPendingLigatureStart(inputChars, wordChars);
+    const pendingLigature = inputHandler.isPendingLigatureStart(inputChars, wordChars, areLigaturesActive(), getCurrentLayoutLigatures());
     const effectiveLength = pendingLigature ? normalizedInputChars.length - 1 : normalizedInputChars.length;
 
     // Update statistics
     const result = updateInputStatistics(effectiveLength, normalizedInputChars, normalizedWordChars);
-    previousInput = typingInput.value;
+    inputHandler.previousInput = typingInput.value;
 
     // Debug: log final state
     debug('📊 POSTCONDITION: input=' + JSON.stringify(typingInput.value) +
           ', correct=' + gameState.correctLetters + '/' + gameState.totalLettersTyped +
-          ', maxEffectiveLength=' + maxEffectiveLength +
-          ', isInErrorState=' + isInErrorState);
+          ', maxEffectiveLength=' + inputHandler.maxEffectiveLength +
+          ', isInErrorState=' + inputHandler.isInErrorState);
 
     updateWordDisplay();
     updateStats();
