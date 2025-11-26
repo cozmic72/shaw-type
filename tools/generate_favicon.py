@@ -6,7 +6,7 @@ Generate favicon PNGs with Shavian text in Ormin font at multiple sizes.
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 import os
 
-def generate_favicon_size(size, font_path, shaw_char='𐑖', tee_char='𐑑'):
+def generate_favicon_size(size, font_path, shaw_char='𐑖', tee_char='𐑑', dark_mode=False):
     """Generate a single favicon at the given size with nestled 𐑖 and 𐑑."""
     # Create transparent image
     img = Image.new('RGBA', (size, size), (0, 0, 0, 0))
@@ -16,13 +16,19 @@ def generate_favicon_size(size, font_path, shaw_char='𐑖', tee_char='𐑑'):
     corner_radius = size // 5  # 20% corner radius
     border_width = max(3, int(size / 32 * 1.5))  # 50% thicker border
 
-    # Colors
-    blue_border = (85, 95, 220)  # #555fdc
-    white_fill = (255, 255, 255)
+    # Colors - swap for dark mode
+    if dark_mode:
+        border_color = (102, 126, 234)  # Lighter blue for dark mode #667eea
+        bg_fill = (0, 0, 0)  # Black background
+        text_color = 'white'
+    else:
+        border_color = (85, 95, 220)  # #555fdc
+        bg_fill = (255, 255, 255)  # White background
+        text_color = 'black'
 
-    # Draw white rounded rectangle
+    # Draw rounded rectangle
     draw.rounded_rectangle([(0, 0), (size-1, size-1)], radius=corner_radius,
-                          fill=white_fill + (255,), outline=blue_border + (255,),
+                          fill=bg_fill + (255,), outline=border_color + (255,),
                           width=border_width)
 
     # Calculate font size - increased by 8% (98% of size)
@@ -52,13 +58,13 @@ def generate_favicon_size(size, font_path, shaw_char='𐑖', tee_char='𐑑'):
     tee_bottom_margin = int(size * 0.16)  # Increased from 8% to 16% to move up with shaw
     tee_y = size - tee_bottom_margin - tee_bbox[3]
 
-    # Draw black shaw and black tee (same font size, with stroke for boldness)
+    # Draw shaw and tee characters (same font size, with stroke for boldness)
     draw = ImageDraw.Draw(img)
     stroke_width = max(1, size // 40)  # Bold effect with stroke
-    draw.text((shaw_x, shaw_y), shaw_char, font=font, fill='black',
-              stroke_width=stroke_width, stroke_fill='black')
-    draw.text((tee_x, tee_y), tee_char, font=font, fill='black',
-              stroke_width=stroke_width, stroke_fill='black')
+    draw.text((shaw_x, shaw_y), shaw_char, font=font, fill=text_color,
+              stroke_width=stroke_width, stroke_fill=text_color)
+    draw.text((tee_x, tee_y), tee_char, font=font, fill=text_color,
+              stroke_width=stroke_width, stroke_fill=text_color)
 
     return img
 
@@ -75,6 +81,7 @@ def generate_favicons():
     sizes = [64, 128, 180, 192, 512]
 
     for size in sizes:
+        # Light mode version
         img = generate_favicon_size(size, font_path)
         output_path = f'../site/favicon-{size}x{size}.png'
         img.save(output_path, 'PNG')
@@ -88,6 +95,15 @@ def generate_favicons():
     img_32 = generate_favicon_size(32, font_path)
     img_32.save('../site/favicon.ico', 'ICO')
     print(f"Generated ../site/favicon.ico (32x32)")
+
+    # Generate dark mode versions for Apple touch icons
+    # iOS looks for files with ~dark suffix for dark mode
+    apple_sizes = [180, 192]
+    for size in apple_sizes:
+        img_dark = generate_favicon_size(size, font_path, dark_mode=True)
+        output_path = f'../site/favicon-{size}x{size}~dark.png'
+        img_dark.save(output_path, 'PNG')
+        print(f"Generated {output_path} (dark mode)")
 
 if __name__ == '__main__':
     generate_favicons()
