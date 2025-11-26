@@ -56,12 +56,6 @@ let inputHadFocusBeforeModal = false;
 // Variation Selector 1 - used in some ligature combinations (especially IGC)
 const VS1 = '\uFE00';
 
-// Helper: Detect if user is on a mobile device
-function isMobileDevice() {
-    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-           (navigator.maxTouchPoints && navigator.maxTouchPoints > 2);
-}
-
 // Get ligatures for current layout
 function getCurrentLayoutLigatures() {
     if (!KEYBOARD_MAPS || !KEYBOARD_MAPS[currentLayout]) {
@@ -342,35 +336,7 @@ let selectedLevel = 1; // Level selection: 1-7
 let levelCount = 6; // Number of levels in play mode (configurable: 3, 6, or 10)
 let useShavianUI = false; // Toggle for Shavian UI
 let currentDialect = 'gb'; // 'gb' or 'us' - English dialect for word lists
-let debugMode = false; // Toggle for debug logging
 let useVirtualKeyboard = true; // QWERTY virtual keyboard always enabled
-
-// Debug logging function - only logs when debugMode is true
-function debug(...args) {
-    if (debugMode) {
-        console.log(...args);
-    }
-}
-
-// Helper function to toggle debug mode (can be called from console immediately)
-// Usage: setDebug(true) or setDebug(false) or window.debugMode = true
-window.setDebug = function(enabled) {
-    debugMode = !!enabled;
-    window.debugMode = debugMode; // Also expose on window for direct access
-    localStorage.setItem('debugMode', debugMode);
-    console.log('Debug mode ' + (debugMode ? 'enabled' : 'disabled') + ' and saved to localStorage');
-    return debugMode;
-};
-
-// Expose debugMode on window and make it a getter/setter
-Object.defineProperty(window, 'debugMode', {
-    get: function() { return debugMode; },
-    set: function(value) {
-        debugMode = !!value;
-        localStorage.setItem('debugMode', debugMode);
-        console.log('Debug mode ' + (debugMode ? 'enabled' : 'disabled'));
-    }
-});
 
 // Debug function to jump to a specific level/lesson for testing
 // Usage: setLevel(5) - jumps to level 5 with appropriate state

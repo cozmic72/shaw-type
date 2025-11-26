@@ -350,6 +350,9 @@
     <!-- Virtual Keyboard Container (loaded dynamically) -->
     <div id="virtualKeyboardContainer"></div>
 
+    <!-- Load utilities first (debug, isMobileDevice, etc.) -->
+    <script src="utils.js?v={{VERSION}}"></script>
+
     <!-- Load virtual keyboard before main script -->
     <script src="virtual-keyboard.js?v={{VERSION}}"></script>
 
