@@ -1076,12 +1076,8 @@ function startLevel(wordPool, wordCount, type, title, typeLabel, completionCallb
     // Initialize game (loads words)
     initializeGame();
 
-    // Clear input and shadow
-    typingInput.value = '';
-    shadowInput = '';
-    previousInput = '';
-    maxEffectiveLength = 0;
-    isInErrorState = false;
+    // Clear input state
+    clearInputState();
 
     // Start timer only for play mode at level 1 (beginning of game)
     if (currentMode === 'play' && currentLevelNumber === 1 && wordsCompleted === 0) {
@@ -1206,11 +1202,7 @@ function loadNewWord() {
     // Store the processed word back (with ligatures if enabled, and space if needed)
     words[carouselOffset] = currentWord;
 
-    typingInput.value = '';
-    shadowInput = '';
-    previousInput = '';
-    maxEffectiveLength = 0;
-    isInErrorState = false;
+    clearInputState();
     updateWordDisplay();
 
     updateLevel();
@@ -1679,12 +1671,8 @@ window.loadWord = function(word) {
     words[currentSlot] = word;
     currentWord = word;
 
-    // Clear input and reset state
-    typingInput.value = '';
-    shadowInput = '';
-    previousInput = '';
-    maxEffectiveLength = 0;
-    isInErrorState = false;
+    // Clear input state
+    clearInputState();
 
     // Temporarily modify word pool to include this word at max length for font sizing test
     const wordLength = Array.from(word).length;
@@ -1710,12 +1698,8 @@ window.setNextWord = function(word) {
     // Update currentWord to the new current slot
     currentWord = words[carouselOffset];
 
-    // Clear input and reset state for new word
-    typingInput.value = '';
-    shadowInput = '';
-    previousInput = '';
-    maxEffectiveLength = 0;
-    isInErrorState = false;
+    // Clear input state for new word
+    clearInputState();
 
     // Temporarily modify word pool to include this word at max length for font sizing test
     const wordLength = Array.from(word).length;
@@ -1732,6 +1716,17 @@ window.setNextWord = function(word) {
 let previousInput = '';  // For error state reversion
 let maxEffectiveLength = 0;  // High water mark for counting (excludes pending ligature starts)
 let isInErrorState = false; // Track if last typed character was incorrect
+let lastAutoLigatureComponents = []; // Track components if last char was auto-formed ligature (e.g., ['𐑩', '𐑮'])
+
+// Helper: Clear all input state variables
+function clearInputState() {
+    typingInput.value = '';
+    shadowInput = '';
+    previousInput = '';
+    maxEffectiveLength = 0;
+    isInErrorState = false;
+    lastAutoLigatureComponents = [];
+}
 
 // Helper: Convert string to array of Unicode code points for debugging
 function toCodePoints(str) {
@@ -1742,7 +1737,11 @@ function toCodePoints(str) {
 
 // Helper: Form ligatures in input string if enabled
 function formLigatures(input) {
-    if (!areLigaturesActive()) return input;
+    if (!areLigaturesActive()) {
+        lastAutoLigatureComponents = [];
+        return input;
+    }
+
     const componentToLigature = getCurrentComponentToLigature();
     const chars = Array.from(input);
 
@@ -1757,10 +1756,16 @@ function formLigatures(input) {
         if (componentToLigature[lastTwo]) {
             const result = normalizedChars.slice(0, -2).join('') + componentToLigature[lastTwo];
             debug('✅ LIGATURE FORMED: "' + result + '" [' + toCodePoints(result) + ']');
+            // Track components for backspace splitting
+            lastAutoLigatureComponents = [
+                normalizedChars[normalizedChars.length - 2],
+                normalizedChars[normalizedChars.length - 1]
+            ];
             return result;
         }
     }
 
+    lastAutoLigatureComponents = [];
     return input;
 }
 
@@ -1814,27 +1819,39 @@ function updateShadowInput(inputType, eventData, currentShadow, browserValue) {
             return currentShadow + (eventData || '');
 
         case 'deleteContentBackward':
-            // Backspace - remove last character (treating base+VS1 as single unit)
+            // Backspace - check if last character was auto-formed ligature
             const chars = Array.from(currentShadow); // Split into code points
             if (chars.length === 0) return '';
+
+            // If last character was auto-formed ligature, split it back to components
+            if (lastAutoLigatureComponents.length > 0 && chars.length > 0) {
+                const normalizedChars = normalizeCharArray(chars);
+                const result = normalizedChars.slice(0, -1).join('') + lastAutoLigatureComponents.join('');
+                lastAutoLigatureComponents = []; // Clear the flag
+                return result;
+            }
 
             // Check if last code point is VS1 (U+FE00)
             if (chars.length >= 2 && chars[chars.length - 1].codePointAt(0) === 0xFE00) {
                 // Last code point is VS1, delete both base character and VS1
+                lastAutoLigatureComponents = []; // Clear flag on any deletion
                 return chars.slice(0, -2).join('');
             }
 
             // Normal deletion - remove last code point
+            lastAutoLigatureComponents = []; // Clear flag on any deletion
             return chars.slice(0, -1).join('');
 
         case 'deleteContentForward':
             // Delete key - remove first character (shouldn't happen in our UI)
+            lastAutoLigatureComponents = [];
             const charsForward = Array.from(currentShadow);
             return charsForward.slice(1).join('');
 
         case 'insertReplacementText':
             // Safari uses this for ligature formation from virtual keyboard
             // Use the replacement range captured from beforeinput event
+            lastAutoLigatureComponents = [];
             if (pendingReplacementStart >= 0 && pendingReplacementEnd >= 0) {
                 const chars = Array.from(currentShadow);
                 const before = chars.slice(0, pendingReplacementStart).join('');
@@ -1851,16 +1868,19 @@ function updateShadowInput(inputType, eventData, currentShadow, browserValue) {
         case 'insertFromPaste':
         case 'insertFromDrop':
             // Paste or drop - replace entire content
+            lastAutoLigatureComponents = [];
             return eventData || browserValue;
 
         case 'deleteWordBackward':
         case 'deleteWordForward':
         case 'deleteByCut':
             // Word deletion or cut - use browser's resulting value
+            lastAutoLigatureComponents = [];
             return browserValue;
 
         case 'insertCompositionText':
             // IME composition - trust browser value
+            lastAutoLigatureComponents = [];
             return browserValue;
 
         default:
@@ -1993,6 +2013,7 @@ typingInput.addEventListener('input', (e) => {
     if (maxEffectiveLength === 0 && userInput.trim() === '') {
         shadowInput = '';
         typingInput.value = '';
+        lastAutoLigatureComponents = [];
         return;
     }
 
