@@ -4,23 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shaw Type - Shavian Typing Practice</title>
-    <link rel="icon" type="image/png" sizes="64x64" href="favicon-64x64.png?v={{VERSION}}">
-    <link rel="icon" type="image/png" sizes="128x128" href="favicon-128x128.png?v={{VERSION}}">
-    <link rel="icon" type="image/png" sizes="180x180" href="favicon-180x180.png?v={{VERSION}}">
-    <link rel="icon" type="image/png" sizes="192x192" href="favicon-192x192.png?v={{VERSION}}">
-    <link rel="icon" type="image/png" sizes="512x512" href="favicon-512x512.png?v={{VERSION}}">
-    <link rel="shortcut icon" type="image/png" href="favicon.png?v={{VERSION}}">
+    <link rel="icon" type="image/png" sizes="64x64" href="favicon-64x64.png?v={{FULL_VERSION}}">
+    <link rel="icon" type="image/png" sizes="128x128" href="favicon-128x128.png?v={{FULL_VERSION}}">
+    <link rel="icon" type="image/png" sizes="180x180" href="favicon-180x180.png?v={{FULL_VERSION}}">
+    <link rel="icon" type="image/png" sizes="192x192" href="favicon-192x192.png?v={{FULL_VERSION}}">
+    <link rel="icon" type="image/png" sizes="512x512" href="favicon-512x512.png?v={{FULL_VERSION}}">
+    <link rel="shortcut icon" type="image/png" href="favicon.png?v={{FULL_VERSION}}">
 
     <!-- Apple Touch Icons for iOS home screen (transparent background for iOS auto-theming) -->
-    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon-180x180.png?v={{VERSION}}">
-    <link rel="apple-touch-icon" sizes="192x192" href="apple-touch-icon-192x192.png?v={{VERSION}}">
-    <link rel="stylesheet" href="virtual-keyboard.css?v={{VERSION}}">
-    <link rel="stylesheet" href="style.css?v={{VERSION}}">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon-180x180.png?v={{FULL_VERSION}}">
+    <link rel="apple-touch-icon" sizes="192x192" href="apple-touch-icon-192x192.png?v={{FULL_VERSION}}">
+    <link rel="stylesheet" href="virtual-keyboard.css?v={{FULL_VERSION}}">
+    <link rel="stylesheet" href="style.css?v={{FULL_VERSION}}">
 
     <!-- Load translations synchronously before anything else -->
     <script>
         // Version for cache-busting
-        const RESOURCE_VERSION = '{{VERSION}}';
+        const RESOURCE_VERSION = '{{FULL_VERSION}}';
 
         // Helper: Add version parameter to resource URLs (global)
         window.versionedUrl = function(url) {
@@ -355,14 +355,14 @@
     <div id="virtualKeyboardContainer"></div>
 
     <!-- Load utilities first (debug, isMobileDevice, etc.) -->
-    <script src="utils.js?v={{VERSION}}"></script>
+    <script src="utils.js?v={{FULL_VERSION}}"></script>
 
     <!-- Load virtual keyboard before main script -->
-    <script src="virtual-keyboard.js?v={{VERSION}}"></script>
+    <script src="virtual-keyboard.js?v={{FULL_VERSION}}"></script>
 
     <!-- Load game state class before main script -->
-    <script src="game-state.js?v={{VERSION}}"></script>
+    <script src="game-state.js?v={{FULL_VERSION}}"></script>
 
-    <script src="main.js?v={{VERSION}}"></script>
+    <script src="main.js?v={{FULL_VERSION}}"></script>
 </body>
 </html>

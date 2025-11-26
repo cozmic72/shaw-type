@@ -17,8 +17,8 @@ import os
 import shutil
 from pathlib import Path
 
-def deploy(version, output_dir='build/site'):
-    """Deploy files with the specified version to output directory."""
+def deploy(version, build_number, output_dir='build/site'):
+    """Deploy files with the specified version and build number to output directory."""
     project_root = Path(__file__).parent.parent
     site_dir = project_root / 'site'
     output_path = project_root / output_dir
@@ -35,9 +35,11 @@ def deploy(version, output_dir='build/site'):
 
     output_path.mkdir(parents=True, exist_ok=True)
 
-    print(f"Deploying Shaw Type v{version}")
+    full_version = f"{version}-b{build_number}"
+    print(f"Deploying Shaw Type v{version} (build {build_number})")
     print(f"  Source: {site_dir}")
     print(f"  Output: {output_path}")
+    print(f"  Full version: {full_version}")
     print()
 
     # Track statistics
@@ -64,8 +66,10 @@ def deploy(version, output_dir='build/site'):
                 with open(source_file, 'r', encoding='utf-8') as f:
                     content = f.read()
 
-                # Replace version placeholder
+                # Replace version placeholders
+                content = content.replace('{{FULL_VERSION}}', full_version)
                 content = content.replace('{{VERSION}}', version)
+                content = content.replace('{{BUILD_NUMBER}}', build_number)
 
                 # Write to output
                 with open(dest_file, 'w', encoding='utf-8') as f:
@@ -79,8 +83,10 @@ def deploy(version, output_dir='build/site'):
                 with open(source_file, 'r', encoding='utf-8') as f:
                     content = f.read()
 
-                # Replace version placeholder in JSON (quoted)
+                # Replace version placeholders in JSON (quoted)
+                content = content.replace('"{{FULL_VERSION}}"', f'"{full_version}"')
                 content = content.replace('"{{VERSION}}"', f'"{version}"')
+                content = content.replace('"{{BUILD_NUMBER}}"', f'"{build_number}"')
 
                 # Write to output
                 with open(dest_file, 'w', encoding='utf-8') as f:
@@ -94,8 +100,10 @@ def deploy(version, output_dir='build/site'):
                 with open(source_file, 'r', encoding='utf-8') as f:
                     content = f.read()
 
-                # Replace version placeholder (both quoted and unquoted)
+                # Replace version placeholders
+                content = content.replace('{{FULL_VERSION}}', full_version)
                 content = content.replace('{{VERSION}}', version)
+                content = content.replace('{{BUILD_NUMBER}}', build_number)
 
                 # Write to output
                 with open(dest_file, 'w', encoding='utf-8') as f:
@@ -126,18 +134,45 @@ def deploy(version, output_dir='build/site'):
 
     return 0
 
+def read_version_file():
+    """Read version and build number from current-version file."""
+    project_root = Path(__file__).parent.parent
+    version_file = project_root / 'current-version'
+
+    try:
+        with open(version_file, 'r') as f:
+            lines = f.read().strip().split('\n')
+            version = lines[0].strip()
+            build_number = lines[1].strip() if len(lines) > 1 else '1'
+            return version, build_number
+    except (FileNotFoundError, IndexError):
+        print(f"Error: Could not read version from {version_file}")
+        print("Expected format:")
+        print("  Line 1: version (e.g., 2.1)")
+        print("  Line 2: build number (e.g., 1)")
+        sys.exit(1)
+
+
 def main():
-    if len(sys.argv) < 2:
-        print("Usage: python deploy.py <version> [output_dir]")
-        print("Examples:")
-        print("  python deploy.py 2.0.1")
-        print("  python deploy.py 2.0.1 dist/")
-        return 1
+    import argparse
 
-    version = sys.argv[1]
-    output_dir = sys.argv[2] if len(sys.argv) > 2 else 'build/site'
+    parser = argparse.ArgumentParser(description='Deploy Shaw Type with version replacement')
+    parser.add_argument('-v', '--version', help='Version number (default: read from current-version file)')
+    parser.add_argument('-b', '--build-number', help='Build number (default: read from current-version file)')
+    parser.add_argument('-o', '--output-dir', default='build/site', help='Output directory (default: build/site)')
 
-    return deploy(version, output_dir)
+    args = parser.parse_args()
+
+    # Read from current-version file if not provided
+    if args.version is None or args.build_number is None:
+        file_version, file_build = read_version_file()
+        version = args.version or file_version
+        build_number = args.build_number or file_build
+    else:
+        version = args.version
+        build_number = args.build_number
+
+    return deploy(version, build_number, args.output_dir)
 
 if __name__ == '__main__':
     sys.exit(main())
