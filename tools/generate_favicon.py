@@ -68,6 +68,46 @@ def generate_favicon_size(size, font_path, shaw_char='𐑖', tee_char='𐑑', da
 
     return img
 
+def generate_favicon_transparent(size, font_path, shaw_char='𐑖', tee_char='𐑑'):
+    """Generate a favicon with transparent background for iOS auto-theming."""
+    # Create transparent image
+    img = Image.new('RGBA', (size, size), (0, 0, 0, 0))
+
+    # Calculate font size
+    font_size = int(size * 0.98)
+    font = ImageFont.truetype(font_path, font_size)
+
+    # Get bounding boxes for both characters
+    temp_draw = ImageDraw.Draw(img)
+
+    shaw_bbox = temp_draw.textbbox((0, 0), shaw_char, font=font)
+    shaw_width = shaw_bbox[2] - shaw_bbox[0]
+    shaw_height = shaw_bbox[3] - shaw_bbox[1]
+
+    tee_bbox = temp_draw.textbbox((0, 0), tee_char, font=font)
+    tee_width = tee_bbox[2] - tee_bbox[0]
+    tee_height = tee_bbox[3] - tee_bbox[1]
+
+    # Position shaw slightly left of center at 12% from top
+    shaw_x = (size - shaw_width) // 2 - shaw_bbox[0] - int(tee_width * 0.3)
+    shaw_y = int(size * 0.12) - shaw_bbox[1]
+
+    # Position tee to nestle in shaw's curve
+    tee_x = shaw_x + int(shaw_width * 0.75)
+    tee_bottom_margin = int(size * 0.16)
+    tee_y = size - tee_bottom_margin - tee_bbox[3]
+
+    # Draw black characters on transparent background
+    # iOS will add its own background respecting user's color preference
+    draw = ImageDraw.Draw(img)
+    stroke_width = max(1, size // 40)
+    draw.text((shaw_x, shaw_y), shaw_char, font=font, fill='black',
+              stroke_width=stroke_width, stroke_fill='black')
+    draw.text((tee_x, tee_y), tee_char, font=font, fill='black',
+              stroke_width=stroke_width, stroke_fill='black')
+
+    return img
+
 def generate_favicons():
     # Load Ormin font
     font_path = '../site/fonts/Ormin-Regular.otf'
@@ -96,14 +136,14 @@ def generate_favicons():
     img_32.save('../site/favicon.ico', 'ICO')
     print(f"Generated ../site/favicon.ico (32x32)")
 
-    # Generate dark mode versions for Apple touch icons
-    # iOS looks for files with ~dark suffix for dark mode
+    # Generate transparent background versions for Apple touch icons
+    # iOS automatically applies a background respecting the user's color preference
     apple_sizes = [180, 192]
     for size in apple_sizes:
-        img_dark = generate_favicon_size(size, font_path, dark_mode=True)
-        output_path = f'../site/favicon-{size}x{size}~dark.png'
-        img_dark.save(output_path, 'PNG')
-        print(f"Generated {output_path} (dark mode)")
+        img_transparent = generate_favicon_transparent(size, font_path)
+        output_path = f'../site/apple-touch-icon-{size}x{size}.png'
+        img_transparent.save(output_path, 'PNG')
+        print(f"Generated {output_path} (transparent for iOS auto-theming)")
 
 if __name__ == '__main__':
     generate_favicons()
