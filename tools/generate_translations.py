@@ -2,8 +2,12 @@
 """
 Generate Shavian transliterations from Latin source files.
 Uses the 'shave' tool with custom dictionary to create British and American variants.
+
+By default, only processes files with uncommitted changes.
+Use -a/--all to process all files.
 """
 
+import argparse
 import csv
 import json
 import subprocess
@@ -16,6 +20,43 @@ CONTENT_DIR = PROJECT_DIR / "content"
 SITE_DIR = PROJECT_DIR / "site"
 DICT_FILE_BRITISH = SCRIPT_DIR / "shaw-type-british.dict"
 DICT_FILE_AMERICAN = SCRIPT_DIR / "shaw-type-american.dict"
+
+
+def get_changed_files():
+    """
+    Get list of files with uncommitted changes (staged or unstaged).
+    Returns set of absolute Path objects.
+    """
+    try:
+        # Get unstaged changes
+        unstaged = subprocess.run(
+            ["git", "diff", "--name-only"],
+            capture_output=True,
+            text=True,
+            check=True,
+            cwd=PROJECT_DIR
+        )
+
+        # Get staged changes
+        staged = subprocess.run(
+            ["git", "diff", "--cached", "--name-only"],
+            capture_output=True,
+            text=True,
+            check=True,
+            cwd=PROJECT_DIR
+        )
+
+        # Combine and convert to absolute paths
+        changed = set()
+        for line in (unstaged.stdout + staged.stdout).splitlines():
+            if line.strip():
+                changed.add((PROJECT_DIR / line.strip()).resolve())
+
+        return changed
+    except subprocess.CalledProcessError:
+        # If git command fails, return empty set (will process nothing by default)
+        print("Warning: Could not check git status. Use -a/--all to process all files.")
+        return set()
 
 
 def check_dependencies():
@@ -214,6 +255,17 @@ def transliterate_html(input_file, output_british, output_american, shave_cmd):
 
 def main():
     """Main function."""
+    # Parse arguments
+    parser = argparse.ArgumentParser(
+        description='Generate Shavian transliterations from Latin source files.'
+    )
+    parser.add_argument(
+        '-a', '--all',
+        action='store_true',
+        help='Process all files (default: only process files with uncommitted changes)'
+    )
+    args = parser.parse_args()
+
     print("Generating Shavian transliterations...")
 
     shave_cmd = check_dependencies()
@@ -226,25 +278,35 @@ def main():
         print(f"Error: American dictionary file not found at {DICT_FILE_AMERICAN}")
         sys.exit(1)
 
+    # Get changed files if not processing all
+    changed_files = None
+    if not args.all:
+        changed_files = get_changed_files()
+        if changed_files:
+            print(f"\nProcessing {len(changed_files)} changed file(s)")
+        else:
+            print("\nNo changed files detected. Use -a/--all to process all files.")
+            return
+
     # Process CSV translations
-    print("\nGenerating JSON translations from CSV:")
     csv_file = SCRIPT_DIR / "translations.csv"
+    csv_changed = args.all or (changed_files and csv_file.resolve() in changed_files)
 
-    if csv_file.exists():
-        transliterate_csv(
-            csv_file,
-            SITE_DIR / "translations_latin.json",
-            SITE_DIR / "translations_british.json",
-            SITE_DIR / "translations_american.json",
-            shave_cmd
-        )
-    else:
-        print(f"  Error: {csv_file} not found!")
-        sys.exit(1)
+    if csv_changed:
+        print("\nGenerating JSON translations from CSV:")
+        if csv_file.exists():
+            transliterate_csv(
+                csv_file,
+                SITE_DIR / "translations_latin.json",
+                SITE_DIR / "translations_british.json",
+                SITE_DIR / "translations_american.json",
+                shave_cmd
+            )
+        else:
+            print(f"  Error: {csv_file} not found!")
+            sys.exit(1)
 
-    # Process HTML content files from content/ directory
-    print("\nProcessing HTML content files:")
-
+    # Process HTML content files from site/ directory
     content_files = [
         "about.html",
         "keyboards.html",
@@ -252,26 +314,29 @@ def main():
         "whats_new.html"
     ]
 
-    import shutil
+    html_files_processed = False
     for filename in content_files:
         base_name = filename.replace('.html', '')
-
         source_path = SITE_DIR / f"{base_name}_latin.html"
-        gb_output = SITE_DIR / f"{base_name}_gb.html"
-        us_output = SITE_DIR / f"{base_name}_us.html"
 
-        if source_path.exists():
-            print(f"  Processing {filename}...")
+        # Check if this file should be processed
+        should_process = args.all or (changed_files and source_path.resolve() in changed_files)
+
+        if should_process and source_path.exists():
+            if not html_files_processed:
+                print("\nProcessing HTML content files:")
+                html_files_processed = True
+
+            gb_output = SITE_DIR / f"{base_name}_gb.html"
+            us_output = SITE_DIR / f"{base_name}_us.html"
+
             # Transliterate to GB and US
             transliterate_html(source_path, gb_output, us_output, shave_cmd)
-        else:
-            print(f"  {filename} not found in content/ (skipping)")
 
-    print("\n✅ Translation generation complete!")
-    print("Generated files:")
-    print(f"  - {SITE_DIR / 'translations_latin.json'}")
-    print(f"  - {SITE_DIR / 'translations_british.json'}")
-    print(f"  - {SITE_DIR / 'translations_american.json'}")
+    if csv_changed or html_files_processed:
+        print("\n✅ Translation generation complete!")
+    else:
+        print("\n✅ No translation files needed updating.")
 
 
 if __name__ == "__main__":
