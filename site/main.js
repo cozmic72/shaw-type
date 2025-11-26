@@ -2142,7 +2142,7 @@ function onLayoutChangeSetup() {
 }
 
 // Splash screen functions
-const APP_VERSION = '{{VERSION}}';
+const APP_VERSION = '{{FULL_VERSION}}';
 
 function closeSplashModal() {
     const dontShow = document.getElementById('dontShowSplash').checked;
