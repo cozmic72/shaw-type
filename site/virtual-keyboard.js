@@ -462,6 +462,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (typeof debug === 'function') {
                     debug('🎹 Physical keyboard detected on mobile device');
                 }
+
+                // Auto-focus the input now that we know there's a physical keyboard
+                // Remove visual border indicator and focus
+                if (typingInput.style.border) {
+                    typingInput.style.border = '';
+                }
+                typingInput.focus();
             }
         }
 
