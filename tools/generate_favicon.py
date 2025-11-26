@@ -97,14 +97,16 @@ def generate_favicon_transparent(size, font_path, shaw_char='êëñ', tee_char='ê
     tee_bottom_margin = int(size * 0.16)
     tee_y = size - tee_bottom_margin - tee_bbox[3]
 
-    # Draw black characters on transparent background
+    # Draw blue characters on transparent background
+    # Mid-range blue has good contrast on both light and dark backgrounds
     # iOS will add its own background respecting user's color preference
+    blue_color = (85, 95, 220)  # #555fdc - the border color from our main icon
     draw = ImageDraw.Draw(img)
     stroke_width = max(1, size // 40)
-    draw.text((shaw_x, shaw_y), shaw_char, font=font, fill='black',
-              stroke_width=stroke_width, stroke_fill='black')
-    draw.text((tee_x, tee_y), tee_char, font=font, fill='black',
-              stroke_width=stroke_width, stroke_fill='black')
+    draw.text((shaw_x, shaw_y), shaw_char, font=font, fill=blue_color,
+              stroke_width=stroke_width, stroke_fill=blue_color)
+    draw.text((tee_x, tee_y), tee_char, font=font, fill=blue_color,
+              stroke_width=stroke_width, stroke_fill=blue_color)
 
     return img
 
