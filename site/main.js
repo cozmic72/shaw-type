@@ -1981,13 +1981,14 @@ function onLayoutChangeSetup() {
 
 // Splash screen functions
 const APP_VERSION = '{{FULL_VERSION}}';
+const MAJOR_VERSION = '{{VERSION}}';
 
 function closeSplashModal() {
     const dontShow = document.getElementById('dontShowSplash').checked;
 
     if (dontShow) {
         // Store the current version so we don't show splash again for this version
-        localStorage.setItem('lastSeenVersion', APP_VERSION);
+        localStorage.setItem('lastSeenVersion', MAJOR_VERSION);
     }
     document.getElementById('splashModal').classList.remove('show');
 
@@ -2002,7 +2003,7 @@ async function showSplashIfNeeded() {
     const lastSeenVersion = localStorage.getItem('lastSeenVersion');
 
     // Show splash if version doesn't match (first time or version changed)
-    const shouldShowSplash = lastSeenVersion !== APP_VERSION;
+    const shouldShowSplash = lastSeenVersion !== MAJOR_VERSION;
 
     if (shouldShowSplash) {
         document.getElementById('splashModal').classList.add('show');
