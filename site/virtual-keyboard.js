@@ -298,11 +298,15 @@ function updateKeyboardLabels(keyboardMap, layoutName) {
             'Tab': '⇥',
             'CapsLock': '⇪',
             'Enter': '⏎',
-            'Shift': '⇧',
-            ' ': 'Space'
+            'Shift': '⇧'
         };
 
-        if (specialKeys[keyValue]) {
+        if (keyValue === ' ') {
+            // Space key: show "Space" label but keep the mapping
+            key.innerHTML = 'Space';
+            key.setAttribute('data-shavian', ' ');
+            key.removeAttribute('data-shavian-shift');
+        } else if (specialKeys[keyValue]) {
             // Special keys don't have dual legends
             key.innerHTML = specialKeys[keyValue];
             key.removeAttribute('data-shavian');
@@ -462,10 +466,13 @@ function makeKeysClickable(keyboardMap) {
                 return;
             }
 
-            // Determine which character to type based on slide state
+            // Determine which character to type based on slide state and shift layer
             let shavianChar;
             if (touchState.isSlideDown) {
                 // Slide-down: type shift character
+                shavianChar = newKey.getAttribute('data-shavian-shift');
+            } else if (isShiftActive) {
+                // Shift layer is showing: use shift character (blank if no mapping)
                 shavianChar = newKey.getAttribute('data-shavian-shift');
             } else {
                 // Normal: type base character
