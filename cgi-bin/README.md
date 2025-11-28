@@ -11,17 +11,11 @@ Edit `contact.py` and update the configuration section at the top:
 ```python
 # Email configuration
 RECIPIENT_EMAIL = "your-email@example.com"  # Your email address
-SMTP_SERVER = "localhost"  # Your SMTP server
-SMTP_PORT = 25  # SMTP port (25 for sendmail, 587 for TLS, 465 for SSL)
 ```
 
-**For local sendmail (simplest):**
-- Set `SMTP_SERVER = "localhost"` and `SMTP_PORT = 25`
-- Make sure sendmail is installed and configured on your server
+That's it! The script uses the `mail` command which is much simpler than SMTP.
 
-**For external SMTP (Gmail, SendGrid, etc.):**
-- Update `SMTP_SERVER`, `SMTP_PORT`, `USE_TLS`/`USE_SSL`
-- Set `SMTP_USERNAME` and `SMTP_PASSWORD` if authentication is required
+**Note:** The Reply-To header is automatically set to the user's email address, so you can just hit "Reply" in your email client to respond to them directly.
 
 ### 2. Configure Apache
 
@@ -77,7 +71,21 @@ You need to tell Apache where to find CGI scripts. There are two approaches:
    sudo chown www-data:www-data /path/to/shaw-type/cgi-bin/contact.py
    ```
 
-### 3. Install Python Dependencies
+### 3. Install Mail Utility
+
+The script uses the `mail` command to send emails. Install it if not already present:
+
+```bash
+# For Debian/Ubuntu:
+sudo apt-get install mailutils
+
+# OR for other systems:
+sudo apt-get install mailx
+```
+
+Make sure your server can send email (postfix, sendmail, or similar should be configured).
+
+### 4. Verify Python 3
 
 The script uses only Python standard library modules, so no additional packages are needed.
 
@@ -85,46 +93,6 @@ Make sure Python 3 is installed:
 ```bash
 python3 --version
 ```
-
-### 4. Configure Email Delivery
-
-#### Option A: Using local sendmail (simplest)
-
-1. Install sendmail or postfix:
-   ```bash
-   sudo apt-get install sendmail
-   # OR
-   sudo apt-get install postfix
-   ```
-
-2. Configure sendmail/postfix to relay email (many tutorials available online)
-
-3. In `contact.py`, set:
-   ```python
-   SMTP_SERVER = "localhost"
-   SMTP_PORT = 25
-   USE_TLS = False
-   USE_SSL = False
-   SMTP_USERNAME = None
-   SMTP_PASSWORD = None
-   ```
-
-#### Option B: Using external SMTP (Gmail example)
-
-1. In `contact.py`, set:
-   ```python
-   SMTP_SERVER = "smtp.gmail.com"
-   SMTP_PORT = 587
-   USE_TLS = True
-   USE_SSL = False
-   SMTP_USERNAME = "your-gmail@gmail.com"
-   SMTP_PASSWORD = "your-app-password"  # Use App Password, not regular password
-   ```
-
-2. For Gmail, you'll need to generate an App Password:
-   - Go to https://myaccount.google.com/security
-   - Enable 2-Step Verification
-   - Generate an App Password for "Mail"
 
 ### 5. Test the Setup
 
@@ -164,14 +132,13 @@ python3 --version
 
 ### Email not sending
 
-- Check SMTP settings in `contact.py`
-- Test SMTP connection manually:
+- Make sure `mail` command is installed: `which mail`
+- Test mail command manually:
   ```bash
-  telnet localhost 25
-  # OR
-  openssl s_client -connect smtp.gmail.com:587 -starttls smtp
+  echo "Test message" | mail -s "Test subject" your-email@example.com
   ```
 - Check mail logs: `sudo tail /var/log/mail.log`
+- Verify postfix/sendmail is running: `sudo systemctl status postfix`
 
 ### CORS errors
 
@@ -196,15 +163,21 @@ sudo systemctl reload apache2
 
 2. **Rate limiting**: Consider adding rate limiting to prevent spam (can be done via Apache modules or in the Python script)
 
-3. **Input validation**: The script validates basic input, but you may want to add additional checks
+3. **Input validation**: The script validates basic input, but you may want to add additional checks (e.g., CAPTCHA)
 
 4. **HTTPS**: Make sure your site uses HTTPS to protect form data in transit
 
-5. **File permissions**: Make sure only www-data can read the script (especially if SMTP credentials are in it)
+5. **File permissions**: Make sure only www-data can read the script:
+   ```bash
+   chmod 750 /usr/lib/cgi-bin/contact.py
+   sudo chown www-data:www-data /usr/lib/cgi-bin/contact.py
+   ```
+
+6. **Email header injection**: The script sanitizes input, but be aware that allowing user-controlled Reply-To headers could potentially be exploited. The current implementation is safe for normal use.
 
 ## Alternative: Using a Form Service
 
-If setting up CGI/SMTP is too complex, consider using a third-party form service:
+If you don't want to set up CGI scripts, consider using a third-party form service:
 - Formspree (https://formspree.io)
 - Netlify Forms (if hosted on Netlify)
 - Google Forms
