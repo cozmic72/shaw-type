@@ -19,7 +19,7 @@ cgitb.enable()
 # ============================================================================
 
 # Email configuration
-RECIPIENT_EMAIL = "your-email@example.com"  # Change this to your email
+RECIPIENT_EMAIL = "jonathan@baggesen.org"  # Change this to your email
 
 # ============================================================================
 
