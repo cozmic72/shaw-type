@@ -1957,6 +1957,55 @@ function closeContentModal() {
     }
 }
 
+// Contact form submission
+async function submitContactForm(event) {
+    event.preventDefault();
+
+    const form = document.getElementById('contactForm');
+    const statusEl = document.getElementById('contactFormStatus');
+    const submitBtn = form.querySelector('button[type="submit"]');
+
+    // Get form data
+    const formData = new FormData(form);
+
+    // Disable submit button and show loading
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending...';
+    statusEl.textContent = '';
+    statusEl.style.color = '';
+
+    try {
+        const response = await fetch('/cgi-bin/contact.py', {
+            method: 'POST',
+            body: formData
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            if (result.success) {
+                statusEl.textContent = '✓ Message sent successfully! Thank you for contacting us.';
+                statusEl.style.color = '#4CAF50';
+                form.reset();
+            } else {
+                statusEl.textContent = '✗ Error: ' + (result.error || 'Failed to send message');
+                statusEl.style.color = '#f44336';
+            }
+        } else {
+            statusEl.textContent = '✗ Server error. Please try again later.';
+            statusEl.style.color = '#f44336';
+        }
+    } catch (error) {
+        console.error('Error submitting contact form:', error);
+        statusEl.textContent = '✗ Network error. Please try again later.';
+        statusEl.style.color = '#f44336';
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Send Message';
+    }
+
+    return false;
+}
+
 // Welcome modal functions
 // Setup dialog functions
 function onDialectChangeSetup() {

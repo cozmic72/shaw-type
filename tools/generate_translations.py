@@ -311,6 +311,7 @@ def main():
         "about.html",
         "keyboards.html",
         "resources.html",
+        "contact.html",
         "whats_new.html"
     ]
 
