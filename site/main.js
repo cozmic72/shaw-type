@@ -585,6 +585,131 @@ async function playAgain() {
     showCountdown(levelData.wordPool, levelData.wordCount, 'level', levelData.title, t.level_label, onPlayLevelComplete);
 }
 
+// Share game results on social media
+async function shareResults() {
+    // Get current stats from the completion screen
+    const wpm = document.getElementById('finalWPM').textContent;
+    const accuracy = document.getElementById('finalAccuracy').textContent.replace(/\s*personal best!$/, ''); // Remove "personal best!" if present
+    const level = document.getElementById('finalLevel').textContent;
+
+    // Format share text
+    const shareText = `I just scored ${wpm} WPM with ${accuracy} accuracy (Level ${level}) typing Shavian on Shaw Type! 𐑖𐑷 𐑑𐑲𐑐`;
+    const shareUrl = 'https://shawtype.com';
+    const shareHashtags = '#Shavian #ShawAlphabet #ShawType';
+
+    // Try Web Share API first (mobile-friendly)
+    if (navigator.share) {
+        try {
+            await navigator.share({
+                title: 'Shaw Type Results',
+                text: shareText,
+                url: shareUrl
+            });
+            return;
+        } catch (err) {
+            // User cancelled or error - fall through to fallback
+            if (err.name !== 'AbortError') {
+                console.error('Error sharing:', err);
+            }
+        }
+    }
+
+    // Fallback: Show share options modal
+    showShareModal(shareText, shareUrl, shareHashtags);
+}
+
+// Show social media share options in a modal
+function showShareModal(shareText, shareUrl, shareHashtags) {
+    // Get translations
+    const t = getCurrentTranslations();
+
+    // Create modal HTML
+    const encodedText = encodeURIComponent(shareText);
+    const encodedUrl = encodeURIComponent(shareUrl);
+    const encodedHashtags = encodeURIComponent(shareHashtags);
+
+    // Social media share URLs
+    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}&hashtags=${encodeURIComponent('Shavian,ShawAlphabet,ShawType')}`;
+    const redditUrl = `https://reddit.com/submit?title=${encodedText}&url=${encodedUrl}`;
+    const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}&quote=${encodedText}`;
+
+    // Create modal content
+    const modalHtml = `
+        <div class="settings-modal show" id="shareModal" style="display: flex;">
+            <div class="settings-content" style="max-width: 500px;">
+                <span class="modal-close" onclick="closeShareModal()">&times;</span>
+                <h2>${t.shareResultsTitle || 'Share Your Results'}</h2>
+
+                <div style="margin: 20px 0; padding: 15px; background: #f5f5f5; border-radius: 8px; font-family: monospace; font-size: 14px; word-wrap: break-word;">
+                    ${shareText}
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;">
+                    <button onclick="window.open('${twitterUrl}', '_blank')" style="padding: 12px; background: #1DA1F2; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px;">
+                        Share on 𝕏 / Twitter
+                    </button>
+                    <button onclick="window.open('${redditUrl}', '_blank')" style="padding: 12px; background: #FF4500; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px;">
+                        Share on Reddit
+                    </button>
+                    <button onclick="window.open('${facebookUrl}', '_blank')" style="padding: 12px; background: #1877F2; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px;">
+                        Share on Facebook
+                    </button>
+                    <button onclick="copyShareText('${shareText.replace(/'/g, "\\'")}', '${shareUrl}')" style="padding: 12px; background: white; color: #667eea; border: 2px solid #667eea; border-radius: 6px; cursor: pointer; font-size: 16px;">
+                        ${t.shareCopyButton || 'Copy to Clipboard'}
+                    </button>
+                </div>
+
+                <div style="margin-top: 20px; text-align: center;">
+                    <button onclick="closeShareModal()" style="padding: 10px 30px; background: #ccc; color: #333; border: none; border-radius: 6px; cursor: pointer;">
+                        ${t.close || 'Close'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Add modal to body
+    const modalContainer = document.createElement('div');
+    modalContainer.id = 'shareModalContainer';
+    modalContainer.innerHTML = modalHtml;
+    document.body.appendChild(modalContainer);
+}
+
+// Close share modal
+function closeShareModal() {
+    const modalContainer = document.getElementById('shareModalContainer');
+    if (modalContainer) {
+        modalContainer.remove();
+    }
+}
+
+// Copy share text to clipboard
+async function copyShareText(text, url) {
+    const fullText = `${text}\n${url}`;
+    const t = getCurrentTranslations();
+
+    try {
+        await navigator.clipboard.writeText(fullText);
+        // Show success feedback
+        const copyBtn = event.target;
+        const originalText = copyBtn.textContent;
+        copyBtn.textContent = '✓ ' + (t.shareCopied || 'Copied!');
+        copyBtn.style.background = '#28a745';
+        copyBtn.style.color = 'white';
+        copyBtn.style.borderColor = '#28a745';
+
+        setTimeout(() => {
+            copyBtn.textContent = originalText;
+            copyBtn.style.background = 'white';
+            copyBtn.style.color = '#667eea';
+            copyBtn.style.borderColor = '#667eea';
+        }, 2000);
+    } catch (err) {
+        console.error('Failed to copy:', err);
+        alert('Failed to copy to clipboard. Please copy manually:\n\n' + fullText);
+    }
+}
+
 function startPractice() {
     currentMode = 'learn';
     localStorage.setItem('currentMode', currentMode);
