@@ -2105,18 +2105,31 @@ async function submitContactForm(event) {
             body: formData
         });
 
+        // Get response text first to see what we're actually getting
+        const responseText = await response.text();
+        console.log('Response status:', response.status);
+        console.log('Response text:', responseText);
+
         if (response.ok) {
-            const result = await response.json();
-            if (result.success) {
-                statusEl.textContent = '✓ Message sent successfully! Thank you for contacting us.';
-                statusEl.style.color = '#4CAF50';
-                form.reset();
-            } else {
-                statusEl.textContent = '✗ Error: ' + (result.error || 'Failed to send message');
+            try {
+                const result = JSON.parse(responseText);
+                if (result.success) {
+                    statusEl.textContent = '✓ Message sent successfully! Thank you for contacting us.';
+                    statusEl.style.color = '#4CAF50';
+                    form.reset();
+                } else {
+                    statusEl.textContent = '✗ Error: ' + (result.error || 'Failed to send message');
+                    statusEl.style.color = '#f44336';
+                }
+            } catch (parseError) {
+                console.error('JSON parse error:', parseError);
+                console.error('Response was:', responseText);
+                statusEl.textContent = '✗ Server error (invalid response). Check console for details.';
                 statusEl.style.color = '#f44336';
             }
         } else {
-            statusEl.textContent = '✗ Server error. Please try again later.';
+            console.error('HTTP error:', response.status, responseText);
+            statusEl.textContent = '✗ Server error (' + response.status + '). Check console for details.';
             statusEl.style.color = '#f44336';
         }
     } catch (error) {
