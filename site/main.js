@@ -2114,9 +2114,9 @@ async function submitContactForm(event) {
             try {
                 const result = JSON.parse(responseText);
                 if (result.success) {
-                    statusEl.textContent = '✓ Message sent successfully! Thank you for contacting us.';
-                    statusEl.style.color = '#4CAF50';
-                    form.reset();
+                    // Show success modal and close contact modal
+                    showContactSuccessModal();
+                    closeContentModal();
                 } else {
                     statusEl.textContent = '✗ Error: ' + (result.error || 'Failed to send message');
                     statusEl.style.color = '#f44336';
@@ -2142,6 +2142,39 @@ async function submitContactForm(event) {
     }
 
     return false;
+}
+
+// Show success modal after contact form submission
+function showContactSuccessModal() {
+    const t = getCurrentTranslations();
+
+    const modalHtml = `
+        <div class="settings-modal show" id="contactSuccessModal" style="display: flex;">
+            <div class="settings-content" style="max-width: 400px; text-align: center;">
+                <h2 style="color: #28a745; margin-top: 0;">✓ ${t.contactSuccessTitle || 'Message Sent!'}</h2>
+                <p style="font-size: 16px; margin: 20px 0;">
+                    ${t.contactSuccessMessage || "Thank you for contacting us. We'll get back to you soon!"}
+                </p>
+                <button onclick="closeContactSuccessModal()"
+                        style="padding: 12px 40px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; margin-top: 10px;">
+                    ${t.contactSuccessButton || 'OK'}
+                </button>
+            </div>
+        </div>
+    `;
+
+    const modalContainer = document.createElement('div');
+    modalContainer.id = 'contactSuccessModalContainer';
+    modalContainer.innerHTML = modalHtml;
+    document.body.appendChild(modalContainer);
+}
+
+// Close contact success modal
+function closeContactSuccessModal() {
+    const modalContainer = document.getElementById('contactSuccessModalContainer');
+    if (modalContainer) {
+        modalContainer.remove();
+    }
 }
 
 // Welcome modal functions

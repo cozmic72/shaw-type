@@ -145,6 +145,9 @@ shareResultsBtn,Share Results
 shareResultsTitle,Share Your Results
 shareCopyButton,Copy to Clipboard
 shareCopied,Copied!
+contactSuccessTitle,Message Sent!
+contactSuccessMessage,Thank you for contacting us. We'll get back to you soon!
+contactSuccessButton,OK
 lessonCompleteTitle,Lesson Complete!
 sessionCompleteTitle,Session Complete!
 playCompleteTitle,Congratulations!
